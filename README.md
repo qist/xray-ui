@@ -66,6 +66,15 @@ wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://
 wget -N https://raw.githubusercontent.com/qist/xray-ui/main/install.sh && bash install.sh
 ```
 
+#### 编译
+
+```
+git clone https://github.com/qist/xray-ui.git
+
+cd xray-ui
+
+CGO_ENABLED=1 go build -o xray-ui/xray-ui  -ldflags '-linkmode "external" -extldflags "-static"' main.go
+```
 --------------------------------------------------------------------------------------------------------------------------------------------------
 ### 关于TG通知（上游内容）
 
