@@ -137,9 +137,12 @@ update() {
     echo -e "${red}检测架构失败，使用默认架构: ${arch}${plain}"
     fi
     systemctl stop xray-ui
+    curl -x  -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
+    releases_version=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
+    rm /tmp/tmp_file -f
     cd /usr/local/
     if  [ $# == 0 ] ;then
-        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/v0.1.1.1/xray-ui-linux-${arch}.tar.gz
+        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             rm -rf install.sh
@@ -147,7 +150,7 @@ update() {
         fi
     else
         last_version=$1
-        url="https://github.com/qist/xray-ui/releases/download/v0.1.1.1/xray-ui-linux-${arch}.tar.gz"
+        url="https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz"
         echo -e "开始安装 xray-ui v$1"
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then
