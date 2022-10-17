@@ -106,7 +106,7 @@ before_show_menu() {
 }
 
 install() {
-    wget -N https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/install.sh && bash install.sh
+    wget -N https://raw.githubusercontent.com/qist/xray-ui/main/install.sh && bash install.sh
     if [[ $? == 0 ]]; then
         if [[ $# == 0 ]]; then
             start
@@ -164,7 +164,7 @@ update() {
     cd xray-ui
     chmod +x xray-ui bin/xray-linux-${arch}
     cp -f xray-ui.service /etc/systemd/system/
-    wget --no-check-certificate -O /usr/bin/xray-ui https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/xray-ui.sh
+    wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     chmod +x /usr/bin/xray-ui
     chmod +x /usr/local/xray-ui/xray-ui.sh
     systemctl daemon-reload
@@ -380,7 +380,7 @@ wget -N --no-check-certificate https://gitlab.com/rwkgyg/CFwarp/raw/main/CFwarp.
 }
 
 update_shell() {
-    wget -O /usr/bin/xray-ui -N --no-check-certificate https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/xray-ui.sh
+    wget -O /usr/bin/xray-ui -N --no-check-certificate https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     if [[ $? != 0 ]]; then
         echo ""
         echo -e "${red}下载脚本失败，请检查本机能否连接 Github${plain}"
@@ -536,7 +536,7 @@ show_menu() {
     green "$acp"
     echo "------------------------------------------"
     xuiygV="22.8.25 V 0.3.3.15.9"
-    remoteV=`wget -qO- https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
+    remoteV=`wget -qO- https://raw.githubusercontent.com/qist/xray-ui/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
     localV=${xuiygV}
     if [ "${localV}" = "${remoteV}" ]; then
     green "已安装最新版本：${xuiygV} ，如有更新，此处会自动提示"

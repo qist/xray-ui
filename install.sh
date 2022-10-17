@@ -11,7 +11,7 @@ yellow(){ echo -e "\033[33m\033[01m$1\033[0m";}
 blue(){ echo -e "\033[36m\033[01m$1\033[0m";}
 white(){ echo -e "\033[37m\033[01m$1\033[0m";}
 readp(){ read -p "$(yellow "$1")" $2;}
-remoteV=`wget -qO- https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
+remoteV=`wget -qO- https://raw.githubusercontent.com/qist/xray-ui/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
 clear
 green "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"           
 echo -e "${bblue} ░██     ░██      ░██ ██ ██         ░█${plain}█   ░██     ░██   ░██     ░█${red}█   ░██${plain}  "
@@ -21,9 +21,7 @@ echo -e "${bblue}     ░██        ░${plain}██    ░██ ██    
 echo -e "${bblue}     ░██ ${plain}        ░██    ░░██        ░██ ░██       ░${red}██ ░██       ░██ ░██ ${plain}  "
 echo -e "${bblue}     ░█${plain}█          ░██ ██ ██         ░██  ░░${red}██     ░██  ░░██     ░██  ░░██ ${plain}  "
 green "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
-white "甬哥Gitlab项目  ：gitlab.com/rwkgyg"
-white "甬哥blogger博客 ：ygkkk.blogspot.com"
-white "甬哥YouTube频道 ：www.youtube.com/c/甬哥侃侃侃kkkyg"
+white "Github项目  ：github.com/qist"
 yellow "感谢xray-ui代码贡献者们（vaxilu、FranzKafkaYu及各位）"
 green "当前安装版本：$remoteV"
 yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
@@ -231,7 +229,7 @@ install_xray-ui() {
     cd xray-ui
     chmod +x xray-ui bin/xray-linux-${arch}
     cp -f xray-ui.service /etc/systemd/system/
-    wget --no-check-certificate -O /usr/bin/xray-ui https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/xray-ui.sh
+    wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     chmod +x /usr/bin/xray-ui
     chmod +x /usr/local/xray-ui/xray-ui.sh
     systemctl daemon-reload
