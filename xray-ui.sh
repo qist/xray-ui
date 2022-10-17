@@ -139,7 +139,7 @@ update() {
     systemctl stop xray-ui
     cd /usr/local/
     if  [ $# == 0 ] ;then
-        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz
+        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/v0.1.1.1/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             rm -rf install.sh
@@ -147,7 +147,7 @@ update() {
         fi
     else
         last_version=$1
-        url="https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz"
+        url="https://github.com/qist/xray-ui/releases/download/v0.1.1.1/xray-ui-linux-${arch}.tar.gz"
         echo -e "开始安装 xray-ui v$1"
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then
@@ -528,7 +528,7 @@ show_menu() {
     acp=$(/usr/local/xray-ui/xray-ui setting -show 2>/dev/null)
     green "$acp"
     echo "------------------------------------------"
-    xuiygV="22.8.25 V 0.3.3.15.9"
+    xuiygV="22.8.25 V 0.1.1.1"
     remoteV=`wget -qO- https://raw.githubusercontent.com/qist/xray-ui/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
     localV=${xuiygV}
     if [ "${localV}" = "${remoteV}" ]; then

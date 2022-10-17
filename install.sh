@@ -1,5 +1,5 @@
 #!/bin/bash
-xuiygV="22.8.25 V 0.3.3.15.9"
+xuiygV="22.8.25 V 0.1.1.1"
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
@@ -13,14 +13,6 @@ white(){ echo -e "\033[37m\033[01m$1\033[0m";}
 readp(){ read -p "$(yellow "$1")" $2;}
 remoteV=`wget -qO- https://raw.githubusercontent.com/qist/xray-ui/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
 clear
-green "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"           
-echo -e "${bblue} ░██     ░██      ░██ ██ ██         ░█${plain}█   ░██     ░██   ░██     ░█${red}█   ░██${plain}  "
-echo -e "${bblue}  ░██   ░██      ░██    ░░██${plain}        ░██  ░██      ░██  ░██${red}      ░██  ░██${plain}   "
-echo -e "${bblue}   ░██ ░██      ░██ ${plain}                ░██ ██        ░██ █${red}█        ░██ ██  ${plain}   "
-echo -e "${bblue}     ░██        ░${plain}██    ░██ ██       ░██ ██        ░█${red}█ ██        ░██ ██  ${plain}  "
-echo -e "${bblue}     ░██ ${plain}        ░██    ░░██        ░██ ░██       ░${red}██ ░██       ░██ ░██ ${plain}  "
-echo -e "${bblue}     ░█${plain}█          ░██ ██ ██         ░██  ░░${red}██     ░██  ░░██     ░██  ░░██ ${plain}  "
-green "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
 white "Github项目  ：github.com/qist"
 yellow "感谢xray-ui代码贡献者们（vaxilu、FranzKafkaYu及各位）"
 green "当前安装版本：$remoteV"
@@ -202,7 +194,7 @@ install_xray-ui() {
     cd /usr/local/
 
     if  [ $# == 0 ] ;then
-        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz
+        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/v0.1.1.1/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             rm -rf install.sh
@@ -210,7 +202,7 @@ install_xray-ui() {
         fi
     else
         last_version=$1
-        url="https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz"
+        url="https://github.com/qist/xray-ui/releases/download/v0.1.1.1/xray-ui-linux-${arch}.tar.gz"
         echo -e "开始安装 xray-ui v$1"
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then
