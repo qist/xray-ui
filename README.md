@@ -35,7 +35,15 @@
 wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-amd64.tar.gz
 
 # 解压
-cd 
+    cd /usr/local/
+    tar -xvf xray-ui-linux-amd64.tar.gz
+    rm xray-ui-linux-amd64.tar.gz -f
+    cd xray-ui
+    chmod +x xray-ui bin/xray-linux-amd64
+    cp -f xray-ui.service /etc/systemd/system/
+    systemctl daemon-reload
+    systemctl enable xray-ui
+    systemctl start xray-ui
 ```
 
 ### 纯IPV4/纯IPV6的VPS直接运行一键脚本
