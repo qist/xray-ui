@@ -192,7 +192,7 @@ fi
 install_xray-ui() {
     systemctl stop xray-ui
     cd /usr/local/
-    curl -x  -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
+    curl   -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
     releases_version=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
     rm /tmp/tmp_file -f
     if  [ $# == 0 ] ;then
