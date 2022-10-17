@@ -225,7 +225,7 @@ install_xray-ui() {
     cp -f xray-ui.service /etc/systemd/system/
     wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     chmod +x /usr/bin/xray-ui
-    chmod +x /usr/local/xray-ui/xray-ui.sh
+    #chmod +x /usr/local/xray-ui/xray-ui.sh
     systemctl daemon-reload
     systemctl enable xray-ui
     systemctl start xray-ui
