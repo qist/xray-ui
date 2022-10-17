@@ -118,6 +118,6 @@ Tg机器人ChatId
 
 /disable port将会关闭对应端口的节点
 
-/version v1.5.5将会升级xray到1.6.0版本
+/version 0.1.1.1 xray升级到1.6.0版本
 
 /help 获取帮助信息
