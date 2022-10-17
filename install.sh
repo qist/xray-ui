@@ -202,7 +202,7 @@ install_xray-ui() {
     cd /usr/local/
 
     if  [ $# == 0 ] ;then
-        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/xray-ui-linux-${arch}.tar.gz
+        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             rm -rf install.sh
@@ -210,7 +210,7 @@ install_xray-ui() {
         fi
     else
         last_version=$1
-        url="https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/xray-ui-linux-${arch}.tar.gz"
+        url="https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz"
         echo -e "开始安装 xray-ui v$1"
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then

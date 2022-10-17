@@ -139,7 +139,7 @@ update() {
     systemctl stop xray-ui
     cd /usr/local/
     if  [ $# == 0 ] ;then
-        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/xray-ui-linux-${arch}.tar.gz
+        wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             rm -rf install.sh
@@ -147,7 +147,7 @@ update() {
         fi
     else
         last_version=$1
-        url="https://gitlab.com/rwkgyg/xray-ui-yg/raw/main/xray-ui-linux-${arch}.tar.gz"
+        url="https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-${arch}.tar.gz"
         echo -e "开始安装 xray-ui v$1"
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then
@@ -373,12 +373,6 @@ bash <(curl -L -s https://raw.githubusercontent.com/teddysun/across/master/bbr.s
     before_show_menu
 }
 
-cfwarp() {
-wget -N --no-check-certificate https://gitlab.com/rwkgyg/CFwarp/raw/main/CFwarp.sh && bash CFwarp.sh
-    echo ""
-    before_show_menu
-}
-
 update_shell() {
     wget -O /usr/bin/xray-ui -N --no-check-certificate https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     if [[ $? != 0 ]]; then
@@ -528,7 +522,6 @@ show_menu() {
 ————————————————
   ${green}15.${plain} 一键ACME申请证书
   ${green}16.${plain} 一键BBR+FQ加速
-  ${green}17.${plain} 一键CFwarp脚本
  "
     show_status
     echo "------------------------------------------"
@@ -581,8 +574,6 @@ show_menu() {
         15) acme
         ;;
         16) bbr
-        ;;
-        17) cfwarp
         ;;
         *) echo -e "${red}请输入正确的数字 [0-17]${plain}"
         ;;

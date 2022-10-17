@@ -5,5 +5,6 @@ bin/config.json
 dist/
 xray-ui-*.tar.gz
 /xray-ui
+/bin
 /release.sh
 .sync*
