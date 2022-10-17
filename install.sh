@@ -297,7 +297,7 @@ fi
 ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep tcp | awk '{print $5}' | sed "s/://g")
 if [[ -n $ports ]]; then
 echo -e ""
-yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
+yellow "xray-ui-yg $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
 wgcfv6=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
 wgcfv4=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
 if [[ ! $wgcfv4 =~ on|plus && ! $wgcfv6 =~ on|plus ]]; then
