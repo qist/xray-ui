@@ -1,0 +1,9 @@
+.idea
+tmp
+bin/xray-darwin-arm64
+bin/config.json
+dist/
+xray-ui-*.tar.gz
+/xray-ui
+/release.sh
+.sync*
