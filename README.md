@@ -60,7 +60,7 @@ wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://
     systemctl start xray-ui
 ```
 
-### 纯IPV4/纯IPV6的VPS直接运行一键脚本
+### VPS直接运行一键脚本
 
 ```
 wget -N https://raw.githubusercontent.com/qist/xray-ui/main/install.sh && bash install.sh
