@@ -531,13 +531,13 @@ show_menu() {
     acp=$(/usr/local/xray-ui/xray-ui setting -show 2>/dev/null)
     green "$acp"
     echo "------------------------------------------"
-    xuiygV="22.8.25 V 0.1.1.1"
+    uiV="0.1.1.1"
     remoteV=`wget -qO- https://raw.githubusercontent.com/qist/xray-ui/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
-    localV=${xuiygV}
+    localV=${uiV}
     if [ "${localV}" = "${remoteV}" ]; then
-    green "已安装最新版本：${xuiygV} ，如有更新，此处会自动提示"
+    green "已安装最新版本：${uiV} ，如有更新，此处会自动提示"
     else
-    green "当前安装的版本：${xuiygV}"
+    green "当前安装的版本：${uiV}"
     yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
     fi
         

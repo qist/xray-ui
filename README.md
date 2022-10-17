@@ -55,6 +55,8 @@ wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://
     cd xray-ui
     chmod +x xray-ui bin/xray-linux-amd64
     cp -f xray-ui.service /etc/systemd/system/
+    wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
+    chmod +x /usr/bin/xray-ui
     systemctl daemon-reload
     systemctl enable xray-ui
     systemctl start xray-ui
