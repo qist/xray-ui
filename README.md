@@ -15,8 +15,7 @@
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 本脚本显示功能更加人性化！已解决各种新老系统安装失败问题，并会长期更新，欢迎大家提建议！！
-
-默认账号密码 admin/admin        
+    
 
 更新日志：
 
@@ -59,6 +58,10 @@ wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://
     systemctl daemon-reload
     systemctl enable xray-ui
     systemctl start xray-ui
+    # 设置账号密码：
+    /usr/local/xray-ui/xray-ui setting -username admin -password admin123
+    # 设置端口
+   /usr/local/xray-ui/xray-ui setting -port  5432
 ```
 
 ### VPS直接运行一键脚本
