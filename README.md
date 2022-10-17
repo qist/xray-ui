@@ -28,6 +28,15 @@
 2022.4.14 更新上游内容：加入IBM Linuxone vps的s390x架构支持（存在被封的可能性）
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
+### 手动安装
+
+```
+# 下载 
+wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/download/main/xray-ui-linux-amd64.tar.gz
+
+# 解压
+cd 
+```
 
 ### 纯IPV4/纯IPV6的VPS直接运行一键脚本
 
