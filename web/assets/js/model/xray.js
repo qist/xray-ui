@@ -842,7 +842,8 @@ class Inbound extends XrayCommonClass {
             default:
                 return false;
         }
-        return ['tcp','ws','quic','grpc'].indexOf(this.network)!==-1;
+        //return ['tcp','ws','quic','grpc'].indexOf(this.network)!==-1;
+        return this.network === "tcp";
     }
 
     canEnableStream() {
