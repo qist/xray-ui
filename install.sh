@@ -17,7 +17,7 @@ remoteV=${releases_version}
 clear
 white "Github项目  ：github.com/qist"
 yellow "感谢xray-ui代码贡献者们（vaxilu、FranzKafkaYu及各位）"
-green "当前安装版本：$remoteV"
+green "当前安装版本： $remoteV"
 yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
 sleep 2
 cur_dir=$(pwd)

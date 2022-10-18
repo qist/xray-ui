@@ -6,7 +6,7 @@ plain='\033[0m'
 green(){ echo -e "\033[32m\033[01m$1\033[0m";}
 yellow(){ echo -e "\033[33m\033[01m$1\033[0m";}
 # check root
-[[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain} 必须使用root用户运行此脚本！\n" && exit 1
+[[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain}  必须使用root用户运行此脚本！\n" && exit 1
  
 # check os
 if [[ -f /etc/redhat-release ]]; then
