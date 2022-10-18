@@ -61,7 +61,7 @@ xuigo(){
 cat>/root/goxui.sh<<-\EOF
 #!/bin/bash
 xui=`ps -aux |grep "xray-ui" |grep -v "grep" |wc -l`
-xray=`ps -aux |grep "xray" |grep -v "grep" |wc -l`
+xray=`ps -aux |grep "xray-linux" |grep -v "grep" |wc -l`
 sleep 1
 if [ $xui = 0 ];then
 xray-ui restart
