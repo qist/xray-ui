@@ -82,6 +82,42 @@ cd xray-ui
 CGO_ENABLED=1 go build -o xray-ui/xray-ui  -ldflags '-linkmode "external" -extldflags "-static"' main.go
 ```
 --------------------------------------------------------------------------------------------------------------------------------------------------
+### nginx 代理设置
+```
+upstream xray-ui {
+        least_conn;
+        server 127.0.0.1:54321 max_fails=3 fail_timeout=30s;
+        keepalive 1000;
+}
+server {
+    listen 80;
+    server_name xray.test.com;
+    location / {
+        proxy_redirect     off;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP   $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_ssl_session_reuse off;
+        proxy_ssl_server_name on;
+        proxy_buffering    off;
+        proxy_connect_timeout      90;
+        proxy_send_timeout         90;
+        proxy_read_timeout         90;
+        proxy_buffer_size          4k;
+        proxy_buffers              4 32k;
+        proxy_busy_buffers_size    64k;
+        proxy_http_version 1.1;
+        proxy_set_header Accept-Encoding "";
+        proxy_pass http://xray-ui;
+        #proxy_pass_request_headers on;
+        proxy_set_header Connection "keep-alive";
+        proxy_store off;
+    }
+ }
+ # vpn代理nginx 配置参考
+https://github.com/qist/xray/tree/main/xray/nginx
+```
+--------------------------------------------------------------------------------------------------------------------------------------------------
 ### 关于TG通知（上游内容）
 
 使用说明:在面板后台设置机器人相关参数
