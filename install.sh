@@ -116,8 +116,8 @@ systemctl daemon-reload
 systemctl reset-failed
 rm /etc/xray-ui/ -rf
 rm /usr/local/xray-ui/ -rf
-rm -rf goxui.sh acme.sh
-sed -i '/goxui.sh/d' /etc/crontab
+rm -rf /root/rayuil.sh /root/acme.sh
+sed -i '/xrayuil.sh/d' /etc/crontab
 sed -i '/xray-ui restart/d' /etc/crontab
 else
 exit 1

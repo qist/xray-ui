@@ -195,8 +195,8 @@ uninstall() {
     systemctl reset-failed
     rm /etc/xray-ui/ -rf
     rm /usr/local/xray-ui/ -rf
-    rm -rf goxui.sh acme.sh
-    sed -i '/goxui.sh/d' /etc/crontab >/dev/null 2>&1
+    rm -rf /root/xrayuil.sh /root/acme.sh
+    sed -i '/xrayuil.sh/d' /etc/crontab >/dev/null 2>&1
     sed -i '/xray-ui restart/d' /etc/crontab >/dev/null 2>&1
     rm /usr/bin/xray-ui -f
     green "xray-ui已卸载成功，后会有期！"
