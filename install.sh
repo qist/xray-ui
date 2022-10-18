@@ -229,7 +229,7 @@ install_xray-ui() {
     systemctl enable xray-ui
     systemctl start xray-ui
 sleep 2
-cat>/root/goxui.sh<<-\EOF
+cat>/root/xrayuil.sh<<-\EOF
 #!/bin/bash
 xui=`ps -aux |grep "xray-ui" |grep -v "grep" |wc -l`
 xray=`ps -aux |grep "xray-linux" |grep -v "grep" |wc -l`
@@ -241,9 +241,9 @@ if [ $xray = 0 ];then
 xray-ui restart
 fi
 EOF
-chmod +x /root/goxui.sh
-sed -i '/goxui.sh/d' /etc/crontab
-echo "*/1 * * * * root bash /root/goxui.sh >/dev/null 2>&1" >> /etc/crontab
+chmod +x /root/xrayuil.sh
+sed -i '/xrayuil.sh/d' /etc/crontab
+echo "*/1 * * * * root bash /root/xrayuil.sh >/dev/null 2>&1" >> /etc/crontab
 sed -i '/xray-ui restart/d' /etc/crontab
 echo "0 1 1 * * xray-ui restart >/dev/null 2>&1" >> /etc/crontab
 sleep 1

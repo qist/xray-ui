@@ -57,8 +57,8 @@ elif [[ x"${release}" == x"amazon_linux" ]]; then
     fi
 fi
 
-xuigo(){
-cat>/root/goxui.sh<<-\EOF
+xrayui(){
+cat>/root/xrayuil.sh<<-\EOF
 #!/bin/bash
 xui=`ps -aux |grep "xray-ui" |grep -v "grep" |wc -l`
 xray=`ps -aux |grep "xray-linux" |grep -v "grep" |wc -l`
@@ -70,9 +70,9 @@ if [ $xray = 0 ];then
 xray-ui restart
 fi
 EOF
-chmod +x /root/goxui.sh
-sed -i '/goxui.sh/d' /etc/crontab >/dev/null 2>&1
-echo "*/1 * * * * root bash /root/goxui.sh >/dev/null 2>&1" >> /etc/crontab
+chmod +x /root/xrayuil.sh
+sed -i '/xrayuil.sh/d' /etc/crontab >/dev/null 2>&1
+echo "*/1 * * * * root bash /root/xrayuil.sh >/dev/null 2>&1" >> /etc/crontab
 }
 
 confirm() {
@@ -265,7 +265,7 @@ start() {
         echo -e "${green}面板已运行，无需再次启动，如需重启请选择重启${plain}"
     else
         systemctl start xray-ui
-        xuigo
+        xrayui
         sleep 2
         check_status
         if [[ $? == 0 ]]; then
@@ -287,8 +287,8 @@ stop() {
         echo -e "${green}面板已停止，无需再次停止${plain}"
     else
         systemctl stop xray-ui
-        rm -rf goxui.sh
-        sed -i '/goxui.sh/d' /etc/crontab >/dev/null 2>&1
+        rm -f /root/xrayuil.sh
+        sed -i '/xrayuil.sh/d' /etc/crontab >/dev/null 2>&1
         sleep 2
         check_status
         if [[ $? == 1 ]]; then
@@ -305,7 +305,7 @@ stop() {
 
 restart() {
     systemctl restart xray-ui
-    xuigo
+    xrayui
     sleep 2
     check_status
     if [[ $? == 0 ]]; then
