@@ -1,5 +1,7 @@
 #!/bin/bash
-uiV="0.1.1.1"
+curl   -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
+releases_version=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
+rm /tmp/tmp_file -f
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
@@ -11,7 +13,7 @@ yellow(){ echo -e "\033[33m\033[01m$1\033[0m";}
 blue(){ echo -e "\033[36m\033[01m$1\033[0m";}
 white(){ echo -e "\033[37m\033[01m$1\033[0m";}
 readp(){ read -p "$(yellow "$1")" $2;}
-remoteV=`wget -qO- https://raw.githubusercontent.com/qist/xray-ui/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
+remoteV=${releases_version}
 clear
 white "Github项目  ：github.com/qist"
 yellow "感谢xray-ui代码贡献者们（vaxilu、FranzKafkaYu及各位）"
@@ -192,9 +194,6 @@ fi
 install_xray-ui() {
     systemctl stop xray-ui
     cd /usr/local/
-    curl   -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
-    releases_version=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
-    rm /tmp/tmp_file -f
     if  [ $# == 0 ] ;then
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then

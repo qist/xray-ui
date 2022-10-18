@@ -531,8 +531,10 @@ show_menu() {
     acp=$(/usr/local/xray-ui/xray-ui setting -show 2>/dev/null)
     green "$acp"
     echo "------------------------------------------"
-    uiV="0.1.1.1"
-    remoteV=`wget -qO- https://raw.githubusercontent.com/qist/xray-ui/main/install.sh | sed  -n 2p | cut -d '"' -f 2`
+    uiV=`/usr/local/xray-ui/xray-ui -v`
+    curl   -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
+    remoteV=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
+    rm /tmp/tmp_file -f
     localV=${uiV}
     if [ "${localV}" = "${remoteV}" ]; then
     green "已安装最新版本：${uiV} ，如有更新，此处会自动提示"
