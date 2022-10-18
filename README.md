@@ -46,7 +46,7 @@
 
 ```
 # 下载 
-wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/download/v0.1.1.2/xray-ui-linux-amd64.tar.gz
+wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/download/0.1.1.2/xray-ui-linux-amd64.tar.gz
 
 # 解压
     cd /usr/local/
