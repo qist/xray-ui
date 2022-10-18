@@ -390,7 +390,7 @@ update_shell() {
 
 # 0: running, 1: not running, 2: not installed
 check_status() {
-    if [[ ! -f /etc/systemd/system/xray-ui.service ]]; then
+    if [[ ! -f /etc/systemd/system/xray-ui.service ]] || [[ ! -f /lib/systemd/system/xray-ui.service ]] ; then
         return 2
     fi
     temp=$(systemctl status xray-ui | grep Active | awk '{print $3}' | cut -d "(" -f2 | cut -d ")" -f1)
