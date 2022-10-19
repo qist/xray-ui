@@ -17,6 +17,18 @@ type ServerController struct {
 
 	lastVersions        []string
 	lastGetVersionsTime time.Time
+
+	lastGeoipStatus        *service.Status
+	lastGeoipGetStatusTime time.Time
+
+	lastGeoipVersions        []string
+	lastGeoipGetVersionsTime time.Time
+
+	lastGeositeStatus        *service.Status
+	lastGeositeGetStatusTime time.Time
+
+	lastGeositeVersions        []string
+	lastGeositeGetVersionsTime time.Time
 }
 
 func NewServerController(g *gin.RouterGroup) *ServerController {
@@ -35,6 +47,10 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/status", a.status)
 	g.POST("/getXrayVersion", a.getXrayVersion)
 	g.POST("/installXray/:version", a.installXray)
+	g.POST("/getGeoipVersion", a.getGeoipVersion)
+	g.POST("/installGeoip/:version", a.installGeoip)
+	g.POST("/getGeositeVersion", a.getGeositeVersion)
+	g.POST("/installGeosite/:version", a.installGeosite)
 }
 
 func (a *ServerController) refreshStatus() {
@@ -82,4 +98,54 @@ func (a *ServerController) installXray(c *gin.Context) {
 	version := c.Param("version")
 	err := a.serverService.UpdateXray(version)
 	jsonMsg(c, "安装 xray", err)
+}
+
+func (a *ServerController) getGeoipVersion(c *gin.Context) {
+	now := time.Now()
+	if now.Sub(a.lastGeoipGetVersionsTime) <= time.Minute {
+		jsonObj(c, a.lastGeoipVersions, nil)
+		return
+	}
+
+	versions, err := a.serverService.GetGeoipVersions()
+	if err != nil {
+		jsonMsg(c, "获取版本", err)
+		return
+	}
+
+	a.lastGeoipVersions = versions
+	a.lastGeoipGetVersionsTime = time.Now()
+
+	jsonObj(c, versions, nil)
+}
+
+func (a *ServerController) installGeoip(c *gin.Context) {
+	version := c.Param("version")
+	err := a.serverService.UpdateGeoip(version)
+	jsonMsg(c, "安装 geoip", err)
+}
+
+func (a *ServerController) getGeositeVersion(c *gin.Context) {
+	now := time.Now()
+	if now.Sub(a.lastGeositeGetVersionsTime) <= time.Minute {
+		jsonObj(c, a.lastGeositeVersions, nil)
+		return
+	}
+
+	versions, err := a.serverService.GetGeositeVersions()
+	if err != nil {
+		jsonMsg(c, "获取版本", err)
+		return
+	}
+
+	a.lastGeositeVersions = versions
+	a.lastGeositeGetVersionsTime = time.Now()
+
+	jsonObj(c, versions, nil)
+}
+
+func (a *ServerController) installGeosite(c *gin.Context) {
+	version := c.Param("version")
+	err := a.serverService.UpdateGeosite(version)
+	jsonMsg(c, "安装 geosite", err)
 }

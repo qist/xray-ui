@@ -287,14 +287,155 @@ func (s *ServerService) UpdateXray(version string) error {
 	if err != nil {
 		return err
 	}
-	err = copyZipFile("geosite.dat", xray.GetGeositePath())
+	// err = copyZipFile("geosite.dat", xray.GetGeositePath())
+	// if err != nil {
+	// 	return err
+	// }
+	// err = copyZipFile("geoip.dat", xray.GetGeoipPath())
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+
+}
+
+
+func (s *ServerService) GetGeoipVersions() ([]string, error) {
+	url := "https://api.github.com/repos/Loyalsoldier/geoip/releases"
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	buffer := bytes.NewBuffer(make([]byte, 8192))
+	buffer.Reset()
+	_, err = buffer.ReadFrom(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	releases := make([]Release, 0)
+	err = json.Unmarshal(buffer.Bytes(), &releases)
+	if err != nil {
+		return nil, err
+	}
+	versions := make([]string, 0, len(releases))
+	for _, release := range releases {
+		versions = append(versions, release.TagName)
+	}
+	return versions, nil
+}
+
+func (s *ServerService) downloadGeoip(version string) (string, error) {
+
+	fileName := fmt.Sprintf("geoip.dat")
+	url := fmt.Sprintf("https://github.com/Loyalsoldier/geoip/releases/download/%s/%s", version, fileName)
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	os.Remove(fileName)
+	file, err := os.Create(xray.GetGeoipPath())
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func (s *ServerService) UpdateGeoip(version string) error {
+	_, err := s.downloadGeoip(version)
 	if err != nil {
 		return err
 	}
-	err = copyZipFile("geoip.dat", xray.GetGeoipPath())
+
+	s.xrayService.StopXray()
+	defer func() {
+		err := s.xrayService.RestartXray(true)
+		if err != nil {
+			logger.Error("start xray failed:", err)
+		}
+	}()
+
+	return nil
+
+}
+
+func (s *ServerService) GetGeositeVersions() ([]string, error) {
+	url := "https://api.github.com/repos/Loyalsoldier/domain-list-custom/releases"
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	buffer := bytes.NewBuffer(make([]byte, 8192))
+	buffer.Reset()
+	_, err = buffer.ReadFrom(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	releases := make([]Release, 0)
+	err = json.Unmarshal(buffer.Bytes(), &releases)
+	if err != nil {
+		return nil, err
+	}
+	versions := make([]string, 0, len(releases))
+	for _, release := range releases {
+		versions = append(versions, release.TagName)
+	}
+	return versions, nil
+}
+
+func (s *ServerService) downloadGeosite(version string) (string, error) {
+
+	fileName := fmt.Sprintf("geosite.dat")
+	url := fmt.Sprintf("https://github.com/Loyalsoldier/domain-list-custom/releases/download/%s/%s", version, fileName)
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	os.Remove(fileName)
+	file, err := os.Create(xray.GetGeositePath())
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func (s *ServerService) UpdateGeosite(version string) error {
+	_, err := s.downloadGeosite(version)
 	if err != nil {
 		return err
 	}
+
+	s.xrayService.StopXray()
+	defer func() {
+		err := s.xrayService.RestartXray(true)
+		if err != nil {
+			logger.Error("start xray failed:", err)
+		}
+	}()
 
 	return nil
 

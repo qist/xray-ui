@@ -19,6 +19,8 @@
 
 更新日志：
 
+2022.10.19 更新xray时不更新geoip.dat geosite.dat . geoip.dat geosite.dat 使用[Loyalsoldier](https://github.com/Loyalsoldier/geoip)提供版本单独更新
+
 2022.10.17 更改trojan 可以关闭tls配置可以使用nginx 对外代理
 
 2022.7.4 更新上游支持trojan的多类传输协议支持

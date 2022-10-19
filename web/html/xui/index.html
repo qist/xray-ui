@@ -78,6 +78,8 @@
                             </a-tooltip>
                             <a-tag color="green" @click="openSelectV2rayVersion">[[ status.xray.version ]]</a-tag>
                             <a-tag color="blue" @click="openSelectV2rayVersion">切换版本</a-tag>
+                            <a-tag color="blue" @click="geoipUpdate">geoip更新</a-tag>
+                            <a-tag color="blue" @click="geositeUpdate">geosite更新</a-tag>
                         </a-card>
                     </a-col>
                     <a-col :sm="24" :md="12">
@@ -176,6 +178,30 @@
             </a-tag>
         </template>
     </a-modal>
+    <a-modal id="version-modal" v-model="versionModal.geoip" title="geoip更新"
+             :closable="true" @ok="() => versionModal.geoip = false"
+             ok-text="确定" cancel-text="取消">
+        <h2>点击你想更新的版本</h2>
+        <!-- <h2>请谨慎选择，旧版本可能配置不兼容</h2> -->
+        <template v-for="version, index in versionModal.geoips">
+            <a-tag :color="index % 2 == 0 ? 'blue' : 'green'"
+                   style="margin: 10px" @click="geoipUpdateVersion(version)">
+                [[ version ]]
+            </a-tag>
+        </template>
+    </a-modal>
+    <a-modal id="version-modal" v-model="versionModal.geosite" title="geosite更新"
+             :closable="true" @ok="() => versionModal.geosite = false"
+             ok-text="确定" cancel-text="取消">
+        <h2>点击你想更新的版本</h2>
+        <!-- <h2>请谨慎选择，旧版本可能配置不兼容</h2> -->
+        <template v-for="version, index in versionModal.geosites">
+            <a-tag :color="index % 2 == 0 ? 'blue' : 'green'"
+                   style="margin: 10px" @click="geositeUpdateVersion(version)">
+                [[ version ]]
+            </a-tag>
+        </template>
+    </a-modal>
 </a-layout>
 {{template "js" .}}
 <script>
@@ -259,10 +285,22 @@
 
     const versionModal = {
         visible: false,
+        geoip: false,
+        geosite: false,
+        geosites: [],
         versions: [],
+        geoips:[],
         show(versions) {
             this.visible = true;
             this.versions = versions;
+        },
+        geoipshow(versions) {
+            this.geoip = true;
+            this.geoips = versions;
+        },
+        geositeshow(versions){
+            this.geosite = true;
+            this.geosites = versions;
         },
         hide() {
             this.visible = false;
@@ -302,6 +340,24 @@
                 }
                 versionModal.show(msg.obj);
             },
+            async geoipUpdate(){
+                this.loading(true);
+                const msg = await HttpUtil.post('server/getGeoipVersion');
+                this.loading(false);
+                if (!msg.success) {
+                    return;
+                }
+                versionModal.geoipshow(msg.obj);
+            },
+            async geositeUpdate(){
+                this.loading(true);
+                const msg = await HttpUtil.post('server/getGeositeVersion');
+                this.loading(false);
+                if (!msg.success) {
+                    return;
+                }
+                versionModal.geositeshow(msg.obj);
+            },
             switchV2rayVersion(version) {
                 this.$confirm({
                     title: '切换 xray 版本',
@@ -312,6 +368,34 @@
                         versionModal.hide();
                         this.loading(true, '安装中，请不要刷新此页面');
                         await HttpUtil.post(`/server/installXray/${version}`);
+                        this.loading(false);
+                    },
+                });
+            },
+            geoipUpdateVersion(version){
+                this.$confirm({
+                    title: '切换 geoip 版本',
+                    content: '是否切换 geoip 版本至' + ` ${version}?`,
+                    okText: '确定',
+                    cancelText: '取消',
+                    onOk: async () => {
+                        versionModal.hide();
+                        this.loading(true, '安装中，请不要刷新此页面');
+                        await HttpUtil.post(`/server/installGeoip/${version}`);
+                        this.loading(false);
+                    },
+                });
+            },
+            geositeUpdateVersion(version){
+                this.$confirm({
+                    title: '切换 geosite 版本',
+                    content: '是否切换 geosite 版本至' + ` ${version}?`,
+                    okText: '确定',
+                    cancelText: '取消',
+                    onOk: async () => {
+                        versionModal.hide();
+                        this.loading(true, '安装中，请不要刷新此页面');
+                        await HttpUtil.post(`/server/installGeosite/${version}`);
                         this.loading(false);
                     },
                 });
