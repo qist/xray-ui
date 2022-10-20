@@ -77,7 +77,7 @@
                                 <a-icon type="question-circle" theme="filled"></a-icon>
                             </a-tooltip>
                             <a-tag color="green" @click="openSelectV2rayVersion">[[ status.xray.version ]]</a-tag>
-                            <a-tag color="blue" @click="openSelectV2rayVersion">切换版本</a-tag>
+                            <a-tag color="blue" @click="openSelectV2rayVersion">xray版本切换</a-tag>
                             <a-tag color="blue" @click="geoipUpdate">geoip更新</a-tag>
                             <a-tag color="blue" @click="geositeUpdate">geosite更新</a-tag>
                         </a-card>
@@ -166,7 +166,7 @@
             </transition>
         </a-layout-content>
     </a-layout>
-    <a-modal id="version-modal" v-model="versionModal.visible" title="切换版本"
+    <a-modal id="version-modal" v-model="versionModal.visible" title="xray版本切换"
              :closable="true" @ok="() => versionModal.visible = false"
              ok-text="确定" cancel-text="取消">
         <h2>点击你想切换的版本</h2>
