@@ -222,7 +222,7 @@ if [[ ! $wgcfv4 =~ on|plus && ! $wgcfv6 =~ on|plus ]]; then
 ab="1.选择standalone独立模式申请证书（仅需域名），安装过程中将强制释放80端口，相关http应用端口可能都将失效，请自行处理。\n2.选择DNS API模式申请证书（需域名、ID、Key），目前支持Cloudflare域名解析平台、腾讯域名解析平台、阿里域名解析平台\n0.返回上一层\n 请选择："
 readp "$ab" cd
 case "$cd" in 
-1 ) acme1 && acme2 && acme3 && ACMEstandaloneDNS;;
+1 ) acme1 && acme3 && ACMEstandaloneDNS;;
 2 ) acme1 && acme3 && ACMEDNS;;
 0 ) start_menu;;
 esac
@@ -233,7 +233,7 @@ green "WARP已临时闭关"
 ab="1.选择standalone独立模式申请证书（仅需域名）,安装过程中将强制释放80端口，相关http应用端口可能都将失效，请自行处理。\n2.选择DNS API模式申请证书（需域名、ID、Key），目前支持Cloudflare域名解析平台、腾讯域名解析平台、阿里域名解析平台\n0.返回上一层\n 请选择："
 readp "$ab" cd
 case "$cd" in 
-1 ) acme1 && acme2 && acme3 && ACMEstandaloneDNS;;
+1 ) acme1 && acme3 && ACMEstandaloneDNS;;
 2 ) acme1 && acme3 && ACMEDNS;;
 0 ) start_menu;;
 esac
