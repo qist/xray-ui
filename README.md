@@ -80,7 +80,8 @@ wget -N https://raw.githubusercontent.com/qist/xray-ui/main/install.sh && bash i
 git clone https://github.com/qist/xray-ui.git
 
 cd xray-ui
-
+debian/ubuntu解决方案：sudo apt-get install libc6-dev
+redhat/centos解决方案：yum install glibc-static.x86_64 -y 或者 sudo yum install glibc-static
 CGO_ENABLED=1 go build -o xray-ui/xray-ui  -ldflags '-linkmode "external" -extldflags "-static"' main.go
 ```
 --------------------------------------------------------------------------------------------------------------------------------------------------
