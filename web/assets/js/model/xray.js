@@ -48,12 +48,17 @@ const FLOW_CONTROL = {
     DIRECT: "xtls-rprx-direct",
 };
 
+const FLOW_VISION = {
+    FLOWVISION: "xtls-rprx-vision",
+}
+
 Object.freeze(Protocols);
 Object.freeze(VmessMethods);
 Object.freeze(SSMethods);
 Object.freeze(RULE_IP);
 Object.freeze(RULE_DOMAIN);
 Object.freeze(FLOW_CONTROL);
+Object.freeze(FLOW_VISION);
 
 class XrayCommonClass {
 
@@ -1280,7 +1285,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
 };
 Inbound.VLESSSettings.VLESS = class extends XrayCommonClass {
 
-    constructor(id = RandomUtil.randomUUID(), flow = FLOW_CONTROL.DIRECT) {
+    constructor(id = RandomUtil.randomUUID(), flow = FLOW_VISION.FLOWVISION) {
         super();
         this.id = id;
         this.flow = flow;

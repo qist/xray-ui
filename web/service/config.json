@@ -25,7 +25,11 @@
     },
     {
       "protocol": "blackhole",
-      "settings": {},
+      "settings": {
+        "response": {
+          "type": "http"
+        }
+      },
       "tag": "blocked"
     }
   ],
@@ -48,7 +52,8 @@
       {
         "type": "field",
         "domain": [
-          "geosite:category-ads-all"
+          "geosite:category-ads-all",
+          "geosite:geolocation-cn"
         ],
         "outboundTag": "blocked"
       },
@@ -58,13 +63,6 @@
           "geoip:private"
         ],
         "outboundTag": "blocked",
-        "type": "field"
-      },
-      {
-        "outboundTag": "blocked",
-        "protocol": [
-          "bittorrent"
-        ],
         "type": "field"
       }
     ]
