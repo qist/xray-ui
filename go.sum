@@ -126,6 +126,8 @@ github.com/xtls/xray-core v1.6.0 h1:5kqFV/BbMb0vn3ymyRIxtnJbS7ctb0Fgb7P3slaYdzI=
 github.com/xtls/xray-core v1.6.0/go.mod h1:wLbZAk/dz5JEnsMZ3QeGTeKyOB50ZqKYKPGRnv0MrWI=
 github.com/xtls/xray-core v1.6.1 h1:O0rMdkLM0RSUVqdfvfqO4fcB6qep8GOrli8YBEZ0Fhs=
 github.com/xtls/xray-core v1.6.1/go.mod h1:D/Va9MiyaboICvppwiVgpOuoZb/tBH3brumxekvFsBc=
+github.com/xtls/xray-core v1.6.3 h1:iedXaVC7ALXWsOjUruyxFOc9I03ovM3zL27TboPA3BA=
+github.com/xtls/xray-core v1.6.3/go.mod h1:LdhYXWRYHFIQmBt5YBH6t0OsBCDnO/oN0YKAEXpY2Lo=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yusufpapurcu/wmi v1.2.2 h1:KBNDSne4vP5mbSWnJbO+51IMOXJB67QiYCSBrubbPRg=
 github.com/yusufpapurcu/wmi v1.2.2/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
@@ -186,6 +188,8 @@ google.golang.org/genproto v0.0.0-20220916172020-2692e8806bfa h1:VWkrxnAx2C2hirA
 google.golang.org/genproto v0.0.0-20220916172020-2692e8806bfa/go.mod h1:0Nb8Qy+Sk5eDzHnzlStwW3itdNaWoZA5XeSG+R3JHSo=
 google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55 h1:U1u4KB2kx6KR/aJDjQ97hZ15wQs8ZPvDcGcRynBhkvg=
 google.golang.org/genproto v0.0.0-20221018160656-63c7b68cfc55/go.mod h1:45EK0dUbEZ2NHjCeAd2LXmyjAgGUGrpGROgjhC3ADck=
+google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c h1:QgY/XxIAIeccR+Ca/rDdKubLIU9rcJ3xfy1DC/Wd2Oo=
+google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c/go.mod h1:CGI5F/G+E5bKwmfYo09AXuVN4dD894kIKUFmVbP2/Fo=
 google.golang.org/grpc v1.49.0 h1:WTLtQzmQori5FUH25Pq4WT22oCsv8USpQ+F6rqtsmxw=
 google.golang.org/grpc v1.49.0/go.mod h1:ZgQEeidpAuNRZ8iRrlBKXZQP1ghovWIVhdJRyCDK+GI=
 google.golang.org/grpc v1.50.1 h1:DS/BukOZWp8s6p4Dt/tOaJaTQyPyOoCcrjroHuCeLzY=
