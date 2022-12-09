@@ -132,9 +132,9 @@ sed -i -e "s|mirrors.cloud.aliyuncs.com|mirrors.aliyun.com|g " /etc/yum.repos.d/
 sed -i -e "s|releasever|releasever-stream|g" /etc/yum.repos.d/CentOS-*
 yum clean all && yum makecache
 fi
-yum install epel-release -y && yum install wget curl tar -y
+yum install epel-release -y && yum install wget curl tar lsof -y
 else
-apt update && apt install wget curl tar -y
+apt update && apt install wget curl tar lsof -y
 fi
 vi=`systemd-detect-virt`
 if [[ $vi = openvz ]]; then
@@ -298,7 +298,7 @@ fi
 ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep tcp | awk '{print $5}' | sed "s/://g")
 if [[ -n $ports ]]; then
 echo -e ""
-yellow "xray-ui-yg $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
+yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
 wgcfv6=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
 wgcfv4=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
 if [[ ! $wgcfv4 =~ on|plus && ! $wgcfv6 =~ on|plus ]]; then
