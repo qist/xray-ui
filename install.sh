@@ -126,10 +126,10 @@ fi
 install_base() {
 if [[ x"${release}" == x"centos" ]]; then
 if [[ ${os_version} =~ 8 ]]; then
-cd /etc/yum.repos.d/ && mkdir backup && mv *repo backup/ 
-curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
-sed -i -e "s|mirrors.cloud.aliyuncs.com|mirrors.aliyun.com|g " /etc/yum.repos.d/CentOS-*
-sed -i -e "s|releasever|releasever-stream|g" /etc/yum.repos.d/CentOS-*
+# cd /etc/yum.repos.d/ && mkdir backup && mv *repo backup/ 
+# curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
+# sed -i -e "s|mirrors.cloud.aliyuncs.com|mirrors.aliyun.com|g " /etc/yum.repos.d/CentOS-*
+# sed -i -e "s|releasever|releasever-stream|g" /etc/yum.repos.d/CentOS-*
 yum clean all && yum makecache
 fi
 yum install epel-release -y && yum install wget curl tar lsof -y
@@ -184,10 +184,10 @@ fi
 # fi
 lsof -i :80|grep -v "PID"|awk '{print "kill -9",$2}'|sh >/dev/null 2>&1
 if [[ -z $(grep 'DiG 9' /etc/hosts) ]]; then
-v4=$(curl -s4m5 https://ip.gs -k)
+v4=$(curl -s4m5 https://gio.tycng.com/ipinfo -k)
 if [ -z $v4 ]; then
 echo -e "${green}检测到VPS为纯IPV6 Only,添加dns64${plain}\n"
-#echo -e nameserver 2a01:4f8:c2c:123f::1 > /etc/resolv.conf
+echo -e nameserver 2001:4860:4860:0:0:0:0:8888 > /etc/resolv.conf
 fi
 fi
 }
@@ -285,8 +285,8 @@ green "xray-ui登录端口：${port}"
 sleep 1
 xray-ui restart
 xuilogin(){
-v4=$(curl -s4m8 https://ip.gs -k)
-v6=$(curl -s6m8 https://ip.gs -k)
+v4=$(curl -s4m8 https://gio.tycng.com/ipinfo -k)
+v6=$(curl -s6m8 https://gio.tycng.com/ipinfo -k)
 if [[ -z $v4 ]]; then
 int="${green}请在浏览器地址栏复制${plain}  ${bblue}[$v6]:$ports${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
 elif [[ -n $v4 && -n $v6 ]]; then
