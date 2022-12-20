@@ -104,7 +104,7 @@ func (j *StatsNotifyJob) SSHStatusLoginNotify(xuiStartTime string) {
 		t1, err := time.Parse("2006-01-02 15:04:05", SSHLoginTimeStr)
 		t2, err := time.Parse("2006-01-02 15:04:05", xuiStartTime)
 		if t1.Before(t2) || err != nil {
-			fmt.Printf("SSHLogin[%s] early than XUI start[%s]\r\n", SSHLoginTimeStr, xuiStartTime)
+			fmt.Printf("SSHLogin[%s] early than XRAY-UI start[%s]\r\n", SSHLoginTimeStr, xuiStartTime)
 		}
 
 		SSHLoginUserName, error := exec.Command("bash", "-c", "who | awk  '{print $1}'| tail -n 1").Output()
