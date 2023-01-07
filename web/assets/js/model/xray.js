@@ -1291,8 +1291,14 @@ Inbound.VLESSSettings.VLESS = class extends XrayCommonClass {
         this.id = id;
         this.flow = flow;
     }
-    
+
     static fromJson(json = {}) {
+        // let flow = this.flow;
+        // if (this.network === "tcp") {
+        //     flow = FLOW_VISION.FLOWVISION;
+        // } else {
+        //     flow = FLOW_CONTROL.DIRECT;
+        // }
         return new Inbound.VLESSSettings.VLESS(
             json.id,
             json.flow,

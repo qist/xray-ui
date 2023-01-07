@@ -19,6 +19,7 @@
 
 更新日志：
 
+2023.1.7 添加VLESS-TCP-XTLS-Vision 支持
 
 2022.10.19 更新xray时不更新geoip.dat geosite.dat . geoip.dat geosite.dat 使用[Loyalsoldier](https://github.com/Loyalsoldier/geoip)提供版本单独更新
 
