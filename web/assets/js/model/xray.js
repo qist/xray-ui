@@ -626,7 +626,7 @@ class Inbound extends XrayCommonClass {
         this.settings = Inbound.Settings.getSettings(protocol);
         if (protocol === Protocols.TROJAN) {
             if (this.network === "tcp") {
-            this.tls = true;
+                this.tls = true;
             }
         }
     }
@@ -639,9 +639,9 @@ class Inbound extends XrayCommonClass {
         if (isTls) {
             this.stream.security = 'tls';
         } else {
-                this.stream.security = 'none';
-            }
-        
+            this.stream.security = 'none';
+        }
+
     }
 
     get xtls() {
@@ -652,9 +652,9 @@ class Inbound extends XrayCommonClass {
         if (isXTls) {
             this.stream.security = 'xtls';
         } else {
-                this.stream.security = 'none';
-            }
-    
+            this.stream.security = 'none';
+        }
+
     }
 
     get network() {
@@ -668,7 +668,7 @@ class Inbound extends XrayCommonClass {
     get isTcp() {
         return this.network === "tcp";
     }
- 
+
     get isWs() {
         return this.network === "ws";
     }
@@ -856,7 +856,7 @@ class Inbound extends XrayCommonClass {
             case Protocols.VMESS:
             case Protocols.VLESS:
             case Protocols.SHADOWSOCKS:
-            case Protocols.TROJAN:    
+            case Protocols.TROJAN:
                 return true;
             default:
                 return false;
@@ -1283,14 +1283,15 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
         };
     }
 };
+
 Inbound.VLESSSettings.VLESS = class extends XrayCommonClass {
 
-    constructor(id = RandomUtil.randomUUID(), flow = FLOW_VISION.FLOWVISION) {
+    constructor(id = RandomUtil.randomUUID(), flow = FLOW_CONTROL.DIRECT) {
         super();
         this.id = id;
         this.flow = flow;
     }
-
+    
     static fromJson(json = {}) {
         return new Inbound.VLESSSettings.VLESS(
             json.id,
