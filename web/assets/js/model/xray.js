@@ -1009,6 +1009,7 @@ class Inbound extends XrayCommonClass {
             if (!ObjectUtil.isEmpty(this.stream.tls.server)) {
                 address = this.stream.tls.server;
                 params.set("sni", address);
+                params.set("flow", this.settings.vlesses[0].flow);
             }
         }
 
