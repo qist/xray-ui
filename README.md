@@ -19,6 +19,8 @@
 
 更新日志：
 
+2023.3.7 删除旧版XTLS配置以便支持xray1.8.0版本 旧trojan配置请关闭然后打开编辑从新保存即可正常，旧VLESS配置可能需要删除重新创建xray才能启动成功
+
 2023.1.7 添加VLESS-TCP-XTLS-Vision 支持
 
 2022.10.19 更新xray时不更新geoip.dat geosite.dat . geoip.dat geosite.dat 使用[Loyalsoldier](https://github.com/Loyalsoldier/geoip)提供版本单独更新
