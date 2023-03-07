@@ -1287,19 +1287,13 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
 
 Inbound.VLESSSettings.VLESS = class extends XrayCommonClass {
 
-    constructor(id = RandomUtil.randomUUID(), flow = FLOW_CONTROL.DIRECT) {
+    constructor(id = RandomUtil.randomUUID(), flow = "") {
         super();
         this.id = id;
         this.flow = flow;
     }
 
     static fromJson(json = {}) {
-        // let flow = this.flow;
-        // if (this.network === "tcp") {
-        //     flow = FLOW_VISION.FLOWVISION;
-        // } else {
-        //     flow = FLOW_CONTROL.DIRECT;
-        // }
         return new Inbound.VLESSSettings.VLESS(
             json.id,
             json.flow,
@@ -1381,23 +1375,23 @@ Inbound.TrojanSettings = class extends Inbound.Settings {
     }
 };
 Inbound.TrojanSettings.Client = class extends XrayCommonClass {
-    constructor(password = RandomUtil.randomSeq(10), flow = FLOW_CONTROL.DIRECT) {
+    constructor(password = RandomUtil.randomSeq(10), flow = FLOW_VISION.FLOWVISION) {
         super();
         this.password = password;
-        this.flow = flow;
+        //this.flow = flow;
     }
 
     toJson() {
         return {
             password: this.password,
-            flow: this.flow,
+           // flow: this.flow,
         };
     }
 
     static fromJson(json = {}) {
         return new Inbound.TrojanSettings.Client(
             json.password,
-            json.flow,
+           // json.flow,
         );
     }
 

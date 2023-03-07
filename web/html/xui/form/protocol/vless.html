@@ -4,19 +4,19 @@
         <a-input v-model.trim="inbound.settings.vlesses[0].id"></a-input>
     </a-form-item>
 
-    <a-form-item v-if="inbound.tls && inbound.isTcp" label="flow_vision">
-        <a-select v-model="inbound.settings.vlesses[0].flow" style="width: 150px">
+    <a-form-item v-if="inbound.tls && inbound.isTcp" label="flow">
+        <a-select v-model="inbound.settings.vlesses[0].flow" style="width: 180px">
             <a-select-option value="">无</a-select-option>
             <a-select-option v-for="key in FLOW_VISION" :value="key">[[ key ]]</a-select-option>
         </a-select>
     </a-form-item>
-    <a-form-item v-if="inbound.xtls" label="flow">
+    <!-- <a-form-item v-if="inbound.xtls" label="flow">
         <a-select v-model="inbound.settings.vlesses[0].flow" style="width: 150px">
             <a-select-option value="">无</a-select-option>
             <a-select-option v-for="key in FLOW_CONTROL" :value="key">[[ key ]]</a-select-option>
         </a-select>
     </a-form-item>
-</a-form>
+</a-form> -->
 
 <a-form layout="inline">
     <a-form-item label="fallbacks">

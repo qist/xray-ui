@@ -24,10 +24,15 @@
     <p>grpc serviceName: <a-tag color="green">[[ inbound.serviceName ]]</a-tag></p>
 </template>
 
-<template v-if="inbound.tls || inbound.xtls">
+<!-- <template v-if="inbound.tls || inbound.xtls">
     <p v-if="inbound.tls">tls: <a-tag color="green">开启</a-tag></p>
     <p v-if="inbound.xtls">xtls: <a-tag color="green">开启</a-tag></p>
+</template> -->
+
+<template v-if="inbound.tls">
+    <p v-if="inbound.tls">tls: <a-tag color="green">开启</a-tag></p>
 </template>
+
 <template v-else>
     <p>tls: <a-tag color="red">关闭</a-tag></p>
 </template>
