@@ -37,6 +37,12 @@
     "system": {
       "statsInboundDownlink": true,
       "statsInboundUplink": true
+    },
+    "levels": {
+      "0": {
+        "handshake": 2, 
+        "connIdle": 120 
+      }
     }
   },
   "routing": {
