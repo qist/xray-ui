@@ -132,9 +132,9 @@ if [[ ${os_version} =~ 8 ]]; then
 # sed -i -e "s|releasever|releasever-stream|g" /etc/yum.repos.d/CentOS-*
 yum clean all && yum makecache
 fi
-yum install epel-release -y && yum install wget curl tar lsof -y
+yum install epel-release -y && yum install wget curl tar gzip lsof -y
 else
-apt update && apt install wget curl tar lsof -y
+apt update && apt install wget curl tar lsof gzip -y
 fi
 vi=`systemd-detect-virt`
 if [[ $vi = openvz ]]; then
@@ -217,7 +217,7 @@ install_xray-ui() {
         rm /usr/local/xray-ui/ -rf
     fi
 
-    tar xvf xray-ui-linux-${arch}.tar.gz
+    tar -zxvf xray-ui-linux-${arch}.tar.gz
     rm xray-ui-linux-${arch}.tar.gz -f
     cd xray-ui
     chmod +x xray-ui bin/xray-linux-${arch}
