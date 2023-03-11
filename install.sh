@@ -217,7 +217,7 @@ install_xray-ui() {
         rm /usr/local/xray-ui/ -rf
     fi
 
-    tar zxvf xray-ui-linux-${arch}.tar.gz
+    tar xvf xray-ui-linux-${arch}.tar.gz
     rm xray-ui-linux-${arch}.tar.gz -f
     cd xray-ui
     chmod +x xray-ui bin/xray-linux-${arch}
