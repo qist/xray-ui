@@ -1,0 +1,43 @@
+{{define "form/realitySettings"}}
+<!-- reality enable -->
+<a-form layout="inline" v-if="inbound.canEnableReaLITy()">
+    <a-form-item label="reality">
+        <a-switch v-model="inbound.reality">
+        </a-switch>
+    </a-form-item>
+    <!-- <a-form-item v-if="inbound.canEnableReaLITy()" label="reality">
+        <a-switch v-model="inbound.reality"></a-switch>
+    </a-form-item> -->
+</a-form>
+
+<!-- reality settings -->
+<a-form v-if="inbound.reality" layout="inline">
+    <!-- <a-form-item label="show">
+        <a-input v-model="inbound.stream.reality.show"></a-input>
+    </a-form-item> -->
+    <a-form-item label="dest">
+        <a-input v-model.trim="inbound.stream.reality.dest"></a-input>
+    </a-form-item>
+    <a-form-item label="xver">
+        <a-input v-model.number="inbound.stream.reality.xver"></a-input>
+    </a-form-item>
+    <a-form-item label="serverNames">
+        <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.serverNames"></a-input>
+    </a-form-item>
+    <a-form-item label="privateKey">
+        <a-input v-model.trim="inbound.stream.reality.privateKey"></a-input>
+    </a-form-item>
+    <a-form-item label="minClientVer">
+        <a-input v-model.trim="inbound.stream.reality.minClientVer"></a-input>
+    </a-form-item>
+    <a-form-item label="maxClientVer">
+        <a-input v-model.trim="inbound.stream.reality.maxClientVer"></a-input>
+    </a-form-item>
+    <a-form-item label="maxTimeDiff">
+        <a-input v-model.number="inbound.stream.reality.maxTimeDiff"></a-input>
+    </a-form-item>
+    <a-form-item label="shortIds">
+        <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.shortIds"></a-input>
+    </a-form-item>
+</a-form>
+{{end}}

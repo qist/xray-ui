@@ -19,6 +19,10 @@
 
 更新日志：
 
+2023.3.13 添加reality 支持 ! [1](./media/reality.png)
+
+* [reality 配置参考](./media/reality.png)
+
 2023.3.10 删除旧版XTLS配置以便支持xray1.8.0版本 旧trojan配置请关闭然后打开编辑从新保存即可正常，旧VLESS配置可能需要删除重新创建xray才能启动成功
 
 2023.1.7 添加VLESS-TCP-XTLS-Vision 支持

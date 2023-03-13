@@ -99,6 +99,11 @@
     {{template "form/tlsSettings"}}
 </template>
 
+<!-- reality settings -->
+<template v-if="inbound.canEnableReaLITy()">
+    {{template "form/realitySettings"}}
+</template>
+
 <!-- sniffing -->
 <template v-if="inbound.canSniffing()">
     {{template "form/sniffing"}}
