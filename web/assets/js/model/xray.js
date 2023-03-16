@@ -43,11 +43,6 @@ const RULE_DOMAIN = {
     SPEEDTEST: 'geosite:speedtest',
 };
 
-const FLOW_CONTROL = {
-    ORIGIN: "xtls-rprx-origin",
-    DIRECT: "xtls-rprx-direct",
-};
-
 const FLOW_VISION = {
     FLOWVISION: "xtls-rprx-vision",
 }
@@ -57,7 +52,6 @@ Object.freeze(VmessMethods);
 Object.freeze(SSMethods);
 Object.freeze(RULE_IP);
 Object.freeze(RULE_DOMAIN);
-Object.freeze(FLOW_CONTROL);
 Object.freeze(FLOW_VISION);
 
 class XrayCommonClass {
@@ -884,11 +878,12 @@ class Inbound extends XrayCommonClass {
     canEnableReaLITy() {
         switch (this.protocol) {
             case Protocols.VLESS:
+            case Protocols.TROJAN:  
                 break;
             default:
                 return false;
         }
-        return ['tcp','http','quic','grpc'].indexOf(this.network)!==-1;
+        return ['tcp', 'http', 'grpc'].indexOf(this.network)!==-1;
         //return this.network === "tcp";
     }
 
