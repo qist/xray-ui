@@ -513,7 +513,7 @@ class ReaLITyStreamSettings extends XrayCommonClass {
             json.maxClientVer,
             json.maxTimeDiff,
             json.shortIds,
-            );
+        );
     }
 
     toJson() {
@@ -878,12 +878,13 @@ class Inbound extends XrayCommonClass {
     canEnableReaLITy() {
         switch (this.protocol) {
             case Protocols.VLESS:
-            case Protocols.TROJAN:  
+            case Protocols.TROJAN:
+            case Protocols.VMESS:
                 break;
             default:
                 return false;
         }
-        return ['tcp', 'http', 'grpc'].indexOf(this.network)!==-1;
+        return ['tcp', 'http', 'grpc'].indexOf(this.network) !== -1;
         //return this.network === "tcp";
     }
 
@@ -1420,14 +1421,14 @@ Inbound.TrojanSettings.Client = class extends XrayCommonClass {
     toJson() {
         return {
             password: this.password,
-           // flow: this.flow,
+            // flow: this.flow,
         };
     }
 
     static fromJson(json = {}) {
         return new Inbound.TrojanSettings.Client(
             json.password,
-           // json.flow,
+            // json.flow,
         );
     }
 
