@@ -413,9 +413,13 @@ class GrpcStreamSettings extends XrayCommonClass {
 
 class TlsStreamSettings extends XrayCommonClass {
     constructor(serverName = '',
+        rejectUnknownSni = false,
+        minVersion = "1.2",
         certificates = [new TlsStreamSettings.Cert()]) {
         super();
         this.server = serverName;
+        this.rejectUnknownSni = rejectUnknownSni;
+        this.minVersion = minVersion;
         this.certs = certificates;
     }
 
@@ -434,6 +438,8 @@ class TlsStreamSettings extends XrayCommonClass {
         }
         return new TlsStreamSettings(
             json.serverName,
+            json.rejectUnknownSni,
+            json.minVersion,
             certs,
         );
     }
@@ -441,15 +447,18 @@ class TlsStreamSettings extends XrayCommonClass {
     toJson() {
         return {
             serverName: this.server,
+            rejectUnknownSni: this.rejectUnknownSni,
+            minVersion: this.minVersion,
             certificates: TlsStreamSettings.toJsonArray(this.certs),
         };
     }
 }
 
 TlsStreamSettings.Cert = class extends XrayCommonClass {
-    constructor(useFile = true, certificateFile = '', keyFile = '', certificate = '', key = '') {
+    constructor(useFile = true, ocspStapling = 3600, certificateFile = '', keyFile = '', certificate = '', key = '') {
         super();
         this.useFile = useFile;
+        this.ocspStapling = ocspStapling;
         this.certFile = certificateFile;
         this.keyFile = keyFile;
         this.cert = certificate instanceof Array ? certificate.join('\n') : certificate;
@@ -460,12 +469,15 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
         if ('certificateFile' in json && 'keyFile' in json) {
             return new TlsStreamSettings.Cert(
                 true,
+                json.ocspStapling,
                 json.certificateFile,
                 json.keyFile,
             );
         } else {
             return new TlsStreamSettings.Cert(
-                false, '', '',
+                false,
+                json.ocspStapling,
+                '', '', 
                 json.certificate.join('\n'),
                 json.key.join('\n'),
             );
@@ -475,11 +487,13 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
     toJson() {
         if (this.useFile) {
             return {
+                ocspStapling: this.ocspStapling,
                 certificateFile: this.certFile,
                 keyFile: this.keyFile,
             };
         } else {
             return {
+                ocspStapling: this.ocspStapling,
                 certificate: this.cert.split('\n'),
                 key: this.key.split('\n'),
             };

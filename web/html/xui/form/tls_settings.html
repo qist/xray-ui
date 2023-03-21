@@ -13,6 +13,18 @@
     <a-form-item label="域名">
         <a-input v-model.trim="inbound.stream.tls.server"></a-input>
     </a-form-item>
+    <a-form-item label="SNI与证书域名不匹配即拒绝TLS握手">
+        <a-select v-model="inbound.stream.tls.rejectUnknownSni" style="width: 165px;">
+            <a-select-option :value="false">false</a-select-option>
+            <a-select-option :value="true">true</a-select-option>
+        </a-select>
+    </a-form-item>
+    <a-form-item label="最小TLS版本">
+        <a-select v-model="inbound.stream.tls.minVersion" style="width: 165px;">
+            <a-select-option value="1.2">1.2</a-select-option>
+            <a-select-option value="1.3">1.3</a-select-option>
+        </a-select>
+    </a-form-item>
     <a-form-item label="证书">
         <a-radio-group v-model="inbound.stream.tls.certs[0].useFile"
                        button-style="solid">
@@ -21,6 +33,9 @@
         </a-radio-group>
     </a-form-item>
     <template v-if="inbound.stream.tls.certs[0].useFile">
+        <a-form-item label="ocspStapling">
+            <a-input v-model.number="inbound.stream.tls.certs[0].ocspStapling"></a-input>
+        </a-form-item>
         <a-form-item label="公钥文件路径">
             <a-input v-model.trim="inbound.stream.tls.certs[0].certFile"></a-input>
         </a-form-item>
@@ -29,6 +44,9 @@
         </a-form-item>
     </template>
     <template v-else>
+        <a-form-item label="ocspStapling">
+            <a-input v-model.number="inbound.stream.tls.certs[0].ocspStapling"></a-input>
+        </a-form-item>
         <a-form-item label="公钥内容">
             <a-input type="textarea" :rows="2"
                      v-model="inbound.stream.tls.certs[0].cert"></a-input>
