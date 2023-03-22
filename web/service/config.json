@@ -40,7 +40,7 @@
     },
     "levels": {
       "0": {
-        "handshake": 2, 
+        "handshake": 2,
         "connIdle": 120,
         "uplinkOnly": 1,
         "downlinkOnly": 1
@@ -66,12 +66,11 @@
         "outboundTag": "blocked"
       },
       {
+        "type": "field",
         "ip": [
-          "geoip:cn",
-          "geoip:private"
+          "geoip:cn"
         ],
-        "outboundTag": "blocked",
-        "type": "field"
+        "outboundTag": "blocked"
       }
     ]
   },

@@ -1,12 +1,12 @@
 使用 **waro-go**，注册warp，导出wireguard配置
 
-```
+```bash
 mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/releases/v1.0.8/downloads/warp-go_1.0.8_linux_amd64.tar.gz && tar -xzf ./warp/warp -C ./warp && cp ./warp/warp-go . && chmod 0755 warp-go && rm -r warp && ./warp-go --register && ./warp-go -export-singbox wireguard.json
 ```
 
 打开 **wireguard.json**，复制"private_key"的值，粘贴到"secretKey": "",处，复制"reserved"的值，粘贴到"reserved":[0, 0, 0],处， 复制"peer_public_key"的值，粘贴到"publicKey: "",处
 
-```
+```json
     "outbounds": [
         {
             "protocol": "wireguard",
@@ -34,7 +34,7 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
 
 编辑 **http://ip:port/xui/setting**，按需增加"routing"和"outbounds"的内容（注意检查json语法）， 选择保存配置 重启面板，访问ip.sb查看是否为Cloudflare的IP
 
-```
+```json
     "routing": {
         "domainStrategy": "IPIfNonMatch",
         "rules": [
@@ -55,12 +55,11 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
                 "outboundTag": "wireguard"
             },
             {
+                "type": "field",
                 "ip": [
-                    "geoip:cn",
-                    "geoip:private"
+                    "geoip:cn"
                 ],
-                "outboundTag": "wireguard",
-                "type": "field"
+                "outboundTag": "wireguard"
             }
         ]
     },
@@ -70,7 +69,7 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
 
 **模板** 配置示例
 
-```
+```json
 {
     "log": {
         "loglevel": "info"
@@ -168,11 +167,11 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
                 "outboundTag": "wireguard"
             },
             {
+                "type": "field",
                 "ip": [
                     "geoip:cn"
                 ],
-                "outboundTag": "wireguard",
-                "type": "field"
+                "outboundTag": "wireguard"
             }
         ]
     },
