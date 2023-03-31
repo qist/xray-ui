@@ -49,8 +49,10 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
                 "type": "field",
                 "domain": [
                     "ip.sb",
+                    "geosite:openai",
                     "geosite:geolocation-cn",
-                    "geosite:openai"
+                    "geosite:cn",
+                    "geosite:microsoft"
                 ],
                 "outboundTag": "wireguard"
             },
@@ -161,8 +163,10 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
                 "type": "field",
                 "domain": [
                     "ip.sb",
+                    "geosite:openai",
                     "geosite:geolocation-cn",
-                    "geosite:openai"
+                    "geosite:cn",
+                    "geosite:microsoft"
                 ],
                 "outboundTag": "wireguard"
             },
