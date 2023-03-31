@@ -64,9 +64,7 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
                 "outboundTag": "wireguard"
             }
         ]
-    },
-    "stats": {}
-}
+    }
 ```
 
 **模板** 配置示例
