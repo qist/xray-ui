@@ -21,6 +21,8 @@
 
 2023.4.7 添加 xray-ui x25519 生成REALITY公私钥 ！
 
+[xray-ui 面板配置 reality](./reality.md)
+
 2023.3.13 添加reality 支持 !
 
 * [reality 配置参考](./media/reality.png)
