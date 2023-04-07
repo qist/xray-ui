@@ -1,0 +1,48 @@
+{{define "form/streamSOCKOPT"}}
+<!-- sockopt enable -->
+<a-form layout="inline" v-if="inbound.canSockopt()">
+    <a-form-item label="sockopt">
+        <a-switch v-model="inbound.sockopt">
+        </a-switch>
+    </a-form-item>
+</a-form>
+
+<!-- sockopt settings -->
+<a-form v-if="inbound.sockopt" layout="inline">
+    </a-form-item>
+    <a-form-item label="tcpFastOpen">
+        <a-select v-model="inbound.stream.sockopt.tcpFastOpen" style="width: 165px;">
+            <a-select-option :value="false">false</a-select-option>
+            <a-select-option :value="true">true</a-select-option>
+        </a-select>
+    </a-form-item>
+    <a-form-item label="domainStrategy">
+        <a-select v-model="inbound.stream.sockopt.domainStrategy" style="width:200px">
+            <a-select-option v-for="key in DOMAIN_STRATEGY" :value="key">[[ key ]]</a-select-option>
+            </a-se-chlect>
+    </a-form-item>
+    <a-form-item label="acceptProxyProtocol">
+        <a-select v-model="inbound.stream.sockopt.acceptProxyProtocol" style="width: 165px;">
+            <a-select-option :value="false">false</a-select-option>
+            <a-select-option :value="true">true</a-select-option>
+        </a-select>
+    </a-form-item>
+    <a-form-item label="tcpKeepAliveInterval">
+        <a-input v-model.number="inbound.stream.sockopt.tcpKeepAliveInterval" style="width: 165px;">
+        </a-input>
+    </a-form-item>
+    <a-form-item label="tcpKeepAliveIdle">
+        <a-input v-model.number="inbound.stream.sockopt.tcpKeepAliveIdle" style="width: 165px;">
+        </a-input>
+    </a-form-item>
+    <a-form-item label="tcpcongestion">
+        <a-select v-model="inbound.stream.sockopt.tcpcongestion" style="width:200px">
+            <a-select-option value="">系统默认</a-select-option>
+            <a-select-option v-for="key in TCP_CONGESTION" :value="key">[[ key ]]</a-select-option>
+        </a-select>
+    </a-form-item>
+    <a-form-item label="interface">
+        <a-input v-model.trim="inbound.stream.sockopt._interface" style="width: 165px"></a-input>
+    </a-form-item>
+</a-form>
+{{end}}

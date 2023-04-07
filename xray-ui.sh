@@ -376,6 +376,22 @@ bash <(curl -L -s https://raw.githubusercontent.com/teddysun/across/master/bbr.s
     before_show_menu
 }
 
+x25519() {
+    arch=$(arch)
+    if [[ $arch == "x86_64" || $arch == "x64" || $arch == "amd64" ]]; then
+    arch="amd64"
+    elif [[ $arch == "aarch64" || $arch == "arm64" ]]; then
+    arch="arm64"
+    elif [[ $arch == "s390x" ]]; then
+    arch="s390x"
+    else
+    arch="amd64"
+    fi
+    /usr/local/xray-ui/bin/xray-linux-${arch} x25519
+    echo ""
+    before_show_menu
+}
+
 update_shell() {
     wget -O /usr/bin/xray-ui -N --no-check-certificate https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     if [[ $? != 0 ]]; then
@@ -485,7 +501,7 @@ show_xray_status() {
 show_usage() {
     echo "xray-ui 管理脚本使用方法: "
     echo "------------------------------------------"
-    echo "xray-ui              - 显示管理菜单【一键证书申请（支持域名直接申请与dns api申请），warp脚本，脚本自动检测更新提示】"
+    echo "xray-ui              - 显示管理菜单"
     echo "xray-ui start        - 启动 xray-ui 面板"
     echo "xray-ui stop         - 停止 xray-ui 面板"
     echo "xray-ui restart      - 重启 xray-ui 面板"
@@ -496,6 +512,7 @@ show_usage() {
     echo "xray-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 xray-ui"
     echo "xray-ui update       - 更新 xray-ui 面板"
     echo "xray-ui install      - 安装 xray-ui 面板"
+    echo "xray-ui x25519       - REALITY  key 生成"
     echo "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo "------------------------------------------"
 }
@@ -525,6 +542,7 @@ show_menu() {
 ————————————————
   ${green}15.${plain} 一键ACME申请证书
   ${green}16.${plain} 一键BBR+FQ加速
+  ${green}17.${plain} xray REALITY x25519 生成
  "
     show_status
     echo "------------------------------------------"
@@ -580,6 +598,8 @@ show_menu() {
         ;;
         16) bbr
         ;;
+        17) x25519
+        ;;
         *) echo -e "${red}请输入正确的数字 [0-17]${plain}"
         ;;
     esac
@@ -607,6 +627,8 @@ if [[ $# > 0 ]]; then
         "update") check_install 0 && update 0
         ;;
         "install") check_uninstall 0 && install 0
+        ;;
+        "x25519") x25519 0
         ;;
         "uninstall") check_install 0 && uninstall 0
         ;;
