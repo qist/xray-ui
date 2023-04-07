@@ -32,7 +32,7 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
     ]
 ```
 
-编辑 **http://ip:port/xui/setting**，按需增加"routing"和"outbounds"的内容（注意检查json语法）， 选择保存配置 重启面板，访问ip.sb查看是否为Cloudflare的IP
+编辑 **<http://ip:port/xui/setting>**，按需增加"routing"和"outbounds"的内容（注意检查json语法）， 选择保存配置 重启面板，访问ip.sb查看是否为Cloudflare的IP
 
 ```json
     "routing": {
@@ -44,6 +44,13 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
                 ],
                 "outboundTag": "api",
                 "type": "field"
+            },
+            {
+                "type": "field",
+                "domain": [
+                    "www.gstatic.com"
+                ],
+                "outboundTag": "direct"
             },
             {
                 "type": "field",
@@ -156,6 +163,13 @@ mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/rel
                 ],
                 "outboundTag": "api",
                 "type": "field"
+            },
+            {
+                "type": "field",
+                "domain": [
+                    "www.gstatic.com"
+                ],
+                "outboundTag": "direct"
             },
             {
                 "type": "field",

@@ -60,7 +60,15 @@
       {
         "type": "field",
         "domain": [
+          "www.gstatic.com"
+        ],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "domain": [
           "geosite:category-ads-all",
+          "geosite:cn",
           "geosite:geolocation-cn"
         ],
         "outboundTag": "blocked"
