@@ -19,6 +19,8 @@
 
 更新日志：
 
+2023.4.7 添加 xray-ui x25519 生成REALITY公私钥 ！
+
 2023.3.13 添加reality 支持 !
 
 * [reality 配置参考](./media/reality.png)
