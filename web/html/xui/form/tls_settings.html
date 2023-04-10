@@ -5,6 +5,9 @@
         <a-switch v-model="inbound.tls">
         </a-switch>
     </a-form-item>
+    <a-form-item v-if="inbound.canEnableReaLITy()" label="reality">
+        <a-switch v-model="inbound.reality"></a-switch>
+    </a-form-item>
 </a-form>
 
 <!-- tls settings -->
@@ -14,10 +17,10 @@
         <a-input v-model.trim="inbound.stream.tls.server"></a-input>
     </a-form-item>
     <a-form-item label="SNI与证名不匹配即书域拒绝TLS握手">
-        <a-select v-model="inbound.stream.tls.rejectUnknownSni" style="width: 165px;">
-            <a-select-option :value="false">false</a-select-option>
-            <a-select-option :value="true">true</a-select-option>
-        </a-select>
+        <a-switch v-model="inbound.stream.tls.rejectUnknownSni">
+            <!-- <a-select-option :value="false">false</a-select-option>
+            <a-select-option :value="true">true</a-select-option> -->
+        </a-switch>
     </a-form-item>
     <a-form-item label="CipherSuites">
         <a-select v-model="inbound.stream.tls.cipherSuites"  style="width: 350px">

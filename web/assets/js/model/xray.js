@@ -75,6 +75,7 @@ const TLS_CIPHER_OPTION = {
 };
 
 const ALPN_OPTION = {
+    H3: "h3",
     H2: "h2",
     HTTP1: "http/1.1",
 };
@@ -708,12 +709,12 @@ class StreamSettings extends XrayCommonClass {
     }
 
     get isSockopt() {
-        return ['none'].indexOf(this.security) !== -1;
+        return ['none', 'reality', 'tls'].indexOf(this.security) !== -1;
     }
 
     set isSockopt(isSockopt) {
         if (isSockopt) {
-            return ['none'].indexOf(this.security) !== -1;
+            return ['none', 'reality', 'tls'].indexOf(this.security) !== -1;
         }
     }
 
@@ -832,12 +833,12 @@ class Inbound extends XrayCommonClass {
     }
 
     get sockopt() {
-        return ['none'].indexOf(this.stream.security) !== -1;
+        return ['none', 'reality', 'tls'].indexOf(this.stream.security) !== -1;
     }
     
     set sockopt(isSockopt) {
         if (isSockopt) {
-            return ['none'].indexOf(this.stream.security) !== -1;
+            return ['none', 'reality', 'tls'].indexOf(this.stream.security) !== -1;
         }
     }
 
@@ -1027,7 +1028,6 @@ class Inbound extends XrayCommonClass {
         switch (this.protocol) {
             case Protocols.VLESS:
             case Protocols.TROJAN:
-            case Protocols.VMESS:
                 break;
             default:
                 return false;

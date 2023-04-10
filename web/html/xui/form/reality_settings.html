@@ -1,22 +1,22 @@
 {{define "form/realitySettings"}}
 <!-- reality enable -->
-<a-form layout="inline" v-if="inbound.canEnableReaLITy()">
+<!-- <a-form layout="inline" v-if="inbound.canEnableReaLITy()">
     <a-form-item label="reality">
         <a-switch v-model="inbound.reality">
         </a-switch>
     </a-form-item>
-    <!-- <a-form-item v-if="inbound.canEnableReaLITy()" label="reality">
+     <a-form-item v-if="inbound.canEnableReaLITy()" label="reality">
         <a-switch v-model="inbound.reality"></a-switch>
     </a-form-item> -->
-</a-form>
+<!-- </a-form> --> 
 
 <!-- reality settings -->
 <a-form v-if="inbound.reality" layout="inline">
     <a-form-item label="show">
-        <a-select v-model="inbound.stream.reality.show" style="width: 100px;">
-            <a-select-option :value="false">false</a-select-option>
-            <a-select-option :value="true">true</a-select-option>
-        </a-select>
+        <a-switch v-model="inbound.stream.reality.show">
+            <!-- <a-select-option :value="false">false</a-select-option>
+            <a-select-option :value="true">true</a-select-option> -->
+        </a-switch>
     </a-form-item>
     <a-form-item label="dest">
         <a-input v-model.trim="inbound.stream.reality.dest"  style="width: 165px"></a-input>
