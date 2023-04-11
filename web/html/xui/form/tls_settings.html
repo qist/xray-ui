@@ -16,7 +16,7 @@
     <a-form-item label="域名">
         <a-input v-model.trim="inbound.stream.tls.server"></a-input>
     </a-form-item>
-    <a-form-item label="SNI与证名不匹配即书域拒绝TLS握手">
+    <a-form-item label="rejectUnknownSni">
         <a-switch v-model="inbound.stream.tls.rejectUnknownSni">
             <!-- <a-select-option :value="false">false</a-select-option>
             <a-select-option :value="true">true</a-select-option> -->
