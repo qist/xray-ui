@@ -1,10 +1,10 @@
-本项目基于上游X-UI项目进行略微的功能改动！后续将紧跟上游X-UI版本更新！在此感谢[vaxilu](https://github.com/vaxilu/x-ui)、[FranzKafkaYu](https://github.com/FranzKafkaYu/x-ui)及各位为此项目做出贡献
+本项目基于上游X-UI项目进行略微的功能改动！后续将紧跟上游X-UI版本更新！在此感谢[vaxilu](https://github.com/vaxilu/x-ui)及各位为此项目做出贡献
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 ### 功能介绍
 
 系统状态监控
-支持多用户多协议，网页可视化操作
+支持多协议，网页可视化操作
 支持的协议：vmess、vless、trojan、shadowsocks、dokodemo-door、socks、http
 支持配置更多传输配置
 流量统计，限制流量，限制到期时间
@@ -18,6 +18,8 @@
     
 
 更新日志：
+
+2023.4.11 REALITY 配置 生成 x25519 shortIds等 ！
 
 2023.4.7 添加 xray-ui x25519 生成REALITY公私钥 ！
 
