@@ -89,6 +89,41 @@ const seq = [
     'U', 'V', 'W', 'X', 'Y', 'Z'
 ];
 
+const shortIdSeq = [
+    'a', 'b', 'c', 'd', 'e', 'f',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+];
+
+const x25519Map = new Map(
+    [
+        ['AC3G8vkuUGjas_vrr0mz6M5eBHTOHAkJABMw_QOgpXQ', "TDSN4W_qfi4mjAFPKY1pJGBY7A3tTkFu4PvF_TPfgyM"],
+        ['YNxnx_BUzWIVKkwl9CaNNV_SxXQTiBPZv3yjkx1MKkc', "UCFLNt1076MwdH-qS9XFrB4YfqHoviSmv1zli4S9O1I"],
+        ['MGH6yhCwNeSYjFJuCCTdbYq3Hbr4PHpkPJP_jpYcPXc', "aMaFySj6BRWHZzcBeB2oCeR1rS66ZTdSOD37iOmVQhE"],
+        ['OAtNHfPuIpXAsEozdjXY4nfyM-ljY7N5-Z58g-gBflw', "LwMLRgV9fb81j3kU3qXfheUusKCWsvhjm57v_G4baFs"],
+        ['oAPDUmrCf_bT2xSf-qL6TqqYRlUjx3gqxs3H_iZVVXs', 'BnzB787jnNTFKYW4py2OHZy0Fip6W2H4Ei68z9aCKzw'],
+        ['uM5BaWSaXmRONR1xebjvR8jU3vmvpBQZn1LLibNikEE', 'e_0js7suIOoZnfkk4xN8kP3OoophPDN_74tJ4s5s7FU'],
+        ['CGdRCXgkgT-EzT3GsL1UsyLCKq1UqnCpnXsxduKxk0A', '6zhvuflgNY80Nb-OYY95Z8x4Crql3wFMbtuaD2wWngM'],
+        ['eMtM8y_0NLyxCQy7f8ADwuXrnHPL5O4v58PzzJynoWM', 'dN9027rv4fm0JM_0E3dr4_DUU5PZOs0ufW123blL20E'],
+        ['KOsk9XhaG1zXrzxJ0uceoGLNpjB3AD5ZndMoegqxTlQ', 'fmzxJ4yRxeK9mE2Qe6MWsZhbSKwxW9SPOMmVfxgnTX0'],
+        ['OLyV_UL24hID6iR2dCwT5ZtjP9505hy201PYgVZjDVs', 'P_LQAI9X6q5940-uf5MjHOMWJsWEiWApCdsFl2h4nlE'],
+        ['4L-d70Y-st54bQsiBc2uy4HU4rpCjohiPCJCivYsKkY', 'GYRCcYvd5TUUQFmd_t8y23L4S-ItHbzQXiSwwl81nAs'],
+        ['gJTKZLQJcb2AIT1iwtMvCXXhRGFv8SyM1agTXZd_P14', 'lGLYyRUbr8JAJkYEg5zOWnUxP8HjJ_MwQa1_tfnHdGc'],
+        ['iPgjM4ojIkSVwFG-jxFIULYSbzEhQT2_i32jzXIcDnE', 'YBr4GaN7fKFCgdK3ofSxuQSYkhLkKrbJEeoI1g_4EVM'],
+        ['CGFUXhSq58wepQZCQpO-Uw4ceR5yFk6qwan0Ryxua2I', 'o0OqsTqMyqmB4xblg740Pc3XQfSSZXg38cx1eZRSNnk'],
+        ['QNcn7jwiq8w7D9vc1ceaFdkmw7ReHlrCKXhEUO0cgXY', 'Kfdh5usxjm4TcNGDlhUYC9iUQkKlwVfGwDQsp1kIVkE'],
+        ['UKkz_IIwnXinuiUEob-Nb7fpcjJnLTfrfKddIu2t9kQ', '_btpuRJt3atUaryk1-F0ZrwFll0ypr7SKIlhHkGVwjg'],
+        ['UOnOa7NBah8CMUWm5aRkwMvfSMX7PfWLmKx6IThQj1c', '2MjYqK75TJNgHPPtCFjuWtGecKBBOn38Voj1WkOzmws'],
+        ['kAK-vrB-KCKOZaE3udMr--N7BxhfcpszQkz7nygBT2w', '8PCQkKQ5G-phCOeScALAN_8mLI6yZrqmWX5cAy8Umxk'],
+        ['uHMhLC95UIQDLCEhiOVmenbrbP7S1wqYp5gGPyzEmGE', 'exjAIo848vzTm9EZ64Qu1OIcsC0b7XFS1aU40UnmNhk'],
+        ['kFE497WjTwBoqoVDzSw1IxU2tStwc6AN3PkI-fq081M', '6GgzvNPC7wnDeDeFiqpHfstNj6BTRYbTEp3aIuKaOyI'],
+        ['kDXvqJusiJJ2eyZsAwZjgzemhvvYn3KAZoZUEgOfP0g', 'jAT_AKaQbhQWAClYmYO-W3c1aGd7pAYsHimlahxyYW8'],
+        ['WJHJDDQEjy05IL5_0FzDl2reGHxviIvzeeTa73amwUU', 'DM2XI6R9cVr1owcB4syN9MmOeh2-KUCc01JoweFM114'],
+        ['cJSJ51OPSog1WV4aCNWcDhh_zj4fgfwEBxEbqb5ALlE', 'ZcqZCG5W_5yFsTDOBKoQh180OY2o2PMaax7MDAGuP1I'],
+        ['WCfKKqCbSkv1F_yKJzC3H1h1EHbHsaQ6GJf7hx3dnUY', 'cD60mJQdtgJ3smsQN6OOlJ0ZPEOCZrP7-FA7PTZfCQ4'],
+        ['GLlAavQTKBMb90D9SX7m3L85uAB4W4LBs11-WuUaHFk', 'v0J3yFQyLnZ7Yj6cyPvMy4MaCcWxLPy_6Ny6URXjZ2k'],
+    ]
+);
+
 class RandomUtil {
 
     static randomIntRange(min, max) {
@@ -103,6 +138,14 @@ class RandomUtil {
         let str = '';
         for (let i = 0; i < count; ++i) {
             str += seq[this.randomInt(62)];
+        }
+        return str;
+    }
+
+    static randomShortIdSeq(count) {
+        let str = '';
+        for (let i = 0; i < count; ++i) {
+            str += shortIdSeq[this.randomInt(16)];
         }
         return str;
     }
@@ -135,6 +178,34 @@ class RandomUtil {
             d = Math.floor(d / 16);
             return (c === 'x' ? r : (r & 0x7 | 0x8)).toString(16);
         });
+    }
+
+    static randowShortId() {
+        let str = '' + '\n';
+        str += (this.randomShortIdSeq(2) + '\n')
+        str += (this.randomShortIdSeq(4) + '\n')
+        str += (this.randomShortIdSeq(6) + '\n')
+        str += (this.randomShortIdSeq(8) + '\n')
+        str += (this.randomShortIdSeq(10) + '\n')
+        str += (this.randomShortIdSeq(12) + '\n')
+        str += (this.randomShortIdSeq(14) + '\n')
+        str += this.randomShortIdSeq(16)
+        return str;
+    }
+
+    static randomX25519PrivateKey() {
+        let num = x25519Map.size;
+        let index = this.randomInt(num);
+        let cntr = 0;
+        for (let key of x25519Map.keys()) {
+            if (cntr++ === index) {
+                return key;
+            }
+        }
+    }
+
+    static randomX25519PublicKey(key) {
+        return x25519Map.get(key)
     }
 }
 

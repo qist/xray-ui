@@ -1,17 +1,17 @@
 {{define "form/streamSOCKOPT"}}
 <!-- sockopt enable -->
-<!-- <a-form layout="inline" v-if="inbound.canSockopt()">
+<a-form layout="inline" v-if="inbound.canSockopt()">
     <a-form-item label="sockopt">
         <a-switch v-model="inbound.sockopt">
         </a-switch>
     </a-form-item>
-</a-form> -->
+</a-form>
 
 <!-- sockopt settings -->
-<!-- <a-form v-if="inbound.sockopt" layout="inline"> -->
+<a-form v-if="inbound.sockopt" layout="inline">
 
-<a-form layout="inline">
-    <a-form-item label="sockopt:  相关配置" style="width:200px"> </a-form-item>
+<!-- <a-form layout="inline"> -->
+    <!-- <a-form-item label="sockopt:  相关配置" style="width:200px"> </a-form-item> -->
     <transition name="list" appear>
         <a-card hoverable style="margin-bottom: 20px;" :class="siderDrawer.isDarkTheme ? darkClass : ''">
             </a-form-item>

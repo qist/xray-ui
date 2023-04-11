@@ -568,13 +568,24 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
 };
 
 class ReaLITyStreamSettings extends XrayCommonClass {
-    constructor(show = false, dest = "", xver = 0, serverNames = '', privateKey = "", minClientVer = "", maxClientVer = "", maxTimeDiff = 0, shortIds = '') {
+    constructor(show = false, 
+                dest = 'www.lovelive-anime.jp:443', 
+                xver = 0, 
+                serverNames = 'lovelive-anime.jp\nwww.lovelive-anime.jp', 
+                privateKey = RandomUtil.randomX25519PrivateKey(), 
+                publicKey = '', 
+                minClientVer = '', 
+                maxClientVer = '', 
+                maxTimeDiff = 0, 
+                shortIds = RandomUtil.randowShortId(),
+                ) {
         super();
         this.show = show;
         this.dest = dest;
         this.xver = xver;
         this.serverNames = serverNames instanceof Array ? serverNames.join('\n') : serverNames;
         this.privateKey = privateKey;
+        this.publicKey = RandomUtil.randomX25519PublicKey(this.privateKey);
         this.minClientVer = minClientVer;
         this.maxClientVer = maxClientVer;
         this.maxTimeDiff = maxTimeDiff;
@@ -589,6 +600,7 @@ class ReaLITyStreamSettings extends XrayCommonClass {
             json.xver,
             json.serverNames,
             json.privateKey,
+            json.publicKey,
             json.minClientVer,
             json.maxClientVer,
             json.maxTimeDiff,
@@ -603,6 +615,7 @@ class ReaLITyStreamSettings extends XrayCommonClass {
             xver: this.xver,
             serverNames: this.serverNames.split('\n'),
             privateKey: this.privateKey,
+            publicKey: this.publicKey,
             minClientVer: this.minClientVer,
             maxClientVer: this.maxClientVer,
             maxTimeDiff: this.maxTimeDiff,
@@ -709,12 +722,12 @@ class StreamSettings extends XrayCommonClass {
     }
 
     get isSockopt() {
-        return ['none', 'reality', 'tls'].indexOf(this.security) !== -1;
+        return ['none'].indexOf(this.security) !== -1;
     }
 
     set isSockopt(isSockopt) {
         if (isSockopt) {
-            return ['none', 'reality', 'tls'].indexOf(this.security) !== -1;
+            return ['none'].indexOf(this.security) !== -1;
         }
     }
 
@@ -833,12 +846,12 @@ class Inbound extends XrayCommonClass {
     }
 
     get sockopt() {
-        return ['none', 'reality', 'tls'].indexOf(this.stream.security) !== -1;
+        return ['none'].indexOf(this.stream.security) !== -1;
     }
     
     set sockopt(isSockopt) {
         if (isSockopt) {
-            return ['none', 'reality', 'tls'].indexOf(this.stream.security) !== -1;
+            return ['none'].indexOf(this.stream.security) !== -1;
         }
     }
 
@@ -1212,8 +1225,16 @@ class Inbound extends XrayCommonClass {
             }
         }
 
-        if (this.reality) {
-            params.set("flow", this.settings.vlesses[0].flow);
+        if (this.stream.security === 'reality') {
+            if (!ObjectUtil.isArrEmpty(this.stream.reality.serverNames)) {
+                params.set("sni", this.stream.reality.serverNames.split(/,|，|\s+/)[0]);
+            }
+            if (this.stream.reality.publicKey != "") {
+                params.set("pbk", this.stream.reality.publicKey);
+            }
+            if (this.stream.network === 'tcp') {
+                params.set("flow", this.settings.vlesses[0].flow);
+            }
         }
 
         const link = `vless://${uuid}@${address}:${port}`;
@@ -1300,8 +1321,13 @@ class Inbound extends XrayCommonClass {
                 params.set("sni", address);
             }
         }
-        if (this.reality) {
-            params.set("flow", this.settings.clients[0].flow);
+        if (this.stream.security === 'reality') {
+            if (!ObjectUtil.isArrEmpty(this.stream.reality.serverNames)) {
+                params.set("sni", this.stream.reality.serverNames.split(/,|，|\s+/)[0]);
+            }
+            if (this.stream.reality.publicKey != "") {
+                params.set("pbk", this.stream.reality.publicKey);
+            }
         }
         const link = `trojan://${settings.clients[0].password}@${address}:${port}`;
         const url = new URL(link);
