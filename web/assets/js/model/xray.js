@@ -568,17 +568,17 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
 };
 
 class ReaLITyStreamSettings extends XrayCommonClass {
-    constructor(show = false, 
-                dest = 'www.lovelive-anime.jp:443', 
-                xver = 0, 
-                serverNames = 'lovelive-anime.jp\nwww.lovelive-anime.jp', 
-                privateKey = RandomUtil.randomX25519PrivateKey(), 
-                publicKey = '', 
-                minClientVer = '', 
-                maxClientVer = '', 
-                maxTimeDiff = 0, 
-                shortIds = RandomUtil.randowShortId(),
-                ) {
+    constructor(show = false,
+        dest = 'www.lovelive-anime.jp:443',
+        xver = 0,
+        serverNames = 'lovelive-anime.jp\nwww.lovelive-anime.jp',
+        privateKey = RandomUtil.randomX25519PrivateKey(),
+        publicKey = '',
+        minClientVer = '',
+        maxClientVer = '',
+        maxTimeDiff = 0,
+        shortIds = RandomUtil.randowShortId(),
+    ) {
         super();
         this.show = show;
         this.dest = dest;
@@ -625,14 +625,14 @@ class ReaLITyStreamSettings extends XrayCommonClass {
 }
 
 
-class SockoptStreamSettings  extends XrayCommonClass {
+class SockoptStreamSettings extends XrayCommonClass {
     constructor(tcpFastOpen = false,
         domainStrategy = DOMAIN_STRATEGY.AsIs,
         tcpcongestion = '',
         acceptProxyProtocol = false,
         tcpKeepAliveIdle = 0,
         tcpKeepAliveInterval = 0,
-        _interface ="",
+        _interface = "",
     ) {
         super();
         this.tcpFastOpen = tcpFastOpen;
@@ -721,16 +721,6 @@ class StreamSettings extends XrayCommonClass {
         }
     }
 
-    get isSockopt() {
-        return ['none'].indexOf(this.security) !== -1;
-    }
-
-    set isSockopt(isSockopt) {
-        if (isSockopt) {
-            return ['none'].indexOf(this.security) !== -1;
-        }
-    }
-
     static fromJson(json = {}) {
         return new StreamSettings(
             json.network,
@@ -760,7 +750,7 @@ class StreamSettings extends XrayCommonClass {
             httpSettings: network === 'http' ? this.http.toJson() : undefined,
             quicSettings: network === 'quic' ? this.quic.toJson() : undefined,
             grpcSettings: network === 'grpc' ? this.grpc.toJson() : undefined,
-            sockopt: this.isSockopt ? this.sockopt.toJson() : undefined,
+            sockopt: this.sockopt ? this.sockopt.toJson() : undefined,
         };
     }
 }
@@ -843,16 +833,6 @@ class Inbound extends XrayCommonClass {
             this.stream.security = 'none';
         }
 
-    }
-
-    get sockopt() {
-        return ['none'].indexOf(this.stream.security) !== -1;
-    }
-    
-    set sockopt(isSockopt) {
-        if (isSockopt) {
-            return ['none'].indexOf(this.stream.security) !== -1;
-        }
     }
 
     get network() {
@@ -1231,10 +1211,17 @@ class Inbound extends XrayCommonClass {
             }
             if (this.stream.reality.publicKey != "") {
                 params.set("pbk", this.stream.reality.publicKey);
+
             }
             if (this.stream.network === 'tcp') {
                 params.set("flow", this.settings.vlesses[0].flow);
             }
+            
+            var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
+            var index1 = Math.floor(Math.random() * shortIds1.length);
+            var value1 = shortIds1[index1];
+            params.set("sid", value1);
+
         }
 
         const link = `vless://${uuid}@${address}:${port}`;
@@ -1328,6 +1315,11 @@ class Inbound extends XrayCommonClass {
             if (this.stream.reality.publicKey != "") {
                 params.set("pbk", this.stream.reality.publicKey);
             }
+            
+            var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
+            var index1 = Math.floor(Math.random() * shortIds1.length);
+            var value1 = shortIds1[index1];
+            params.set("sid", value1);
         }
         const link = `trojan://${settings.clients[0].password}@${address}:${port}`;
         const url = new URL(link);
