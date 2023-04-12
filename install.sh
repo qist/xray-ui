@@ -16,7 +16,7 @@ readp(){ read -p "$(yellow "$1")" $2;}
 remoteV=${releases_version}
 clear
 white "Github项目  ：github.com/qist"
-yellow "感谢xray-ui代码贡献者们（vaxilu、FranzKafkaYu及各位）"
+yellow "感谢xray-ui代码贡献者们（vaxilu）"
 green "当前安装版本： $remoteV"
 yellow "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
 sleep 2
@@ -317,7 +317,7 @@ fi
     echo -e ""
     echo -e "xray-ui 管理脚本使用方法: "
     echo -e "----------------------------------------------"
-    echo -e "xray-ui              - 显示管理菜单【一键证书申请（支持域名直接申请与dns api申请），warp脚本，脚本自动检测更新提示】"
+    echo -e "xray-ui              - 显示管理菜单"
     echo -e "xray-ui start        - 启动 xray-ui 面板"
     echo -e "xray-ui stop         - 停止 xray-ui 面板"
     echo -e "xray-ui restart      - 重启 xray-ui 面板"
@@ -328,6 +328,7 @@ fi
     echo -e "xray-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 xray-ui"
     echo -e "xray-ui update       - 更新 xray-ui 面板"
     echo -e "xray-ui install      - 安装 xray-ui 面板"
+    echo -e "xray-ui x25519       - REALITY  key 生成"
     echo -e "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo -e "----------------------------------------------"
     rm -rf install.sh
