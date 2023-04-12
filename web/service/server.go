@@ -302,7 +302,7 @@ func (s *ServerService) UpdateXray(version string) error {
 
 
 func (s *ServerService) GetGeoipVersions() ([]string, error) {
-	url := "https://api.github.com/repos/Loyalsoldier/geoip/releases"
+	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases"
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -331,7 +331,7 @@ func (s *ServerService) GetGeoipVersions() ([]string, error) {
 func (s *ServerService) downloadGeoip(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geoip.dat")
-	url := fmt.Sprintf("https://github.com/Loyalsoldier/geoip/releases/download/%s/%s", version, fileName)
+	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -372,7 +372,7 @@ func (s *ServerService) UpdateGeoip(version string) error {
 }
 
 func (s *ServerService) GetGeositeVersions() ([]string, error) {
-	url := "https://api.github.com/repos/Loyalsoldier/domain-list-custom/releases"
+	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases"
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -401,7 +401,7 @@ func (s *ServerService) GetGeositeVersions() ([]string, error) {
 func (s *ServerService) downloadGeosite(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geosite.dat")
-	url := fmt.Sprintf("https://github.com/Loyalsoldier/domain-list-custom/releases/download/%s/%s", version, fileName)
+	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
