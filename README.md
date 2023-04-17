@@ -19,6 +19,8 @@
 
 更新日志：
 
+2023.4.17 添加uTLS REALITY x25519 使用go原生生成使公钥私钥更安全
+
 2023.4.12 升级依赖模块 sockopt 可以在 REALITY TLS NONE 可用！增加REALITY分享连接shortId随机选择
 
 2023.4.11 REALITY 配置 生成 x25519 shortIds等 ！

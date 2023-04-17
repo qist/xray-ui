@@ -1,7 +1,11 @@
 package controller
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/curve25519"
 	"time"
 	"xray-ui/web/global"
 	"xray-ui/web/service"
@@ -29,6 +33,7 @@ type ServerController struct {
 
 	lastGeositeVersions        []string
 	lastGeositeGetVersionsTime time.Time
+	xraysecretkey        map[string]string
 }
 
 func NewServerController(g *gin.RouterGroup) *ServerController {
@@ -51,6 +56,7 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/installGeoip/:version", a.installGeoip)
 	g.POST("/getGeositeVersion", a.getGeositeVersion)
 	g.POST("/installGeosite/:version", a.installGeosite)
+	g.POST("/xraysecretkey", a.XraySecretKey)
 }
 
 func (a *ServerController) refreshStatus() {
@@ -148,4 +154,40 @@ func (a *ServerController) installGeosite(c *gin.Context) {
 	version := c.Param("version")
 	err := a.serverService.UpdateGeosite(version)
 	jsonMsg(c, "安装 geosite", err)
+}
+
+func (a *ServerController) XraySecretKey(c *gin.Context) {
+	key := SecretKey()
+	a.xraysecretkey = key
+	jsonObj(c, a.xraysecretkey, nil)
+	//fmt.Println("Private key:", privateKeyBase64)
+	//fmt.Println("Public key:", publicKeyBase64)
+}
+func SecretKey() map[string]string  {
+	// 生成私钥
+	privateKey := make([]byte, curve25519.ScalarSize)
+	if _, err := rand.Read(privateKey); err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	// 调整私钥的位数
+	privateKey[0] &= 248
+	privateKey[31] &= 127
+	privateKey[31] |= 64
+
+	// 生成公钥
+	publicKey, err := curve25519.X25519(privateKey, curve25519.Basepoint)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	// 用 base64 编码密钥对
+	privateKeyBase64 := base64.RawURLEncoding.EncodeToString(privateKey)
+	publicKeyBase64 := base64.RawURLEncoding.EncodeToString(publicKey)
+        secretkey := make(map[string]string)
+	secretkey["key"] = privateKeyBase64
+	secretkey["value"] = publicKeyBase64
+	return secretkey
 }
