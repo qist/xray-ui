@@ -32,16 +32,10 @@
     <a-form-item label="serverNames">
         <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.serverNames"  style="width: 165px"></a-input>
     </a-form-item>
-    <a-form-item v-if="inbound.stream.reality.privateKey === ''" label="privateKey">
-        <a-input v-model.trim="inbound.stream.reality.PRivateKey"  style="width: 350px"></a-input>
-    </a-form-item>
-    <a-form-item v-if="inbound.stream.reality.privateKey === ''" label="publicKey">
-        <a-input v-model.trim="inbound.stream.reality.PUblicKey"  style="width: 350px"></a-input>
-    </a-form-item>
-    <a-form-item v-if="inbound.stream.reality.privateKey !== ''" label="privateKey">
+    <a-form-item label="privateKey">
         <a-input v-model.trim="inbound.stream.reality.privateKey"  style="width: 350px"></a-input>
     </a-form-item>
-    <a-form-item v-if="inbound.stream.reality.privateKey !== ''" label="publicKey">
+    <a-form-item label="publicKey">
         <a-input v-model.trim="inbound.stream.reality.publicKey"  style="width: 350px"></a-input>
     </a-form-item>
     <a-form-item label="minClientVer">

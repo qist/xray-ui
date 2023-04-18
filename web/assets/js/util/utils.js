@@ -165,16 +165,8 @@ class RandomUtil {
     }
 
     static async xraysecretkey() {
-        // let kv =  await this.getxraysecretkey().then((res)=>
-        // {
-        //  console.log("keysssss: ",res.data)
-        //  return res.data
-        //})
-        // let kv =  await this.getxraysecretkey()
-        let kv =  await axios.post('server/xraysecretkey')
-        return kv
-    }
-
+        return await axios.post('server/xraysecretkey')
+     }
 
 }
 
