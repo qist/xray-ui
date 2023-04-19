@@ -44,7 +44,7 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------
 ### 手动安装
 
-```
+```bash
 # 下载 
 wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/latest/download/xray-ui-linux-amd64.tar.gz
 
@@ -68,13 +68,13 @@ wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://
 
 ### VPS直接运行一键脚本
 
-```
+```bash
 wget -N https://raw.githubusercontent.com/qist/xray-ui/main/install.sh && bash install.sh
 ```
 
 #### 编译
 
-```
+```bash
 git clone https://github.com/qist/xray-ui.git
 
 cd xray-ui
@@ -93,9 +93,11 @@ debian/ubuntu解决方案
 apt install gcc-aarch64-linux-gnu
 CGO_ENABLED=1 GOARCH=arm64 CC="aarch64-linux-gnu-gcc" go build -o xray-ui/xray-ui  -ldflags '-linkmode "external" -extldflags "-static"' main.go 
 ```
+
 --------------------------------------------------------------------------------------------------------------------------------------------------
 ### nginx 代理设置
-```
+
+```nginx
 upstream xray-ui {
         least_conn;
         server 127.0.0.1:54321 max_fails=3 fail_timeout=30s;
@@ -129,6 +131,7 @@ server {
  # vpn代理nginx 配置参考
 https://github.com/qist/xray/tree/main/xray/nginx
 ```
+
 --------------------------------------------------------------------------------------------------------------------------------------------------
 ### 关于TG通知（上游内容）
 
