@@ -69,7 +69,7 @@ wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://
 ### VPS直接运行一键脚本
 
 ```bash
-wget -N https://raw.githubusercontent.com/qist/xray-ui/main/install.sh && bash install.sh
+bash <(curl -Ls  https://raw.githubusercontent.com/qist/xray-ui/main/install.sh)
 ```
 
 #### 编译
