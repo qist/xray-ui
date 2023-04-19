@@ -1,0 +1,88 @@
+name: Release xray-ui
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+jobs:
+  linuxamd64build:
+    name: build xray-ui amd64 version
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Set up Go
+        uses: actions/setup-go@v4.0.0
+        with:
+          go-version: "stable"
+      - name: build linux amd64 version
+        run: |
+          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o xray-release -ldflags '-linkmode "external" -extldflags "-static"' -v main.go
+          mkdir xray-ui
+          cp xray-release xray-ui/xray-release
+          cp xray-ui.service xray-ui/xray-ui.service
+          cp xray-ui.sh xray-ui/xray-ui.sh
+          cd xray-ui
+          mv xray-release xray-ui
+          mkdir bin
+          cd bin
+          wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip
+          unzip Xray-linux-64.zip
+          rm -f Xray-linux-64.zip geoip.dat geosite.dat
+          wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+          wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+          mv xray xray-linux-amd64
+          cd ..
+          cd ..
+      - name: package
+        run: tar -zcvf xray-ui-linux-amd64.tar.gz xray-ui
+      - name: upload
+        uses: svenstaro/upload-release-action@2.5.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: xray-ui-linux-amd64.tar.gz
+          asset_name: xray-ui-linux-amd64.tar.gz
+          prerelease: true
+          overwrite: true
+  linuxarm64build:
+    name: build xray-ui arm64 version
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Set up Go
+        uses: actions/setup-go@v4.0.0
+        with:
+          go-version: "stable"
+      - name: build linux arm64 version
+        run: |
+          sudo apt-get update
+          sudo apt install gcc-aarch64-linux-gnu
+          CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc go build -o xray-release -ldflags '-linkmode "external" -extldflags "-static"' -v main.go
+          mkdir xray-ui
+          cp xray-release xray-ui/xray-release
+          cp xray-ui.service xray-ui/xray-ui.service
+          cp xray-ui.sh xray-ui/xray-ui.sh
+          cd xray-ui
+          mv xray-release xray-ui
+          mkdir bin
+          cd bin
+          wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-arm64-v8a.zip
+          unzip Xray-linux-arm64-v8a.zip
+          rm -f Xray-linux-arm64-v8a.zip geoip.dat geosite.dat
+          wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+          wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+          mv xray xray-linux-arm64
+          cd ..
+          cd ..
+      - name: package
+        run: tar -zcvf xray-ui-linux-arm64.tar.gz xray-ui
+      - name: upload
+        uses: svenstaro/upload-release-action@2.5.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: xray-ui-linux-arm64.tar.gz
+          asset_name: xray-ui-linux-arm64.tar.gz
+          prerelease: true
+          overwrite: true
