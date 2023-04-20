@@ -11,8 +11,8 @@ import (
 	"xray-ui/util/common"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/shirou/gopsutil/host"
-	"github.com/shirou/gopsutil/load"
+	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v3/load"
 )
 
 //This should be global variable,and only one instance
