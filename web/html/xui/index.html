@@ -68,7 +68,7 @@
                 <a-row>
                     <a-col :sm="24" :md="12">
                         <a-card hoverable>
-                            xray-ui: <a href="https://github.com/qist/xray-ui/releases" target="_blank"><a-tag color="green">v{{ .cur_ver }}</a-tag></a>
+                            Xray-ui: <a-tag color="green">v{{ .cur_ver }}</a-tag></a>
                             Xray: <a-tag color="green" style="cursor: pointer;" @click="openSelectV2rayVersion">v[[ status.xray.version ]]</a-tag>
                             github: <a href="https://github.com/qist/xray-ui/blob/main/README.md" target="_blank"><a-tag color="green">教程</a-tag></a>
                         </a-card>
@@ -87,7 +87,7 @@
                     </a-col>
                     <a-col :sm="24" :md="12">
                         <a-card hoverable>
-                            xray 状态:
+                            Xray 状态:
                             <a-tag :color="status.xray.color">[[ status.xray.state ]]</a-tag>
                             <a-tooltip v-if="status.xray.state === State.Error">
                                 <template slot="title">
@@ -96,7 +96,7 @@
                                 <a-icon type="question-circle" theme="filled"></a-icon>
                             </a-tooltip>
                             <a-tag color="green" @click="openSelectV2rayVersion">[[ status.xray.version ]]</a-tag>
-                            <a-tag color="blue" @click="openSelectV2rayVersion">xray版本切换</a-tag>
+                            <a-tag color="blue" @click="openSelectV2rayVersion">Xray版本切换</a-tag>
                             <a-tag color="blue" @click="geoipUpdate">geoip更新</a-tag>
                             <a-tag color="blue" @click="geositeUpdate">geosite更新</a-tag>
                             <a-tag color="blue" style="cursor: pointer;" @click="stopXrayService">停止</a-tag>
@@ -182,7 +182,7 @@
             </transition>
         </a-layout-content>
     </a-layout>
-    <a-modal id="version-modal" v-model="versionModal.visible" title="xray版本切换"
+    <a-modal id="version-modal" v-model="versionModal.visible" title="Xray版本切换"
              :closable="true" @ok="() => versionModal.visible = false"
              ok-text="确定" cancel-text="取消">
         <h2>点击你想切换的版本</h2>
