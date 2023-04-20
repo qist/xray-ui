@@ -19,6 +19,8 @@
 
 更新日志：
 
+2023.4.20 添加 配置文件下载本地，DB文件下载到本地，更新依赖到最新！
+
 2023.4.17 添加uTLS REALITY x25519 使用go原生生成公钥私钥
 
 2023.4.12 升级依赖模块 sockopt 可以在 REALITY TLS NONE 可用！增加REALITY分享连接shortId随机选择

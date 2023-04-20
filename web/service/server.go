@@ -12,15 +12,16 @@ import (
 	"runtime"
 	"time"
 	"xray-ui/logger"
+	"xray-ui/config"
 	"xray-ui/util/sys"
 	"xray-ui/xray"
 
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/host"
-	"github.com/shirou/gopsutil/load"
-	"github.com/shirou/gopsutil/mem"
-	"github.com/shirou/gopsutil/net"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v3/load"
+	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/net"
 )
 
 type ProcessState string
@@ -196,6 +197,30 @@ func (s *ServerService) GetXrayVersions() ([]string, error) {
 		versions = append(versions, release.TagName)
 	}
 	return versions, nil
+}
+
+func (s *ServerService) StopXrayService() (string error) {
+
+	err := s.xrayService.StopXray()
+	if err != nil {
+		logger.Error("stop xray failed:", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *ServerService) RestartXrayService() (string error) {
+
+	s.xrayService.StopXray()
+	defer func() {
+		err := s.xrayService.RestartXray(true)
+		if err != nil {
+			logger.Error("start xray failed:", err)
+		}
+	}()
+
+	return nil
 }
 
 func (s *ServerService) downloadXRay(version string) (string, error) {
@@ -439,4 +464,44 @@ func (s *ServerService) UpdateGeosite(version string) error {
 
 	return nil
 
+}
+
+func (s *ServerService) GetConfigJson() (interface{}, error) {
+	// Open the file for reading
+	file, err := os.Open(xray.GetConfigPath())
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Read the file contents
+	fileContents, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData interface{}
+	err = json.Unmarshal(fileContents, &jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonData, nil
+}
+
+func (s *ServerService) GetDb() ([]byte, error) {
+	// Open the file for reading
+	file, err := os.Open(config.GetDBPath())
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Read the file contents
+	fileContents, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileContents, nil
 }
