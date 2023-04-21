@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM golang:alpine AS build
-RUN apk add --no-cache tzdata ca-certificates gcc linux-headers libc-dev g++
+FROM --platform=$BUILDPLATFORM golang:latest AS build
+RUN apt update && apt-get install libc6-dev gcc  g++ 
 WORKDIR /src
 COPY . .
 ARG TARGETOS TARGETARCH
