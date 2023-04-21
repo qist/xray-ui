@@ -18,7 +18,7 @@ RUN set -ex \
 
 FROM --platform=${TARGETPLATFORM} alpine:latest
 
-ARG TARGETARCH
+ARG TARGETARCH TARGETPLATFORM
 
 WORKDIR /root
 
