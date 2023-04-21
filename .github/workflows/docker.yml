@@ -2,7 +2,7 @@ name: Build docker image
 
 on:
   push:
-    tags:
+    branches:
       - "*"
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
           images: docker.io/${{ secrets.DOCKER_HUB_USER }}/xray-ui
           flavor: latest=true
           tags: |
-            type=ref,event=tags
+            type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
       - name: Login to dokcer Container Registry
