@@ -1,18 +1,19 @@
-FROM  golang:alpine AS build
+FROM  golang:bullseye AS build
 
-
+RUN apt update && apt install -y gcc-aarch64-linux-gnu
 ARG TARGETOS TARGETARCH TARGETPLATFORM
 
 RUN echo "I'm building for $TARGETPLATFORM"
 
-RUN apk add --no-cache tzdata ca-certificates gcc linux-headers libc-dev g++
 WORKDIR /src
 COPY . .
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1 go build -o xray-ui -trimpath -ldflags "-s -w -buildid=" main.go
+COPY .github/docker/files/cc-name.sh /tmp/cc-name.sh
+RUN FILE_NAME=`sh /tmp/cc-name.sh` && echo $FILE_NAME \
+    && GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1  $FILE_NAME go build -o xray-ui -trimpath -ldflags "-s -w -buildid=" main.go
 
 FROM  alpine:latest
 
-ARG TARGETOS TARGETARCH TARGETPLATFORM
+ARG TARGETARCH
 
 WORKDIR /root
 
