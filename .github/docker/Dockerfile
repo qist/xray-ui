@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM --platform=$BUILDPLATFORM golang:alpine AS build
+RUN apk add --no-cache tzdata ca-certificates gcc linux-headers libc-dev g++
 WORKDIR /src
 COPY . .
 ARG TARGETOS TARGETARCH
