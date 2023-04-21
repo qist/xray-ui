@@ -1,17 +1,21 @@
-FROM  golang:bullseye AS build
+# syntax=docker/dockerfile:1
+FROM --platform=$BUILDPLATFORM  golang:bullseye AS build
 
 RUN apt update && apt install -y gcc-aarch64-linux-gnu
-ARG TARGETOS TARGETARCH TARGETPLATFORM
+ARG TARGETOS TARGETARCH
 
-RUN echo "I'm building for $TARGETPLATFORM"
+RUN echo "I'm building for $BUILDPLATFORM"
 
 WORKDIR /src
-COPY . .
-COPY .github/docker/files/cc-name.sh /tmp/cc-name.sh
-RUN FILE_NAME=`sh /tmp/cc-name.sh` && echo $FILE_NAME \
-    && GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1  $FILE_NAME go build -o xray-ui -trimpath -ldflags "-s -w -buildid=" main.go
 
-FROM  alpine:latest
+COPY . .
+
+COPY .github/docker/files/cc-name.sh /tmp/cc-name.sh
+
+RUN FILE_NAME=`sh /tmp/cc-name.sh` && echo $FILE_NAME \
+    && GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1  $FILE_NAME go build -o xray-ui -trimpath -ldflags '-linkmode "external" -extldflags "-static" "-s -w -buildid="'  main.go
+
+FROM --platform=${TARGETPLATFORM} alpine:latest
 
 ARG TARGETARCH
 
