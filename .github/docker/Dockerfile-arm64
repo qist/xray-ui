@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 FROM --platform=$BUILDPLATFORM golang:alpine AS build
-RUN apk add --no-cache tzdata ca-certificates gcc linux-headers libc-dev g++
+RUN apk add --no-cache tzdata ca-certificates gcc linux-headers libc-dev g++ sqlite-dev
 WORKDIR /src
 COPY . .
 ARG TARGETOS TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1 CC="aarch64-linux-gnu-gcc"  go build -o xray-ui -trimpath -ldflags "-s -w -buildid=" main.go
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1  go build -o xray-ui -trimpath -ldflags "-s -w -buildid=" main.go
 
 FROM --platform=${TARGETPLATFORM} alpine:latest
 WORKDIR /root
