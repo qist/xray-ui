@@ -1,7 +1,7 @@
 #!/bin/sh
 case $TARGETARCH in
     "amd64")
-        cc='"CC=x86_64-linux-gnu-gcc"'
+        cc=''
         ;;
     "arm64")
         cc='CC="aarch64-linux-gnu-gcc"'
