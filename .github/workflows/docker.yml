@@ -8,20 +8,6 @@ env:
   REGISTRY: docker.io
 
 jobs:
-  linuxarm64build:
-    name: build xray-ui arm64 version
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3.5.2
-      - name: Set up Go
-        uses: actions/setup-go@v4.0.0
-        with:
-          go-version: "stable"
-      - name: build linux arm64 version
-        run: |
-          sudo apt-get update
-          sudo apt install gcc-aarch64-linux-gnu
-          CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc go build -o xray-release -ldflags '-linkmode "external" -extldflags "-static"' -v main.go
   build-image:
     runs-on: ubuntu-latest
     permissions:
@@ -62,13 +48,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Build and push arm64
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/arm64
-          file: .github/docker/Dockerfile-arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          
+      # - name: Build and push arm64
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     platforms: linux/arm64
+      #     file: .github/docker/Dockerfile-arm64
+      #     push: true
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
