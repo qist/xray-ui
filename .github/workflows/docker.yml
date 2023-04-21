@@ -22,7 +22,7 @@ jobs:
           images: docker.io/juestnow/xray-ui
           flavor: latest=true
           tags: |
-            type=ref,event=branch
+            type=ref,event=tag
             type=ref,event=pr
             type=semver,pattern={{version}}
 
