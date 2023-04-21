@@ -12,13 +12,13 @@ COPY . .
 
 COPY .github/docker/files/cc-name.sh /tmp/cc-name.sh
 
-RUN set -ex \
+RUN \
     && FILE_NAME=`sh /tmp/cc-name.sh` && echo $FILE_NAME \
     && GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1  $FILE_NAME go build -o xray-ui -trimpath -ldflags '-linkmode "external" -extldflags "-static" "-s -w -buildid="'  main.go
 
 FROM --platform=${TARGETPLATFORM} alpine:latest
 
-ARG TARGETARCH TARGETPLATFORM
+ARG TARGETARCH
 
 WORKDIR /root
 

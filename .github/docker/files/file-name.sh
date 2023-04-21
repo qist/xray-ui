@@ -1,9 +1,9 @@
 #!/bin/sh
-case $TARGETPLATFORM in
-    "linux/amd64")
+case $TARGETARCH in
+    "amd64")
         arch="64"
         ;;
-    "linux/arm64")
+    "arm64")
         arch="arm64-v8a"
         ;;
     *)
