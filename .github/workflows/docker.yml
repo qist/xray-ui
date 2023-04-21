@@ -16,7 +16,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: docker.io/${{ secrets.DOCKER_HUB_USER }}/xray-ui
+          images: docker.io/juestnow/xray-ui
           flavor: latest=true
           tags: |
             type=ref,event=branch
