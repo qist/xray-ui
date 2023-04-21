@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "*"
+env:
+  REGISTRY: docker.io
 
 jobs:
   build-image:
@@ -25,7 +27,7 @@ jobs:
       - name: Login to dokcer Container Registry
         uses: docker/login-action@v1
         with:
-          registry: dokcer.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - # Add support for more platforms with QEMU (optional)
