@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 case $TARGETARCH in
     "amd64")
         cc=''
         ;;
     "arm64")
-        cc='CC="aarch64-linux-gnu-gcc"'
+        cc='aarch64-linux-gnu-gcc'
         ;;
     *)
         echo "Unknown architecture"
