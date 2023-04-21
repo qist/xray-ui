@@ -1,10 +1,9 @@
 name: Build docker image
+
 on:
   push:
-    tags:
+    branches:
       - "*"
-  workflow_dispatch:
-
 env:
   REGISTRY: docker.io
 
@@ -22,7 +21,7 @@ jobs:
           images: docker.io/juestnow/xray-ui
           flavor: latest=true
           tags: |
-            type=ref,event=tag
+            type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
 
@@ -50,12 +49,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           
-      # - name: Build and push arm64
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     platforms: linux/arm64
-      #     file: .github/docker/Dockerfile-arm64
-      #     push: true
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push arm64
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: linux/arm64
+          file: .github/docker/Dockerfile-arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
