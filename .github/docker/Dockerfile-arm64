@@ -2,7 +2,7 @@
 FROM --platform=${TARGETPLATFORM} alpine:latest
 WORKDIR /root
 COPY xray-release /root/xray-ui
-COPY  xray-ui.sh /usr/bin/xray-ui
+COPY xray-ui.sh /usr/bin/xray-ui
 RUN set -ex \
 	&& apk add --no-cache tzdata ca-certificates \
 	&& mkdir -p /root/bin \
