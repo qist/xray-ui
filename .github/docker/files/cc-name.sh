@@ -1,7 +1,7 @@
 #!/bin/sh
 case $TARGETPLATFORM in
     "linux/amd64")
-        cc=""
+        cc='"CC=x86_64-linux-gnu-gcc"'
         ;;
     "linux/arm64")
         cc='CC="aarch64-linux-gnu-gcc"'
