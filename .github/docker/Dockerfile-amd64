@@ -1,11 +1,11 @@
-FROM  golang:alpine AS build
+FROM --platform=linux/amd64 golang:alpine AS build
 RUN apk add --no-cache tzdata ca-certificates gcc linux-headers libc-dev g++
 WORKDIR /src
 COPY . .
 ARG TARGETOS TARGETARCH TARGETPLATFORM
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1 go build -o xray-ui -trimpath -ldflags "-s -w -buildid=" main.go
 
-FROM  alpine:latest
+FROM --platform=linux/amd64 alpine:latest
 WORKDIR /root
 COPY --from=build /src/xray-ui /root/xray-ui
 COPY --from=build /src/xray-ui.sh /usr/bin/xray-ui

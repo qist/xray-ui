@@ -44,8 +44,9 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
-          file: .github/docker/Dockerfile
+          file: |
+            .github/docker/Dockerfile-amd64
+            .github/docker/Dockerfile-arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
