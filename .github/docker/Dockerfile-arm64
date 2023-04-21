@@ -1,12 +1,12 @@
-# syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM golang:bullseye AS build
+# syntax=docker/dockerfile-arm64:1
+FROM  golang:bullseye AS build
 RUN apt update && apt install -y gcc-aarch64-linux-gnu
 WORKDIR /src
 COPY . .
-ARG TARGETOS TARGETARCH
+ARG TARGETOS TARGETARCH TARGETPLATFORM
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1 CC="aarch64-linux-gnu-gcc" go build -o xray-ui -trimpath -ldflags "-s -w -buildid=" main.go
 
-FROM --platform=${TARGETPLATFORM} alpine:latest
+FROM  alpine:latest
 WORKDIR /root
 COPY --from=build /src/xray-ui /root/xray-ui
 COPY --from=build /src/xray-ui.sh /usr/bin/xray-ui
