@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile-amd64:1
 FROM  golang:alpine AS build
 RUN apk add --no-cache tzdata ca-certificates gcc linux-headers libc-dev g++
 WORKDIR /src

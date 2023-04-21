@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile-arm64:1
 FROM  golang:bullseye AS build
 RUN apt update && apt install -y gcc-aarch64-linux-gnu
 WORKDIR /src
