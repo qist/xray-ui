@@ -20,7 +20,6 @@ ARG TARGETARCH
 WORKDIR /root
 
 COPY --from=build /src/xray-ui /root/xray-ui
-COPY --from=build /src/xray-ui.sh /usr/bin/xray-ui
 COPY .github/docker/files/file-name.sh /tmp/file-name.sh
 
 RUN set -ex \
@@ -28,7 +27,6 @@ RUN set -ex \
     && apk add --no-cache tzdata ca-certificates bash \
     && mkdir -p /root/bin \
     && chmod +x /root/xray-ui \
-    && chmod +x /usr/bin/xray-ui \
     && cd /root/bin \
     && wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-${FILE_NAME}.zip \
     && unzip Xray-linux-${FILE_NAME}.zip \
