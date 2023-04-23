@@ -38,18 +38,8 @@ jobs:
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      # - name: Build and push amd
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     platforms: linux/amd64
-      #     file: .github/docker/Dockerfile
-      #     push: true
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
           
-      - name: Build and push arm
+      - name: Build and push
         uses: docker/build-push-action@v4
         with:
           context: .
