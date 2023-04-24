@@ -71,6 +71,7 @@
                             Xray-ui: <a-tag color="green">v{{ .cur_ver }}</a-tag></a>
                             Xray: <a-tag color="green" style="cursor: pointer;" @click="openSelectV2rayVersion">v[[ status.xray.version ]]</a-tag>
                             github: <a href="https://github.com/qist/xray-ui/blob/main/README.md" target="_blank"><a-tag color="green">教程</a-tag></a>
+                            【geoip geosite】版本: <a-tag  color="green">[[ Version ]]</a-tag></a>
                         </a-card>
                     </a-col>
                     <a-col :sm="24" :md="12">
@@ -109,6 +110,7 @@
                             其他:
                             <a-tag color="blue" style="cursor: pointer;" @click="openConfig">配置文件下载</a-tag>
                             <a-tag color="blue" style="cursor: pointer;" @click="getBackup">DB下载</a-tag>
+                            <a-tag  color="red">默认CN IP 网址 为 blocked、修改请到《面板配置》下面的《xray 相关设置》进行配置 </a-tag></a>
                         </a-card>
                     </a-col>
                     <a-col :sm="24" :md="12">
@@ -240,6 +242,7 @@
         Running: "running",
         Stop: "stop",
         Error: "error",
+
     }
     Object.freeze(State);
 
@@ -352,6 +355,8 @@
             versionModal,
             spinning: false,
             loadingTip: '加载中',
+            Version: "",
+
         },
         methods: {
             loading(spinning, tip = '加载中') {
@@ -459,6 +464,8 @@
                     this.loading(true, '安装中，请不要刷新此页面');
                     const urls = [`/server/installGeosite/${version}`, `/server/installGeoip/${version}`];
                     await Promise.all(urls.map(url => HttpUtil.post(url)));
+                    const msg = await HttpUtil.post(`/server/getVersion/${version}`)
+                    this.Version = msg.obj
                     this.loading(false);
                 },
             });
@@ -490,14 +497,25 @@
                 }
                 txtModal.show('config.json',JSON.stringify(msg.obj, null, 2),'config.json');
             },
+            async getVersionstatus() {
+                const msg = await HttpUtil.get('server/getVersion');
+
+                if (!msg.success) {
+                    return;
+                }
+                this.Version = msg.obj
+
+            },
             getBackup(){
                 window.location = basePath + 'server/getDb';
             }
         },
         async mounted() {
+            await this.getVersionstatus()
             while (true) {
                 try {
                     await this.getStatus();
+
                 } catch (e) {
                     console.error(e);
                 }

@@ -22,7 +22,10 @@ type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
-
+type VersionStatus struct {
+	Id       int    `json:"id" gorm:"primaryKey;autoIncrement"`
+	Version string `json:"version"`
+}
 type Inbound struct {
 	Id         int    `json:"id" form:"id" gorm:"primaryKey;autoIncrement"`
 	UserId     int    `json:"-"`

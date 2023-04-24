@@ -34,6 +34,7 @@ type ServerController struct {
 	lastGeositeVersions        []string
 	lastGeositeGetVersionsTime time.Time
 	xraysecretkey        map[string]string
+	version string
 }
 
 func NewServerController(g *gin.RouterGroup) *ServerController {
@@ -60,6 +61,8 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/installGeosite/:version", a.installGeosite)
 	g.POST("/xraysecretkey", a.XraySecretKey)
 	g.POST("/getConfigJson", a.getConfigJson)
+	g.GET("/getVersion", a.getVersion)
+	g.POST("/getVersion/:version", a.UpdateVersion)
 	g.GET("/getDb", a.getDb)
 }
 
@@ -77,6 +80,26 @@ func (a *ServerController) startTask() {
 		}
 		a.refreshStatus()
 	})
+}
+func (a *ServerController) getVersion(c *gin.Context)  {
+	GeoipVersion := service.GeoipVersion{}
+	Version, err := GeoipVersion.GetVersion()
+	a.version = Version.Version
+	if err != nil {
+		fmt.Println("get current GetVersion failed,error info:", err)
+	}
+	jsonObj(c, a.version , nil)
+}
+func (a *ServerController) UpdateVersion(c *gin.Context)  {
+	version := c.Param("version")
+	GeoipVersion := service.GeoipVersion{}
+	err := GeoipVersion.UpVersion(version)
+	if err != nil {
+		fmt.Println("get current UpVersion failed,error info:", err)
+
+	}
+	a.version = version
+	jsonObj(c, a.version , err)
 }
 
 func (a *ServerController) status(c *gin.Context) {

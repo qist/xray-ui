@@ -19,7 +19,7 @@
 
 更新日志：
 
-2023.4.24 添加一键更新geoip,geosite
+2023.4.24 添加一键更新geoip,geosite 添加geoip,geosite 更新版本号
 
 2023.4.23 添加docker镜像
 

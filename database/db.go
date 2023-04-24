@@ -32,7 +32,24 @@ func initUser() error {
 	}
 	return nil
 }
-
+func initVersion() error {
+	err := db.AutoMigrate(&model.VersionStatus{})
+	if err != nil {
+		return err
+	}
+	var count int64
+	err = db.Model(&model.VersionStatus{}).Count(&count).Error
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		VersionStatus := &model.VersionStatus{
+			Version: "δ����",
+		}
+		return db.Create(VersionStatus).Error
+	}
+	return nil
+}
 func initInbound() error {
 	return db.AutoMigrate(&model.Inbound{})
 }
@@ -68,6 +85,7 @@ func InitDB(dbPath string) error {
 	if err != nil {
 		return err
 	}
+	err = initVersion()
 	err = initInbound()
 	if err != nil {
 		return err
