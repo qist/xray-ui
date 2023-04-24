@@ -6,3 +6,4 @@ xray-ui/
 bin/
 release.sh
 .sync*
+xray-ui

@@ -25,11 +25,6 @@
     },
     {
       "protocol": "blackhole",
-      "settings": {
-        "response": {
-          "type": "http"
-        }
-      },
       "tag": "blocked"
     }
   ],
