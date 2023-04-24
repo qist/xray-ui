@@ -44,7 +44,7 @@ func initVersion() error {
 	}
 	if count == 0 {
 		VersionStatus := &model.VersionStatus{
-			Version: "δ����",
+			Version: "未更新",
 		}
 		return db.Create(VersionStatus).Error
 	}

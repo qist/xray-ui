@@ -21,6 +21,8 @@
 
 2023.4.24 添加一键更新geoip,geosite 添加geoip,geosite 更新版本号
 
+<font color=#FF000 >这次更新记得先备份一下基础配置可能会覆盖也能以防外一记得备份</font>
+
 2023.4.23 添加docker镜像
 
 ```bash
