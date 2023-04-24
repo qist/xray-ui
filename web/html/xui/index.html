@@ -99,6 +99,7 @@
                             <a-tag color="blue" @click="openSelectV2rayVersion">Xray版本切换</a-tag>
                             <a-tag color="blue" @click="geoipUpdate">geoip更新</a-tag>
                             <a-tag color="blue" @click="geositeUpdate">geosite更新</a-tag>
+                            <a-tag color="blue" @click="AllIPUpdate">一键更新geoip,geosite</a-tag>
                             <a-tag color="blue" style="cursor: pointer;" @click="stopXrayService">停止</a-tag>
                             <a-tag color="blue" style="cursor: pointer;" @click="restartXrayService">重启</a-tag>   
                         </a-card>
@@ -218,7 +219,18 @@
             </a-tag>
         </template>
     </a-modal>
-
+    <a-modal id="version-modal" v-model="versionModal.allip" title="一键更新geoip,geosite"
+             :closable="true" @ok="() => versionModal.allip = false"
+             ok-text="确定" cancel-text="取消">
+        <h2>点击你想更新的版本</h2>
+        <!-- <h2>请谨慎选择，旧版本可能配置不兼容</h2> -->
+        <template v-for="version, index in versionModal.allips">
+            <a-tag :color="index % 2 == 0 ? 'blue' : 'green'"
+                   style="margin: 10px" @click="AllIPUpdateVersion(version)">
+                [[ version ]]
+            </a-tag>
+        </template>
+    </a-modal>
 </a-layout>
 {{template "js" .}}
 {{template "textModal"}}
@@ -308,6 +320,8 @@
         geosites: [],
         versions: [],
         geoips:[],
+        allip: false,
+        allips: [],
         show(versions) {
             this.visible = true;
             this.versions = versions;
@@ -319,6 +333,10 @@
         geositeshow(versions){
             this.geosite = true;
             this.geosites = versions;
+        },
+        allshow(versions){
+            this.allip = true;
+            this.allips = versions;
         },
         hide() {
             this.visible = false;
@@ -376,6 +394,18 @@
                 }
                 versionModal.geositeshow(msg.obj);
             },
+            async AllIPUpdate(){
+            this.loading(true);
+            const urls = ['server/getGeositeVersion', 'server/getGeoipVersion'];
+            const results = await Promise.all(urls.map(url => HttpUtil.post(url)));
+            this.loading(false);
+            for (let msg of results) {
+                if (!msg.success) {
+                    return;
+                }
+                versionModal.allshow(msg.obj);
+            }
+        },
             switchV2rayVersion(version) {
                 this.$confirm({
                     title: '切换 xray 版本',
@@ -418,6 +448,21 @@
                     },
                 });
             },
+            AllIPUpdateVersion(version){
+            this.$confirm({
+                title: '切换 geoip,geosite 版本',
+                content: '是否切换 geoip,geosite 版本至' + ` ${version}?`,
+                okText: '确定',
+                cancelText: '取消',
+                onOk: async () => {
+                    versionModal.hide();
+                    this.loading(true, '安装中，请不要刷新此页面');
+                    const urls = [`/server/installGeosite/${version}`, `/server/installGeoip/${version}`];
+                    await Promise.all(urls.map(url => HttpUtil.post(url)));
+                    this.loading(false);
+                },
+            });
+        },
 	        //here add stop xray function
             async stopXrayService() {
                 this.loading(true);
