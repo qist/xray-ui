@@ -60,18 +60,27 @@
         "outboundTag": "direct"
       },
       {
-        "ip": [
-          "geoip:private"
+        "type": "field",
+        "domain": [
+          "geosite:category-ads-all",
+          "geosite:cn",
+          "geosite:geolocation-cn"
         ],
-        "outboundTag": "blocked",
-        "type": "field"
+        "outboundTag": "blocked"
       },
       {
-        "outboundTag": "blocked",
+        "type": "field",
+        "ip": [
+          "geoip:cn"
+        ],
+        "outboundTag": "blocked"
+      },
+      {
+        "type": "field",
         "protocol": [
           "bittorrent"
         ],
-        "type": "field"
+        "outboundTag": "blocked"
       }
     ]
   },
