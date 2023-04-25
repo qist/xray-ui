@@ -29,10 +29,10 @@
 # juestnow/xray-ui:latest 最新版本
  docker run -d --net=host -v/etc/xray-ui:/etc/xray-ui --restart=unless-stopped --name xray-ui juestnow/xray-ui:latest
 # 查看默认账号密码
-docker exec -ti  xray-ui /root/xray-ui setting -show
+docker exec -ti  启动的容器名 /root/xray-ui setting -show
 docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui  /root/xray-ui setting -show
 # 设置账号密码
-docker exec -ti  xray-ui /root/xray-ui setting -password abcd -username abacd 
+docker exec -ti  启动的容器名 /root/xray-ui setting -password abcd -username abacd 
 docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui /root/xray-ui setting -password abcd -username abacd
 ```
 
