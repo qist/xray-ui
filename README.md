@@ -21,15 +21,19 @@
 
 2023.4.24 添加一键更新geoip,geosite 添加geoip,geosite 更新版本号
 
-`这次更新记得先备份一下基础配置可能会覆盖以防外一记得备份`
+`这次更新记得先备份一下基础配置可能会覆盖以防万一记得备份`
 
 2023.4.23 添加docker镜像
 
 ```bash
 # juestnow/xray-ui:latest 最新版本
- docker run -d --net=host -v/etc/xray-ui:/etc/xray-ui --restart=unless-stopped juestnow/xray-ui:latest 
+ docker run -d --net=host -v/etc/xray-ui:/etc/xray-ui --restart=unless-stopped --name xray-ui juestnow/xray-ui:latest
 # 查看默认账号密码
- docker run  --rm juestnow/xray-ui /root/xray-ui setting -show
+docker exec -ti  xray-ui /root/xray-ui setting -show
+docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui  /root/xray-ui setting -show
+# 设置账号密码
+docker exec -ti  xray-ui /root/xray-ui setting -password abcd -username abacd 
+docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui /root/xray-ui setting -password abcd -username abacd
 ```
 
 2023.4.20 添加 配置文件下载本地，DB文件下载到本地，更新依赖到最新！
