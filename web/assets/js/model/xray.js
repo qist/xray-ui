@@ -617,9 +617,9 @@ TlsStreamSettings.Settings = class extends XrayCommonClass {
 class ReaLITyStreamSettings extends XrayCommonClass {
     constructor(show = false,
         fingerprint = UTLS_FINGERPRINT.UTLS_CHROME,
-        dest = 'captive.apple.com:443',
+        dest = 'www.lovelive-anime.jp:443',
         xver = 0,
-        serverNames = 'captive.apple.com',
+        serverNames = 'lovelive-anime.jp\nwww.lovelive-anime.jp',
         privateKey = '',
         publicKey = '',
         minClientVer = '',
