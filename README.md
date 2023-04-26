@@ -26,7 +26,7 @@
 2023.4.23 添加docker镜像
 
 ```bash
-# juestnow/xray-ui:latest 最新版本
+# juestnow/xray-ui:latest 最新版本 指定版本号docker pull juestnow/xray-ui:1.8.6
  docker run -d --net=host -v/etc/xray-ui:/etc/xray-ui --restart=unless-stopped --name xray-ui juestnow/xray-ui:latest
 # 查看默认账号密码
 docker exec -ti  启动的容器名 /root/xray-ui setting -show
