@@ -4,7 +4,7 @@ xray-ui 面板配置
 
 面板配置示例：
 
-## 说明：Nginx前置SNI分流 没做nginx 代理时必须打开sockopt 下面的acceptProxyProtocol 如果使用nginx 转发过例如tls grpc ws  不需要开启acceptProxyProtocol
+## 说明：Nginx前置SNI分流 没做nginx 代理时必须打开sockopt 下面的acceptProxyProtocol 如果使用nginx 转发过例如 grpc ws  不需要开启acceptProxyProtocol
 
 ## reality 配置 dest serverNames 每个配置不能重复别使用www.bing.com这个域名
 
