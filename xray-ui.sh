@@ -502,6 +502,7 @@ show_usage() {
     echo "xray-ui log          - 查看 xray-ui 日志"
     echo "xray-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 xray-ui"
     echo "xray-ui update       - 更新 xray-ui 面板"
+    echo "xray-ui update_shell - 更新 xray-ui 脚本"
     echo "xray-ui install      - 安装 xray-ui 面板"
     echo "xray-ui x25519       - REALITY  key 生成"
     echo "xray-ui uninstall    - 卸载 xray-ui 面板"
@@ -531,7 +532,8 @@ show_menu() {
   ${green}13.${plain} 设置 xray-ui 开机自启
   ${green}14.${plain} 取消 xray-ui 开机自启
 ————————————————
-  ${green}15.${plain} xray REALITY x25519 生成
+  ${green}15.${plain} xray REALITY x25519 生成 
+  ${green}16.${plain} 更新 xray-ui 脚本
  "
     show_status
     echo "------------------------------------------"
@@ -550,7 +552,7 @@ show_menu() {
         yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
     fi
 
-    echo && read -p "请输入选择 [0-15]: " num
+    echo && read -p "请输入选择 [0-16]: " num
 
     case "${num}" in
     0)
@@ -601,8 +603,11 @@ show_menu() {
     15)
         x25519
         ;;
+    16)
+        update_shell
+        ;;
     *)
-        echo -e "${red}请输入正确的数字 [0-15]${plain}"
+        echo -e "${red}请输入正确的数字 [0-16]${plain}"
         ;;
     esac
 }
@@ -641,6 +646,9 @@ if [[ $# > 0 ]]; then
         ;;
     "x25519")
         x25519 0
+        ;;
+    "update_shell")
+        update_shell 0
         ;;
     "uninstall")
         check_install 0 && uninstall 0

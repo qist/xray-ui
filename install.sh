@@ -132,19 +132,10 @@ install_base() {
             yum clean all && yum makecache
         fi
         yum install epel-release -y && yum install wget curl tar gzip lsof -y
+
+        setenforce 0 >/dev/null 2>&1
     else
         apt update && apt install wget curl tar lsof gzip -y
-    fi
-
-    setenforce 0 >/dev/null 2>&1
-
-    lsof -i :80 | grep -v "PID" | awk '{print "kill -9",$2}' | sh >/dev/null 2>&1
-    if [[ -z $(grep 'DiG 9' /etc/hosts) ]]; then
-        v4=$(curl -s4m5 https://gio.tycng.com/ipinfo -k)
-        if [ -z $v4 ]; then
-            echo -e "${green}检测到VPS为纯IPV6 Only,添加dns64${plain}\n"
-            echo -e nameserver 2001:4860:4860:0:0:0:0:8888 >/etc/resolv.conf
-        fi
     fi
 }
 install_xray-ui() {
@@ -154,7 +145,7 @@ install_xray-ui() {
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
-            rm -rf install.sh
+            rm -f install.sh
             exit 1
         fi
     else
@@ -164,7 +155,7 @@ install_xray-ui() {
         wget -N --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui v$1 失败，请确保此版本存在${plain}"
-            rm -rf install.sh
+            rm -f install.sh
             exit 1
         fi
     fi
@@ -180,7 +171,6 @@ install_xray-ui() {
     cp -f xray-ui.service /etc/systemd/system/
     wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     chmod +x /usr/bin/xray-ui
-    #chmod +x /usr/local/xray-ui/xray-ui.sh
     systemctl daemon-reload
     systemctl enable xray-ui
     systemctl start xray-ui
@@ -277,7 +267,7 @@ EOF
     echo -e "xray-ui x25519       - REALITY  key 生成"
     echo -e "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo -e "----------------------------------------------"
-    rm -rf install.sh
+    rm -f install.sh
 }
 
 echo -e "${green}开始安装xray-ui必要依赖${plain}"
