@@ -263,6 +263,7 @@ EOF
     echo -e "xray-ui log          - 查看 xray-ui 日志"
     echo -e "xray-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 xray-ui"
     echo -e "xray-ui update       - 更新 xray-ui 面板"
+    echo -e "xray-ui update_shell - 更新 xray-ui 脚本"
     echo -e "xray-ui install      - 安装 xray-ui 面板"
     echo -e "xray-ui x25519       - REALITY  key 生成"
     echo -e "xray-ui uninstall    - 卸载 xray-ui 面板"

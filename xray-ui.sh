@@ -147,7 +147,7 @@ update() {
         wget -N --no-check-certificate -O /tmp/xray/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
-            rm -rf install.sh
+            rm -f install.sh
             exit 1
         fi
     else
@@ -157,12 +157,12 @@ update() {
         wget -N --no-check-certificate -O /tmp/xray/xray-ui-linux-${arch}.tar.gz ${url}
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui v$1 失败，请确保此版本存在${plain}"
-            rm -rf install.sh
+            rm -f install.sh
             exit 1
         fi
     fi
     if [[ -e /usr/local/xray-ui/xray-ui ]]; then
-        rm /usr/local/xray-ui/xray-ui -rf
+        rm /usr/local/xray-ui/xray-ui -f
     fi
     tar zxvf xray-ui-linux-${arch}.tar.gz
     mv /tmp/xray/xray-ui/{xray-ui,xray-ui.service} /usr/local/xray-ui/
@@ -198,7 +198,7 @@ uninstall() {
     systemctl reset-failed
     rm /etc/xray-ui/ -rf
     rm /usr/local/xray-ui/ -rf
-    rm -rf /root/xrayuil.sh /root/acme.sh
+    rm -f /root/xrayuil.sh
     sed -i '/xrayuil.sh/d' /etc/crontab >/dev/null 2>&1
     sed -i '/xray-ui restart/d' /etc/crontab >/dev/null 2>&1
     rm /usr/bin/xray-ui -f
