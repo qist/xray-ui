@@ -3,12 +3,12 @@ red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
 plain='\033[0m'
-green(){ echo -e "\033[32m\033[01m$1\033[0m";}
-yellow(){ echo -e "\033[33m\033[01m$1\033[0m";}
+green() { echo -e "\033[32m\033[01m$1\033[0m"; }
+yellow() { echo -e "\033[33m\033[01m$1\033[0m"; }
 # check root
 
 [[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain}  必须使用root用户运行此脚本！\n" && exit 1
- 
+
 # check os
 if [[ -f /etc/redhat-release ]]; then
     release="centos"
@@ -58,8 +58,8 @@ elif [[ x"${release}" == x"amazon_linux" ]]; then
     fi
 fi
 
-xrayui(){
-cat>/root/xrayuil.sh<<-\EOF
+xrayui() {
+    cat >/root/xrayuil.sh <<-\EOF
 #!/bin/bash
 xui=`ps -aux |grep "xray-ui" |grep -v "grep" |wc -l`
 xray=`ps -aux |grep "xray-linux" |grep -v "grep" |wc -l`
@@ -71,9 +71,9 @@ if [ $xray = 0 ];then
 xray-ui restart
 fi
 EOF
-chmod +x /root/xrayuil.sh
-sed -i '/xrayuil.sh/d' /etc/crontab >/dev/null 2>&1
-echo "*/1 * * * * root bash /root/xrayuil.sh >/dev/null 2>&1" >> /etc/crontab
+    chmod +x /root/xrayuil.sh
+    sed -i '/xrayuil.sh/d' /etc/crontab >/dev/null 2>&1
+    echo "*/1 * * * * root bash /root/xrayuil.sh >/dev/null 2>&1" >>/etc/crontab
 }
 
 confirm() {
@@ -128,22 +128,22 @@ update() {
     fi
     arch=$(arch)
     if [[ $arch == "x86_64" || $arch == "x64" || $arch == "amd64" ]]; then
-    arch="amd64"
+        arch="amd64"
     elif [[ $arch == "aarch64" || $arch == "arm64" ]]; then
-    arch="arm64"
+        arch="arm64"
     elif [[ $arch == "s390x" ]]; then
-    arch="s390x"
+        arch="s390x"
     else
-    arch="amd64"
-    echo -e "${red}检测架构失败，使用默认架构: ${arch}${plain}"
+        arch="amd64"
+        echo -e "${red}检测架构失败，使用默认架构: ${arch}${plain}"
     fi
     systemctl stop xray-ui
-    curl  -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
+    curl -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
     releases_version=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
     rm /tmp/tmp_file -f
     mkdir -p /tmp/xray
     cd /tmp/xray
-    if  [ $# == 0 ] ;then
+    if [ $# == 0 ]; then
         wget -N --no-check-certificate -O /tmp/xray/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
@@ -213,9 +213,9 @@ reset_user() {
         fi
         return 0
     fi
-    uauto=`date +%s%N |md5sum | cut -c 1-6`
+    uauto=$(date +%s%N | md5sum | cut -c 1-6)
     username=$uauto
-    pauto=`date +%s%N |md5sum | cut -c 1-6`
+    pauto=$(date +%s%N | md5sum | cut -c 1-6)
     password=$pauto
     /usr/local/xray-ui/xray-ui setting -username ${username} -password ${password} >/dev/null 2>&1
     green "xray-ui登录用户名：${username}"
@@ -251,11 +251,10 @@ set_port() {
         echo -e "${yellow}已取消${plain}"
         before_show_menu
     else
-until [[ -z $(ss -ntlp | awk '{print $4}' | grep -w "$port") ]]
-do
-[[ -n $(ss -ntlp | awk '{print $4}' | grep -w "$port") ]] && yellow "\n端口被占用，请重新输入端口" && readp "自定义xray-ui端口:" port
-done
-/usr/local/xray-ui/xray-ui setting -port ${port} >/dev/null 2>&1
+        until [[ -z $(ss -ntlp | awk '{print $4}' | grep -w "$port") ]]; do
+            [[ -n $(ss -ntlp | awk '{print $4}' | grep -w "$port") ]] && yellow "\n端口被占用，请重新输入端口" && readp "自定义xray-ui端口:" port
+        done
+        /usr/local/xray-ui/xray-ui setting -port ${port} >/dev/null 2>&1
         echo -e "设置端口完毕，现在请重启面板，并使用新设置的端口 ${green}${port}${plain} 访问面板"
         confirm_restart
     fi
@@ -367,28 +366,16 @@ migrate_v2_ui() {
     before_show_menu
 }
 
-acme() {
-   wget -N https://raw.githubusercontent.com/qist/xray-ui/main/acme.sh && chmod +x acme.sh && ./acme.sh
-    echo ""
-    before_show_menu
-}
-
-bbr() {
-bash <(curl -L -s https://raw.githubusercontent.com/teddysun/across/master/bbr.sh)
-    echo ""
-    before_show_menu
-}
-
 x25519() {
     arch=$(arch)
     if [[ $arch == "x86_64" || $arch == "x64" || $arch == "amd64" ]]; then
-    arch="amd64"
+        arch="amd64"
     elif [[ $arch == "aarch64" || $arch == "arm64" ]]; then
-    arch="arm64"
+        arch="arm64"
     elif [[ $arch == "s390x" ]]; then
-    arch="s390x"
+        arch="s390x"
     else
-    arch="amd64"
+        arch="amd64"
     fi
     /usr/local/xray-ui/bin/xray-linux-${arch} x25519
     echo ""
@@ -425,7 +412,7 @@ check_enabled() {
     if [[ x"${temp}" == x"enabled" ]]; then
         return 0
     else
-        return 1;
+        return 1
     fi
 }
 
@@ -460,16 +447,17 @@ check_install() {
 show_status() {
     check_status
     case $? in
-        0)
-            echo -e "xray-ui面板状态: ${green}已运行${plain}"
-            show_enable_status
-            ;;
-        1)
-            echo -e "xray-ui面板状态: ${yellow}未运行${plain}"
-            show_enable_status
-            ;;
-        2)
-            echo -e "xray-ui面板状态: ${red}未安装${plain}"
+    0)
+        echo -e "xray-ui面板状态: ${green}已运行${plain}"
+        show_enable_status
+        ;;
+    1)
+        echo -e "xray-ui面板状态: ${yellow}未运行${plain}"
+        show_enable_status
+        ;;
+    2)
+        echo -e "xray-ui面板状态: ${red}未安装${plain}"
+        ;;
     esac
     show_xray_status
 }
@@ -543,99 +531,121 @@ show_menu() {
   ${green}13.${plain} 设置 xray-ui 开机自启
   ${green}14.${plain} 取消 xray-ui 开机自启
 ————————————————
-  ${green}15.${plain} 一键ACME申请证书
-  ${green}16.${plain} 一键BBR+FQ加速
-  ${green}17.${plain} xray REALITY x25519 生成
+  ${green}15.${plain} xray REALITY x25519 生成
  "
     show_status
     echo "------------------------------------------"
     acp=$(/usr/local/xray-ui/xray-ui setting -show 2>/dev/null)
     green "$acp"
     echo "------------------------------------------"
-    uiV=`/usr/local/xray-ui/xray-ui -v`
-    curl   -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
+    uiV=$(/usr/local/xray-ui/xray-ui -v)
+    curl -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
     remoteV=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
     rm /tmp/tmp_file -f
     localV=${uiV}
     if [ "${localV}" = "${remoteV}" ]; then
-    green "已安装最新版本：${uiV} ，如有更新，此处会自动提示"
+        green "已安装最新版本：${uiV} ，如有更新，此处会自动提示"
     else
-    green "当前安装的版本：${uiV}"
-    yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
+        green "当前安装的版本：${uiV}"
+        yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
     fi
-        
-    echo && read -p "请输入选择 [0-17]: " num
+
+    echo && read -p "请输入选择 [0-15]: " num
 
     case "${num}" in
-        0) exit 0
+    0)
+        exit 0
         ;;
-        1) check_uninstall && install
+    1)
+        check_uninstall && install
         ;;
-        2) check_install && update
+    2)
+        check_install && update
         ;;
-        3) check_install && uninstall
+    3)
+        check_install && uninstall
         ;;
-        4) check_install && reset_user
+    4)
+        check_install && reset_user
         ;;
-        5) check_install && reset_config
+    5)
+        check_install && reset_config
         ;;
-        6) check_install && set_port
+    6)
+        check_install && set_port
         ;;
-        7) check_install && check_config
+    7)
+        check_install && check_config
         ;;
-        8) check_install && start
+    8)
+        check_install && start
         ;;
-        9) check_install && stop
+    9)
+        check_install && stop
         ;;
-        10) check_install && restart
+    10)
+        check_install && restart
         ;;
-        11) check_install && status
+    11)
+        check_install && status
         ;;
-        12) check_install && show_log
+    12)
+        check_install && show_log
         ;;
-        13) check_install && enable
+    13)
+        check_install && enable
         ;;
-        14) check_install && disable
+    14)
+        check_install && disable
         ;;
-        15) acme
+    15)
+        x25519
         ;;
-        16) bbr
-        ;;
-        17) x25519
-        ;;
-        *) echo -e "${red}请输入正确的数字 [0-17]${plain}"
+    *)
+        echo -e "${red}请输入正确的数字 [0-15]${plain}"
         ;;
     esac
 }
 
-
 if [[ $# > 0 ]]; then
     case $1 in
-        "start") check_install 0 && start 0
+    "start")
+        check_install 0 && start 0
         ;;
-        "stop") check_install 0 && stop 0
+    "stop")
+        check_install 0 && stop 0
         ;;
-        "restart") check_install 0 && restart 0
+    "restart")
+        check_install 0 && restart 0
         ;;
-        "status") check_install 0 && status 0
+    "status")
+        check_install 0 && status 0
         ;;
-        "enable") check_install 0 && enable 0
+    "enable")
+        check_install 0 && enable 0
         ;;
-        "disable") check_install 0 && disable 0
+    "disable")
+        check_install 0 && disable 0
         ;;
-        "log") check_install 0 && show_log 0
+    "log")
+        check_install 0 && show_log 0
         ;;
-        "v2-ui") check_install 0 && migrate_v2_ui 0
+    "v2-ui")
+        check_install 0 && migrate_v2_ui 0
         ;;
-        "update") check_install 0 && update 0
+    "update")
+        check_install 0 && update 0
         ;;
-        "install") check_uninstall 0 && install 0
+    "install")
+        check_uninstall 0 && install 0
         ;;
-        "x25519") x25519 0
+    "x25519")
+        x25519 0
         ;;
-        "uninstall") check_install 0 && uninstall 0
+    "uninstall")
+        check_install 0 && uninstall 0
         ;;
-        *) show_usage
+    *) show_usage ;;
     esac
 else
     show_menu

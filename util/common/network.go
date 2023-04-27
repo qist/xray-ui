@@ -8,7 +8,7 @@ import (
 func GetMyIpAddr() string {
 	resp, err := http.Get("https://api64.ipify.org")
 	if err != nil {
-		resp, _ = http.Get("http://ip.cip.cc")
+		resp, _ = http.Get("https://gio.tycng.com/ipinfo")
 	}
 	defer resp.Body.Close()
 	s, _ := ioutil.ReadAll(resp.Body)
