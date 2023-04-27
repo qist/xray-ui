@@ -21,7 +21,6 @@ jobs:
           mkdir xray-ui
           cp xray-release xray-ui/xray-release
           cp xray-ui.service xray-ui/xray-ui.service
-          cp xray-ui.sh xray-ui/xray-ui.sh
           cd xray-ui
           mv xray-release xray-ui
           mkdir bin
@@ -62,7 +61,6 @@ jobs:
           mkdir xray-ui
           cp xray-release xray-ui/xray-release
           cp xray-ui.service xray-ui/xray-ui.service
-          cp xray-ui.sh xray-ui/xray-ui.sh
           cd xray-ui
           mv xray-release xray-ui
           mkdir bin
