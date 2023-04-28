@@ -38,7 +38,7 @@ firewall 设置
 # 添加 指定ip 访问ssh 服务
 firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=10.0.0.1/32 service name=ssh accept'
 firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="103.119.132.41/32" service name="ssh" accept'
-# 关闭 ssh 所以ip 访问 服务
+# 关闭 ssh 所有ip 访问 服务
 firewall-cmd --remove-service=ssh --permanent
 # 添加http https 服务
 firewall-cmd --add-service=http --permanent
