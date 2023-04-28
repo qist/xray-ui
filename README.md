@@ -16,7 +16,32 @@
 
 本脚本显示功能更加人性化！已解决各种新老系统安装失败问题，并会长期更新，欢迎大家提建议！！
     
+### VPS 安全加固
 
+1、保持内核版本更新修复内核级别漏洞 
+2、开启防火墙千万别裸奔
+3、安装 Fail2ban配置 ssh nginx 自动封禁可疑 IP 地址
+4、不要使用简单密码，或者禁止使用密码登录，使用 RSA 私钥登录
+5、配置ssh 密码重试次数
+6、添加指定IP 登陆ssh 删除防火墙里面放行所以ssh 的服务 如果你自己没固定IP 使用clash 或者其它可以代理的ssh 让你vps ip 连接自己
+clash 规则   `- DST-PORT,22,ACCESS-DENIED`
+firewall 设置
+
+```bash
+# 添加 指定ip 访问ssh 服务
+firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=10.0.0.1/32 service name=ssh accept'
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="103.119.132.41/32" service name="ssh" accept'
+# 关闭 ssh 所以ip 访问 服务
+firewall-cmd --remove-service=ssh --permanent
+# 添加http https 服务
+firewall-cmd --add-service=http --permanent
+firewall-cmd --add-service=https --permanent
+# 生效配置
+firewall-cmd --reload
+# 查看规则
+firewall-cmd --list-all
+```
+----------------------------------------------------------------------------------------------------------------------------------------------
 更新日志：
 
 2023.4.26 [添加 Nginx前置SNI分流](./Nginx前置SNI分流.md)
