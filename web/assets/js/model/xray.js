@@ -1274,7 +1274,8 @@ class Inbound extends XrayCommonClass {
 
         if (this.stream.security === 'reality') {
             if (!ObjectUtil.isArrEmpty(this.stream.reality.serverNames)) {
-                params.set("sni", this.stream.reality.serverNames.split(/,|，|\s+/)[0]);
+                // params.set("sni", this.stream.reality.serverNames.split(/,|，|\s+/)[0]);
+                params.set("sni", ObjectUtil.generateSid(this.stream.reality.serverNames));
             }
             if (this.stream.reality.publicKey != "") {
                 params.set("pbk", this.stream.reality.publicKey);
@@ -1284,10 +1285,10 @@ class Inbound extends XrayCommonClass {
                 params.set("flow", this.settings.vlesses[0].flow);
             }
 
-            var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
-            var index1 = Math.floor(Math.random() * shortIds1.length);
-            var value1 = shortIds1[index1];
-            params.set("sid", value1);
+            // var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
+            // var index1 = Math.floor(Math.random() * shortIds1.length);
+            // var value1 = shortIds1[index1];
+            params.set("sid", ObjectUtil.generateSid(this.stream.reality.shortIds));
 
             if (this.stream.reality.fingerprint != "") {
                 params.set("fp", this.stream.reality.fingerprint);
@@ -1389,16 +1390,17 @@ class Inbound extends XrayCommonClass {
 
         if (this.stream.security === 'reality') {
             if (!ObjectUtil.isArrEmpty(this.stream.reality.serverNames)) {
-                params.set("sni", this.stream.reality.serverNames.split(/,|，|\s+/)[0]);
+                // params.set("sni", this.stream.reality.serverNames.split(/,|，|\s+/)[0]);
+                params.set("sni", ObjectUtil.generateSid(this.stream.reality.serverNames));
             }
             if (this.stream.reality.publicKey != "") {
                 params.set("pbk", this.stream.reality.publicKey);
             }
 
-            var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
-            var index1 = Math.floor(Math.random() * shortIds1.length);
-            var value1 = shortIds1[index1];
-            params.set("sid", value1);
+            // var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
+            // var index1 = Math.floor(Math.random() * shortIds1.length);
+            // var value1 = shortIds1[index1];
+            params.set("sid", ObjectUtil.generateSid(this.stream.reality.shortIds));
 
             if (this.stream.reality.fingerprint != "") {
                 params.set("fp", this.stream.reality.fingerprint);

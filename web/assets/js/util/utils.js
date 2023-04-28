@@ -320,4 +320,11 @@ class ObjectUtil {
         return true;
     }
 
+    static generateSid(obj) {
+        const shortIds = obj;
+        const shortIds1 = shortIds.split(/,|，|\s+/);
+        const index1 = Math.floor(Math.random() * shortIds1.length);
+        const value1 = shortIds1[index1];
+        return value1;
+      }
 }

@@ -9,7 +9,11 @@ xray-ui 面板配置
 ## reality 配置 dest serverNames 每个配置不能重复别使用www.bing.com这个域名
 
 ![vless+xtls+tcp+reality+sni](./media/vless+xtls+tcp+reality+sni.png)
+
 ![vless+grpc+sni](./media/vless+grpc+sni.png)
+any_SNI_No_SNI 配置
+![any_SNI_No_SNI](./media/any_SNI_No_SNI.png)
+
 
 ## nginx 配置
 
@@ -151,7 +155,7 @@ sni 分流配置
 map $ssl_preread_server_name $stream_map {
     example.com web; # vless+grpc+sni 配置
     www.apple.com vlesstcpreality; # vless+xtls+tcp+reality+sni配置 reality 配置 dest serverNames 每个配置不能重复别使用www.bing.com这个域名
-    default web; # 默认转发
+    default sni; # 默认转发到any_SNI_No_SNI
 }
 
 upstream web {
@@ -162,6 +166,11 @@ upstream web {
 upstream vlesstcpreality {
     server 127.0.0.1:36712;
 }
+# 下面是转发到any_SNI_No_SNI
+upstream sni {
+    server 127.0.0.1:49026;
+}
+
 
 server {
     listen [服务器公网IP]:443 reuseport so_keepalive=on backlog=4096;
