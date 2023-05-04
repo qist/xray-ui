@@ -106,6 +106,12 @@ const UTLS_FINGERPRINT = {
     UTLS_RANDOMIZED: "randomized",
 };
 
+const SNIFFING_OPTION = {
+    HTTP:    "http",
+    TLS:     "tls",
+    QUIC:    "quic",
+};
+
 Object.freeze(Protocols);
 Object.freeze(VmessMethods);
 Object.freeze(SSMethods);
@@ -117,6 +123,7 @@ Object.freeze(TLS_CIPHER_OPTION);
 Object.freeze(ALPN_OPTION);
 Object.freeze(TCP_CONGESTION);
 Object.freeze(DOMAIN_STRATEGY);
+Object.freeze(SNIFFING_OPTION);
 
 class XrayCommonClass {
 
