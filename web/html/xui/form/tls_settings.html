@@ -21,23 +21,34 @@
             <a-select-option :value="true">true</a-select-option> -->
         </a-switch>
     </a-form-item>
-    <a-form-item label="CipherSuites">
-        <a-select v-model="inbound.stream.tls.cipherSuites"  mode="multiple" style="width: 350px">
+    <a-form-item>
+        <span slot="label">
+            CipherSuites
+            <a-tooltip>
+                <template slot="title">
+                    默认 auto 如果选择其它加密方式记得删除 auto 选项 加密方式可以多选！
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-select v-model="inbound.stream.tls.cipherSuites" mode="multiple" style="width: 350px">
             <a-select-option value="">auto</a-select-option>
             <a-select-option v-for="key in TLS_CIPHER_OPTION" :value="key">[[ key ]]</a-select-option>
         </a-select>
-    </a-form-item> 
+    </a-form-item>
     <a-form-item label="MinVersion">
-        <a-select v-model="inbound.stream.tls.minVersion" style="width: 60px" :dropdown-class-name="siderDrawer.isDarkTheme ? 'ant-card-dark' : ''">
+        <a-select v-model="inbound.stream.tls.minVersion" style="width: 60px"
+            :dropdown-class-name="siderDrawer.isDarkTheme ? 'ant-card-dark' : ''">
             <a-select-option v-for="key in TLS_VERSION_OPTION" :value="key">[[ key ]]</a-select-option>
         </a-select>
     </a-form-item>
     <a-form-item label="MaxVersion">
-        <a-select v-model="inbound.stream.tls.maxVersion" style="width: 60px" :dropdown-class-name="siderDrawer.isDarkTheme ? 'ant-card-dark' : ''">
+        <a-select v-model="inbound.stream.tls.maxVersion" style="width: 60px"
+            :dropdown-class-name="siderDrawer.isDarkTheme ? 'ant-card-dark' : ''">
             <a-select-option v-for="key in TLS_VERSION_OPTION" :value="key">[[ key ]]</a-select-option>
         </a-select>
     </a-form-item>
-    <a-form-item label="uTLS" v-if="inbound.tls" >
+    <a-form-item label="uTLS" v-if="inbound.tls">
         <a-select v-model="inbound.stream.tls.settings[0].fingerprint" style="width: 135px">
             <a-select-option value=''>None</a-select-option>
             <a-select-option v-for="key in UTLS_FINGERPRINT" :value="key">[[ key ]]</a-select-option>
@@ -45,7 +56,7 @@
     </a-form-item>
     <a-form-item label="SNI" placeholder="Server Name Indication" v-if="inbound.tls">
         <a-input v-model.trim="inbound.stream.tls.settings[0].serverName"></a-input>
-    </a-form-item>    
+    </a-form-item>
     <a-form-item label="Alpn">
         <a-checkbox-group v-model="inbound.stream.tls.alpn" style="width:200px">
             <a-checkbox v-for="key in ALPN_OPTION" :value="key">[[ key ]]</a-checkbox>
@@ -55,8 +66,7 @@
         <a-switch v-model="inbound.stream.tls.settings[0].allowInsecure"></a-switch>
     </a-form-item>
     <a-form-item label="证书">
-        <a-radio-group v-model="inbound.stream.tls.certs[0].useFile"
-                       button-style="solid">
+        <a-radio-group v-model="inbound.stream.tls.certs[0].useFile" button-style="solid">
             <a-radio-button :value="true">certificate file path</a-radio-button>
             <a-radio-button :value="false">certificate file content</a-radio-button>
         </a-radio-group>
@@ -77,12 +87,10 @@
             <a-input v-model.number="inbound.stream.tls.certs[0].ocspStapling"></a-input>
         </a-form-item>
         <a-form-item label="公钥内容">
-            <a-input type="textarea" :rows="2"
-                     v-model="inbound.stream.tls.certs[0].cert"></a-input>
+            <a-input type="textarea" :rows="2" v-model="inbound.stream.tls.certs[0].cert"></a-input>
         </a-form-item>
         <a-form-item label="密钥内容">
-            <a-input type="textarea" :rows="2"
-                     v-model="inbound.stream.tls.certs[0].key"></a-input>
+            <a-input type="textarea" :rows="2" v-model="inbound.stream.tls.certs[0].key"></a-input>
         </a-form-item>
     </template>
 </a-form>
