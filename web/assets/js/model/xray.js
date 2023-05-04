@@ -543,7 +543,7 @@ class TlsStreamSettings extends XrayCommonClass {
             rejectUnknownSni: this.rejectUnknownSni,
             minVersion: this.minVersion,
             maxVersion: this.maxVersion,
-            cipherSuites: this.cipherSuites,
+            cipherSuites: this.cipherSuites instanceof Array ? this.cipherSuites.join(',') : this.cipherSuites.split(','),
             certificates: TlsStreamSettings.toJsonArray(this.certs),
             alpn: this.alpn,
             settings: TlsStreamSettings.toJsonArray(this.settings),

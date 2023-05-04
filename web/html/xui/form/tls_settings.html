@@ -22,7 +22,7 @@
         </a-switch>
     </a-form-item>
     <a-form-item label="CipherSuites">
-        <a-select v-model="inbound.stream.tls.cipherSuites"  style="width: 350px">
+        <a-select v-model="inbound.stream.tls.cipherSuites"  mode="multiple" style="width: 350px">
             <a-select-option value="">auto</a-select-option>
             <a-select-option v-for="key in TLS_CIPHER_OPTION" :value="key">[[ key ]]</a-select-option>
         </a-select>
