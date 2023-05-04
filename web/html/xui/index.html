@@ -98,9 +98,9 @@
                             </a-tooltip>
                             <a-tag color="green" @click="openSelectV2rayVersion">[[ status.xray.version ]]</a-tag>
                             <a-tag color="blue" @click="openSelectV2rayVersion">Xray版本切换</a-tag>
-                            <a-tag color="blue" @click="geoipUpdate">geoip更新</a-tag>
-                            <a-tag color="blue" @click="geositeUpdate">geosite更新</a-tag>
-                            <a-tag color="blue" @click="AllIPUpdate">一键更新geoip,geosite</a-tag>
+                            <!-- <a-tag color="blue" @click="geoipUpdate">geoip更新</a-tag>
+                            <a-tag color="blue" @click="geositeUpdate">geosite更新</a-tag> -->
+                            <a-tag color="blue" @click="AllIPUpdate">更新【geoip geosite】</a-tag>
                             <a-tag color="blue" style="cursor: pointer;" @click="stopXrayService">停止</a-tag>
                             <a-tag color="blue" style="cursor: pointer;" @click="restartXrayService">重启</a-tag>   
                         </a-card>
@@ -221,7 +221,7 @@
             </a-tag>
         </template>
     </a-modal>
-    <a-modal id="version-modal" v-model="versionModal.allip" title="一键更新geoip,geosite"
+    <a-modal id="version-modal" v-model="versionModal.allip" title="更新【geoip geosite】"
              :closable="true" @ok="() => versionModal.allip = false"
              ok-text="确定" cancel-text="取消">
         <h2>点击你想更新的版本</h2>

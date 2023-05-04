@@ -5,7 +5,16 @@
         <a-switch v-model="inbound.tls">
         </a-switch>
     </a-form-item>
-    <a-form-item v-if="inbound.canEnableReaLITy()" label="reality">
+    <a-form-item v-if="inbound.canEnableReaLITy()">
+        <span slot="label">
+            reality
+            <a-tooltip>
+                <template slot="title">
+                    1.8.0 及以上版本！
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-switch v-model="inbound.reality"></a-switch>
     </a-form-item>
 </a-form>
