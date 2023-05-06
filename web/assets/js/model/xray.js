@@ -705,7 +705,7 @@ class SockoptStreamSettings extends XrayCommonClass {
         this.acceptProxyProtocol = acceptProxyProtocol;
         this.tcpKeepAliveIdle = tcpKeepAliveIdle;
         this.tcpKeepAliveInterval = tcpKeepAliveInterval;
-        this._interface = _interface;
+        this.interface = _interface instanceof Array ? this.interface : _interface;
     }
 
     static fromJson(json = {}) {
@@ -716,7 +716,7 @@ class SockoptStreamSettings extends XrayCommonClass {
             json.acceptProxyProtocol,
             json.tcpKeepAliveIdle,
             json.tcpKeepAliveInterval,
-            json._interface,
+            json.interface,
         );
     }
 
@@ -728,7 +728,7 @@ class SockoptStreamSettings extends XrayCommonClass {
             acceptProxyProtocol: this.acceptProxyProtocol,
             tcpKeepAliveIdle: this.tcpKeepAliveIdle,
             tcpKeepAliveInterval: this.tcpKeepAliveInterval,
-            interface: this._interface,
+            interface: this.interface,
         };
     }
 }
