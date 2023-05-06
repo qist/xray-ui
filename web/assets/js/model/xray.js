@@ -785,6 +785,16 @@ class StreamSettings extends XrayCommonClass {
         }
     }
 
+    get isSockopt() {
+        return ['tcp', 'http', 'grpc', 'ws'].indexOf(this.network) !== -1;
+    }
+
+    set isSockopt(isSockopt) {
+        if (isSockopt) {
+            return ['tcp', 'http', 'grpc', 'ws'].indexOf(this.network) !== -1;
+        }
+    }
+
     static fromJson(json = {}) {
         return new StreamSettings(
             json.network,
@@ -814,7 +824,7 @@ class StreamSettings extends XrayCommonClass {
             httpSettings: network === 'http' ? this.http.toJson() : undefined,
             quicSettings: network === 'quic' ? this.quic.toJson() : undefined,
             grpcSettings: network === 'grpc' ? this.grpc.toJson() : undefined,
-            sockopt: this.sockopt ? this.sockopt.toJson() : undefined,
+            sockopt: this.isSockopt ? this.sockopt.toJson() : undefined,
         };
     }
 }
