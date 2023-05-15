@@ -18,7 +18,6 @@ import (
 	"xray-ui/util/common"
 	"xray-ui/util/sys"
 	"xray-ui/xray"
-	"xray-ui/database/model"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
