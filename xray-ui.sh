@@ -383,8 +383,9 @@ x25519() {
 }
 
 geoip() {
-    /usr/local/xray-ui/xray-ui geoip
-     echo "重启重新加载更新文件"
+    pushd  /usr/local/xray-ui
+    ./xray-ui geoip
+    echo "重启重新加载更新文件"
     systemctl restart xray-ui
     echo ""
     before_show_menu
