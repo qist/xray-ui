@@ -61,13 +61,14 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/installXray/:version", a.installXray)
 	g.POST("/getGeoipVersion", a.getGeoipVersion)
 	g.POST("/installGeoip/:version", a.installGeoip)
-	g.POST("/getGeositeVersion", a.getGeositeVersion)
+	// g.POST("/getGeositeVersion", a.getGeositeVersion)
 	g.POST("/installGeosite/:version", a.installGeosite)
 	g.POST("/xraysecretkey", a.XraySecretKey)
 	g.POST("/getConfigJson", a.getConfigJson)
 	g.GET("/getVersion", a.getVersion)
 	g.POST("/getVersion/:version", a.UpdateVersion)
 	g.GET("/getDb", a.getDb)
+	g.POST("/importDB", a.importDB)
 }
 
 func (a *ServerController) refreshStatus() {
@@ -162,24 +163,24 @@ func (a *ServerController) installGeoip(c *gin.Context) {
 	jsonMsg(c, "安装 geoip", err)
 }
 
-func (a *ServerController) getGeositeVersion(c *gin.Context) {
-	now := time.Now()
-	if now.Sub(a.lastGeositeGetVersionsTime) <= time.Minute {
-		jsonObj(c, a.lastGeositeVersions, nil)
-		return
-	}
+// func (a *ServerController) getGeositeVersion(c *gin.Context) {
+// 	now := time.Now()
+// 	if now.Sub(a.lastGeositeGetVersionsTime) <= time.Minute {
+// 		jsonObj(c, a.lastGeositeVersions, nil)
+// 		return
+// 	}
 
-	versions, err := a.serverService.GetGeositeVersions()
-	if err != nil {
-		jsonMsg(c, "获取版本", err)
-		return
-	}
+// 	versions, err := a.serverService.GetGeositeVersions()
+// 	if err != nil {
+// 		jsonMsg(c, "获取版本", err)
+// 		return
+// 	}
 
-	a.lastGeositeVersions = versions
-	a.lastGeositeGetVersionsTime = time.Now()
+// 	a.lastGeositeVersions = versions
+// 	a.lastGeositeGetVersionsTime = time.Now()
 
-	jsonObj(c, versions, nil)
-}
+// 	jsonObj(c, versions, nil)
+// }
 
 func (a *ServerController) installGeosite(c *gin.Context) {
 	version := c.Param("version")
@@ -279,4 +280,26 @@ func (a *ServerController) getDb(c *gin.Context) {
 func isValidFilename(filename string) bool {
     // Validate that the filename only contains allowed characters
     return filenameRegex.MatchString(filename)
+}
+
+func (a *ServerController) importDB(c *gin.Context) {
+	// Get the file from the request body
+	file, _, err := c.Request.FormFile("db")
+	if err != nil {
+		jsonMsg(c, "Error reading db file", err)
+		return
+	}
+	defer file.Close()
+	// Always restart Xray before return
+	defer a.serverService.RestartXrayService()
+	defer func() {
+		a.lastGetStatusTime = time.Now()
+	}()
+	// Import it
+	err = a.serverService.ImportDB(file)
+	if err != nil {
+		jsonMsg(c, "", err)
+		return
+	}
+	jsonObj(c, "Import DB", nil)
 }

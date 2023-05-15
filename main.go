@@ -15,7 +15,7 @@ import (
 	"xray-ui/web"
 	"xray-ui/web/global"
 	"xray-ui/web/service"
-
+	
 	"github.com/op/go-logging"
 )
 
@@ -212,6 +212,44 @@ func updateSetting(port int, username string, password string, listen  string) {
 	}
 }
 
+func UpdateAllip() {
+
+	serverService := service.ServerService{} // 创建 ServerService 实例
+
+	version, err := serverService.GetLatestVersion()
+	if err != nil {
+		fmt.Printf("Error getting the latest version: %v\n", err)
+		return
+	}
+
+	err = serverService.UpdateGeoipip(version)
+	if err != nil {
+		fmt.Printf("Error updating GeoIP file for version %s: %v\n", version, err)
+		return
+	}
+
+	err = serverService.UpdateGeositeip(version)
+	if err != nil {
+		fmt.Printf("Error updating Geosite file for version %s: %v\n", version, err)
+		return
+	}
+
+	fmt.Printf("GeoIP and Geosite files for version %s downloaded and updated successfully!\n", version)
+
+    // Additional operations using the downloaded file names
+	// context := &gin.Context{
+	// 	Params: gin.Params{
+	// 		gin.Param{Key: "version", Value: version},
+	// 	},
+	// }
+	// // 更新版本并写入数据库
+	// controller := controller.ServerController{}
+
+	// controller.UpdateVersion(context)
+	
+}
+
+
 func main() {
 	if len(os.Args) < 2 {
 		runWebServer()
@@ -228,6 +266,9 @@ func main() {
 	v2uiCmd.StringVar(&dbPath, "db", "/etc/v2-ui/v2-ui.db", "set v2-ui db file path")
 
 	settingCmd := flag.NewFlagSet("setting", flag.ExitOnError)
+
+	geoipCmd := flag.NewFlagSet("geoip", flag.ExitOnError)
+
 	var port int
 	var listen string
 	var username string
@@ -257,6 +298,7 @@ func main() {
 		fmt.Println("    run            run web panel")
 		fmt.Println("    v2-ui          migrate form v2-ui")
 		fmt.Println("    setting        set settings")
+		fmt.Println("    geoip          down geoip and geosite")
 	}
 
 	flag.Parse()
@@ -300,6 +342,13 @@ func main() {
 		if (tgbottoken != "") || (tgbotchatid != 0) || (tgbotRuntime != "") {
 			updateTgbotSetting(tgbottoken, tgbotchatid, tgbotRuntime)
 		}
+	case "geoip":
+		err := geoipCmd.Parse(os.Args[2:])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		UpdateAllip()
 	default:
 		fmt.Println("except 'run' or 'v2-ui' or 'setting' subcommands")
 		fmt.Println()
@@ -308,5 +357,7 @@ func main() {
 		v2uiCmd.Usage()
 		fmt.Println()
 		settingCmd.Usage()
+		geoipCmd.Usage()
+		fmt.Println()
 	}
 }
