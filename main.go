@@ -15,7 +15,6 @@ import (
 	"xray-ui/web"
 	"xray-ui/web/global"
 	"xray-ui/web/service"
-	
 	"github.com/op/go-logging"
 )
 
@@ -214,6 +213,12 @@ func updateSetting(port int, username string, password string, listen  string) {
 
 func UpdateAllip() {
 
+	err := database.InitDB(config.GetDBPath())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}	
+
 	serverService := service.ServerService{} // 创建 ServerService 实例
 
 	version, err := serverService.GetLatestVersion()
@@ -235,18 +240,13 @@ func UpdateAllip() {
 	}
 
 	fmt.Printf("GeoIP and Geosite files for version %s downloaded and updated successfully!\n", version)
-
-    // Additional operations using the downloaded file names
-	// context := &gin.Context{
-	// 	Params: gin.Params{
-	// 		gin.Param{Key: "version", Value: version},
-	// 	},
-	// }
-	// // 更新版本并写入数据库
-	// controller := controller.ServerController{}
-
-	// controller.UpdateVersion(context)
 	
+	GeoipVersion := service.GeoipVersion{}
+	err = GeoipVersion.UpVersion(version)
+	if err != nil {
+		fmt.Println("get current UpVersion failed,error info:", err)
+
+	}
 }
 
 

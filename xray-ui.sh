@@ -382,6 +382,14 @@ x25519() {
     before_show_menu
 }
 
+geoip() {
+    /usr/local/xray-ui/xray-ui geoip
+     echo "重启重新加载更新文件"
+    systemctl restart xray-ui
+    echo ""
+    before_show_menu
+}
+
 update_shell() {
     wget -O /usr/bin/xray-ui -N --no-check-certificate https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     if [[ $? != 0 ]]; then
@@ -502,6 +510,7 @@ show_usage() {
     echo "xray-ui log          - 查看 xray-ui 日志"
     echo "xray-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 xray-ui"
     echo "xray-ui update       - 更新 xray-ui 面板"
+    echo "xray-ui geoip        - 更新 geoip ip库"
     echo "xray-ui update_shell - 更新 xray-ui 脚本"
     echo "xray-ui install      - 安装 xray-ui 面板"
     echo "xray-ui x25519       - REALITY  key 生成"
@@ -534,6 +543,7 @@ show_menu() {
 ————————————————
   ${green}15.${plain} xray REALITY x25519 生成 
   ${green}16.${plain} 更新 xray-ui 脚本
+  ${green}17.${plain} 更新 geoip ip库
  "
     show_status
     echo "------------------------------------------"
@@ -606,8 +616,11 @@ show_menu() {
     16)
         update_shell
         ;;
+    17)
+        geoip
+        ;;
     *)
-        echo -e "${red}请输入正确的数字 [0-16]${plain}"
+        echo -e "${red}请输入正确的数字 [0-17]${plain}"
         ;;
     esac
 }
@@ -649,6 +662,9 @@ if [[ $# > 0 ]]; then
         ;;
     "update_shell")
         update_shell 0
+        ;;
+    "geoip")
+        geoip 0
         ;;
     "uninstall")
         check_install 0 && uninstall 0
