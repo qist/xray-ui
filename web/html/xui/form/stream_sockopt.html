@@ -13,11 +13,12 @@
     <a-form-item label="sockopt:  相关配置" style="width:200px"> </a-form-item>
     <transition name="list" appear>
         <a-card hoverable style="margin-bottom: 20px;" :class="siderDrawer.isDarkTheme ? darkClass : ''">
+            <a-form-item label="tcpMaxSeg">
+                <a-input v-model.number="inbound.stream.sockopt.tcpMaxSeg" style="width: 65px;">
+                </a-input>
             </a-form-item>
             <a-form-item label="tcpFastOpen">
                 <a-switch v-model="inbound.stream.sockopt.tcpFastOpen">
-                    <!-- <a-select-option :value="false">false</a-select-option>
-            <a-select-option :value="true">true</a-select-option> -->
                 </a-switch>
             </a-form-item>
             <a-form-item label="domainStrategy">
@@ -27,8 +28,6 @@
             </a-form-item>
             <a-form-item label="acceptProxyProtocol">
                 <a-switch v-model="inbound.stream.sockopt.acceptProxyProtocol">
-                    <!-- <a-select-option :value="false">false</a-select-option>
-            <a-select-option :value="true">true</a-select-option> -->
                 </a-switch>
             </a-form-item>
             <a-form-item label="tcpKeepAliveInterval">
@@ -37,6 +36,10 @@
             </a-form-item>
             <a-form-item label="tcpKeepAliveIdle">
                 <a-input v-model.number="inbound.stream.sockopt.tcpKeepAliveIdle" style="width: 165px;">
+                </a-input>
+            </a-form-item>
+            <a-form-item label="tcpUserTimeout">
+                <a-input v-model.number="inbound.stream.sockopt.tcpUserTimeout" style="width: 165px;">
                 </a-input>
             </a-form-item>
             <a-form-item label="tcpcongestion">
