@@ -61,7 +61,6 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/installXray/:version", a.installXray)
 	g.POST("/getGeoipVersion", a.getGeoipVersion)
 	g.POST("/installGeoip/:version", a.installGeoip)
-	// g.POST("/getGeositeVersion", a.getGeositeVersion)
 	g.POST("/installGeosite/:version", a.installGeosite)
 	g.POST("/xraysecretkey", a.XraySecretKey)
 	g.POST("/getConfigJson", a.getConfigJson)
@@ -162,25 +161,6 @@ func (a *ServerController) installGeoip(c *gin.Context) {
 	err := a.serverService.UpdateGeoip(version)
 	jsonMsg(c, "安装 geoip", err)
 }
-
-// func (a *ServerController) getGeositeVersion(c *gin.Context) {
-// 	now := time.Now()
-// 	if now.Sub(a.lastGeositeGetVersionsTime) <= time.Minute {
-// 		jsonObj(c, a.lastGeositeVersions, nil)
-// 		return
-// 	}
-
-// 	versions, err := a.serverService.GetGeositeVersions()
-// 	if err != nil {
-// 		jsonMsg(c, "获取版本", err)
-// 		return
-// 	}
-
-// 	a.lastGeositeVersions = versions
-// 	a.lastGeositeGetVersionsTime = time.Now()
-
-// 	jsonObj(c, versions, nil)
-// }
 
 func (a *ServerController) installGeosite(c *gin.Context) {
 	version := c.Param("version")

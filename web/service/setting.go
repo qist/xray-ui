@@ -115,7 +115,23 @@ func (s *SettingService) GetAllSetting() (*entity.AllSetting, error) {
 
 func (s *SettingService) ResetSettings() error {
 	db := database.GetDB()
-	return db.Where("1 = 1").Delete(model.Setting{}).Error
+	user := &model.User{}
+	err := db.First(user).Error
+	if err != nil {
+		return err
+	}
+	err = db.Model(model.User{}).Delete("id=?", user.Id).Error
+	if err != nil {
+		return err
+	}
+
+	// Add the code to delete the settings
+	err = db.Where("1 = 1").Delete(model.Setting{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *SettingService) getSetting(key string) (*model.Setting, error) {

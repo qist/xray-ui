@@ -436,33 +436,6 @@ func (s *ServerService) UpdateGeoipip(version string) error {
 	return nil
 }
 
-// func (s *ServerService) GetGeositeVersions() ([]string, error) {
-// 	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases"
-// 	resp, err := http.Get(url)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	defer resp.Body.Close()
-// 	buffer := bytes.NewBuffer(make([]byte, 8192))
-// 	buffer.Reset()
-// 	_, err = buffer.ReadFrom(resp.Body)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	releases := make([]Release, 0)
-// 	err = json.Unmarshal(buffer.Bytes(), &releases)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	versions := make([]string, 0, len(releases))
-// 	for _, release := range releases {
-// 		versions = append(versions, release.TagName)
-// 	}
-// 	return versions, nil
-// }
-
 func (s *ServerService) downloadGeosite(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geosite.dat")
