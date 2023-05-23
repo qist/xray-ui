@@ -1,4 +1,9 @@
 {
+  "log": {
+    "access": "none",
+    "error": "none",
+    "loglevel": "info"
+  },
   "api": {
     "services": [
       "HandlerService",
