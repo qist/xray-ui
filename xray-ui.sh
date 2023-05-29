@@ -396,7 +396,7 @@ geoip() {
 
 crontab() {
     sed -i '/xray-ui geoip/d' /etc/crontab
-    echo "30 1 * * * xray-ui geoip >/dev/null 2>&1" >>/etc/crontab
+    echo "30 1 * * * root xray-ui geoip >/dev/null 2>&1" >>/etc/crontab
     echo -e ""
     blue "添加定时更新geoip到计划任务,默认每天凌晨1.30执行"
     exit 0

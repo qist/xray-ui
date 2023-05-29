@@ -191,7 +191,7 @@ EOF
     sed -i '/xrayuil.sh/d' /etc/crontab
     echo "*/1 * * * * root bash /root/xrayuil.sh >/dev/null 2>&1" >>/etc/crontab
     sed -i '/xray-ui restart/d' /etc/crontab
-    echo "0 1 1 * * xray-ui restart >/dev/null 2>&1" >>/etc/crontab
+    echo "0 1 1 * *  root xray-ui restart >/dev/null 2>&1" >>/etc/crontab
     sleep 1
     echo -e ""
     blue "以下设置内容建议自定义，以防止账号密码及端口泄露"
