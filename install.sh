@@ -267,6 +267,7 @@ EOF
     echo -e "xray-ui update_shell - 更新 xray-ui 脚本"
     echo -e "xray-ui install      - 安装 xray-ui 面板"
     echo -e "xray-ui x25519       - REALITY  key 生成"
+    echo -e "xray-ui crontab      - 添加geoip到任务计划每天凌晨1.30执行"    
     echo -e "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo -e "----------------------------------------------"
     rm -f install.sh

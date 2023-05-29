@@ -34,6 +34,47 @@ clash 规则   `- DST-PORT,22,ACCESS-DENIED`
 
 firewall 设置
 
+Ubuntu/debain 安装firewall
+
+```bash
+# 1、关闭默认 ufw
+# 停止ufw服务
+sudo systemctl stop ufw
+# 关闭开机启动
+sudo systemctl disable ufw
+# 删除ufw规则
+sudo ufw --force reset
+# 2 安装firewall
+apt update 
+apt install -y firewalld
+#重载 （在增减规则后，需要重载）
+firewall-cmd --reload
+#启动
+systemctl start firewalld
+#重启
+systemctl restart firewalld
+#设置开机启动
+systemctl enable firewalld
+#关闭开机启动
+systemctl disable firewalld
+```
+
+centos/Rocky/Redhat 安装firewall
+
+```bash
+yum install -y firewalld
+#重载 （在增减规则后，需要重载）
+firewall-cmd --reload
+#启动
+systemctl start firewalld
+#重启
+systemctl restart firewalld
+#设置开机启动
+systemctl enable firewalld
+#关闭开机启动
+systemctl disable firewalld
+```
+
 ```bash
 # 添加 指定ip 访问ssh 服务
 firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=10.0.0.1/32 service name=ssh accept'
@@ -48,8 +89,11 @@ firewall-cmd --reload
 # 查看规则
 firewall-cmd --list-all
 ```
+
 ----------------------------------------------------------------------------------------------------------------------------------------------
 更新日志：
+
+2023.5.29 添加xray-ui crontab 命令 添加geoip更新到计划任务默认凌晨1.30执行 你可以修改 /etc/crontab文件
 
 2023.5.15 添加xray-ui geoip 更新IP库 添加数据库导入导出
 

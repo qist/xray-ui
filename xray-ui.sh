@@ -201,6 +201,7 @@ uninstall() {
     rm -f /root/xrayuil.sh
     sed -i '/xrayuil.sh/d' /etc/crontab >/dev/null 2>&1
     sed -i '/xray-ui restart/d' /etc/crontab >/dev/null 2>&1
+    sed -i '/xray-ui geoip/d' /etc/crontab >/dev/null 2>&1
     rm /usr/bin/xray-ui -f
     green "xray-ui已卸载成功，后会有期！"
 }
@@ -391,6 +392,15 @@ geoip() {
     exit 0
 }
 
+
+crontab() {
+    sed -i '/xray-ui geoip/d' /etc/crontab
+    echo "30 1 * * * xray-ui geoip >/dev/null 2>&1" >>/etc/crontab
+    echo -e ""
+    blue "添加定时更新geoip到计划任务,默认每天凌晨1.30执行"
+    exit 0
+}
+
 update_shell() {
     wget -O /usr/bin/xray-ui -N --no-check-certificate https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     if [[ $? != 0 ]]; then
@@ -515,6 +525,7 @@ show_usage() {
     echo "xray-ui update_shell - 更新 xray-ui 脚本"
     echo "xray-ui install      - 安装 xray-ui 面板"
     echo "xray-ui x25519       - REALITY  key 生成"
+    echo "xray-ui crontab      - 添加geoip到任务计划每天凌晨1.30执行"
     echo "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo "------------------------------------------"
 }
@@ -545,6 +556,7 @@ show_menu() {
   ${green}15.${plain} xray REALITY x25519 生成 
   ${green}16.${plain} 更新 xray-ui 脚本
   ${green}17.${plain} 更新 geoip ip库
+  ${green}18.${plain} 添加geoip到任务计划
  "
     show_status
     echo "------------------------------------------"
@@ -563,7 +575,7 @@ show_menu() {
         yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
     fi
 
-    echo && read -p "请输入选择 [0-17]: " num
+    echo && read -p "请输入选择 [0-18]: " num
 
     case "${num}" in
     0)
@@ -620,8 +632,11 @@ show_menu() {
     17)
         geoip
         ;;
+    18)
+        crontab
+        ;;
     *)
-        echo -e "${red}请输入正确的数字 [0-17]${plain}"
+        echo -e "${red}请输入正确的数字 [0-18]${plain}"
         ;;
     esac
 }
@@ -666,6 +681,9 @@ if [[ $# > 0 ]]; then
         ;;
     "geoip")
         geoip 0
+        ;;
+    "crontab")
+        crontab 0
         ;;
     "uninstall")
         check_install 0 && uninstall 0
