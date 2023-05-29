@@ -403,7 +403,7 @@ crontab() {
 }
 
 update_shell() {
-    wget -O /usr/bin/xray-ui -N --no-check-certificate https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
+    wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     if [[ $? != 0 ]]; then
         echo ""
         echo -e "${red}下载脚本失败，请检查本机能否连接 Github${plain}"
