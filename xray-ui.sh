@@ -4,6 +4,7 @@ green='\033[0;32m'
 yellow='\033[0;33m'
 plain='\033[0m'
 green() { echo -e "\033[32m\033[01m$1\033[0m"; }
+blue() { echo -e "\033[36m\033[01m$1\033[0m"; }
 yellow() { echo -e "\033[33m\033[01m$1\033[0m"; }
 # check root
 
