@@ -84,3 +84,5 @@ jobs:
           asset_name: xray-ui-linux-arm64.tar.gz
           prerelease: true
           overwrite: true
+      - name: Release Changelog Builder
+        uses: mikepenz/release-changelog-builder-action@v3.6.0
