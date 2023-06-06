@@ -138,6 +138,10 @@ update() {
         arch="amd64"
         echo -e "${red}检测架构失败，使用默认架构: ${arch}${plain}"
     fi
+    
+    if [[ x"${release}" == x"centos" ]]; then
+        setenforce 0 >/dev/null 2>&1
+    fi
     systemctl stop xray-ui
     curl -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
     releases_version=($(sed 'y/,/\n/' "/tmp/tmp_file" | grep 'tag_name' | awk -F '"' '{print $4}'))
