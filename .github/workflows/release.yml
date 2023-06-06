@@ -85,4 +85,4 @@ jobs:
           prerelease: true
           overwrite: true
       - name: Release Changelog Builder
-        uses: mikepenz/release-changelog-builder-action@v3.6.0
+        uses: mikepenz/release-changelog-builder-action@v3.7.2
