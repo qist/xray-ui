@@ -164,13 +164,14 @@ update() {
     fi
     if [[ -e /usr/local/xray-ui/xray-ui ]]; then
         rm /usr/local/xray-ui/xray-ui -f
+        rm /usr/local/xray-ui/xray-ui.service -f
     fi
     tar zxvf xray-ui-linux-${arch}.tar.gz
     mv /tmp/xray/xray-ui/{xray-ui,xray-ui.service} /usr/local/xray-ui/
     rm /tmp/xray -rf
     cd /usr/local/xray-ui
     chmod +x xray-ui bin/xray-linux-${arch}
-    cp -f xray-ui.service /etc/systemd/system/
+    \cp -f xray-ui.service /etc/systemd/system/
     wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     chmod +x /usr/bin/xray-ui
     #chmod +x /usr/local/xray-ui/xray-ui.sh
