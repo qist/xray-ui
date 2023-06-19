@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"syscall"
 	"runtime"
 	"strings"
 	"time"
@@ -226,7 +227,7 @@ func (p *process) Stop() error {
 	if !p.IsRunning() {
 		return errors.New("xray is not running")
 	}
-	return p.cmd.Process.Kill()
+	return p.cmd.Process.Signal(syscall.SIGTERM)
 }
 
 func (p *process) GetTraffic(reset bool) ([]*Traffic, error) {
