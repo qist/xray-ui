@@ -691,6 +691,7 @@ class SockoptStreamSettings extends XrayCommonClass {
         tcpKeepAliveIdle = 0,
         tcpUserTimeout = 10000,
         tcpcongestion = '',
+        tcpNoDelay = true,
         _interface = "",
     ) {
         super();
@@ -702,6 +703,7 @@ class SockoptStreamSettings extends XrayCommonClass {
         this.tcpKeepAliveIdle = tcpKeepAliveIdle;
         this.tcpUserTimeout = tcpUserTimeout;
         this.tcpcongestion = tcpcongestion;
+        this.tcpNoDelay = tcpNoDelay;
         this.interface = _interface instanceof Array ? this.interface : _interface;
     }
 
@@ -715,6 +717,7 @@ class SockoptStreamSettings extends XrayCommonClass {
             json.tcpKeepAliveIdle,
             json.tcpUserTimeout,
             json.tcpcongestion,
+            json.tcpNoDelay,
             json.interface,
         );
     }
@@ -729,6 +732,7 @@ class SockoptStreamSettings extends XrayCommonClass {
             tcpKeepAliveIdle: this.tcpKeepAliveIdle,
             tcpUserTimeout: this.tcpUserTimeout,
             tcpcongestion: this.tcpcongestion,
+            tcpNoDelay: this.tcpNoDelay,
             interface: this.interface,
         };
     }

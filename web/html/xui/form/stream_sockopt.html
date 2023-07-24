@@ -48,6 +48,10 @@
                     <a-select-option v-for="key in TCP_CONGESTION" :value="key">[[ key ]]</a-select-option>
                 </a-select>
             </a-form-item>
+            <a-form-item label="tcpNoDelay">
+                <a-switch v-model="inbound.stream.sockopt.tcpNoDelay">
+                </a-switch>
+            </a-form-item>
             <a-form-item label="interface">
                 <a-input v-model.trim="inbound.stream.sockopt.interface" style="width: 165px"></a-input>
             </a-form-item>
