@@ -1,90 +1,90 @@
 {
-    "log": {
-      "loglevel": "debug",
-      "dnsLog": false
-    },
-    "inbounds": [
-      {
-        "tag": "socks",
-        "port": 17889,
-        "listen": "0.0.0.0",
-        "protocol": "socks",
-        "sniffing": {
-          "enabled": false,
-          "destOverride": [
-            "http",
-            "tls",
-            "quic"
-          ],
-          "routeOnly": false
-        },
-        "settings": {
-          "auth": "noauth",
-          "udp": true,
-          "allowTransparent": false
-        }
+  "log": {
+    "loglevel": "debug",
+    "dnsLog": false
+  },
+  "inbounds": [
+    {
+      "tag": "socks",
+      "port": 17889,
+      "listen": "0.0.0.0",
+      "protocol": "socks",
+      "sniffing": {
+        "enabled": false,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ],
+        "routeOnly": false
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "allowTransparent": false
       }
-    ],
-    "outbounds": [
-      {
-        "tag": "proxy",
-        "protocol": "vless",
-        "settings": {
-          "vnext": [
-            {
-              "address": "xtls.github.io",
-              "port": 443,
-              "users": [
-                {
-                  "id": "963e2fe3-2b3c-4fb8-a008-99facaae99c2",
-                  "alterId": 0,
-                  "email": "t@t.tt",
-                  "security": "auto",
-                  "encryption": "none"
-                }
-              ]
-            }
-          ]
-        },
-        "streamSettings": {
-          "network": "h2",
-          "security": "reality",
-          "httpSettings": {
-            "path": ""
-          },
-          "realitySettings": {
-            "serverName": "xtls.github.io",
-            "fingerprint": "chrome",
-            "show": false,
-            "publicKey": "o90V5sTqwkda1c2nGYJ10EYttO-1pvR_1nlLDrvnWzI",
-            "shortId": "b76e3dee045e4f4d",
-            "spiderX": "/"
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "proxy",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "xtls.github.io",
+            "port": 443,
+            "users": [
+              {
+                "id": "963e2fe3-2b3c-4fb8-a008-99facaae99c2",
+                "alterId": 0,
+                "email": "t@t.tt",
+                "security": "auto",
+                "encryption": "none"
+              }
+            ]
           }
+        ]
+      },
+      "streamSettings": {
+        "network": "h2",
+        "security": "reality",
+        "httpSettings": {
+          "path": ""
         },
-        "mux": {
-          "enabled": true,
-          "concurrency": 8
-        },
-        "sockopt": {
-          "dialerProxy": "fragment"
+        "realitySettings": {
+          "serverName": "xtls.github.io",
+          "fingerprint": "chrome",
+          "show": false,
+          "publicKey": "o90V5sTqwkda1c2nGYJ10EYttO-1pvR_1nlLDrvnWzI",
+          "shortId": "b76e3dee045e4f4d",
+          "spiderX": "/"
         }
       },
-      {
-        "protocol": "freedom",
-        "settings": {
-          "fragment": {
-            "packets": "tlshello",
-            "length": "100-200",
-            "interval": "10-20"
-          }
-        },
-        "streamSettings": {
-          "sockopt": {
-            "tcpNoDelay": true
-          }
-        },
-        "tag": "fragment"
+      "mux": {
+        "enabled": true,
+        "concurrency": 8
+      },
+      "sockopt": {
+        "dialerProxy": "fragment"
       }
-    ],
-    "stats": {}
-  }
+    },
+    {
+      "protocol": "freedom",
+      "settings": {
+        "fragment": {
+          "packets": "tlshello",
+          "length": "100-200",
+          "interval": "10-20"
+        }
+      },
+      "streamSettings": {
+        "sockopt": {
+          "tcpNoDelay": true
+        }
+      },
+      "tag": "fragment"
+    }
+  ],
+  "stats": {}
+}
