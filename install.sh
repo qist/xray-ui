@@ -229,8 +229,8 @@ EOF
     sleep 1
     xray-ui restart
     xuilogin() {
-        v4=$(curl -s4m8 https://gio.tycng.com/ipinfo -k)
-        v6=$(curl -s6m8 https://gio.tycng.com/ipinfo -k)
+        v4=$(curl -s4m8 http://ip.sb -k)
+        v6=$(curl -s6m8 http://ip.sb -k)
         if [[ -z $v4 ]]; then
             int="${green}请在浏览器地址栏复制${plain}  ${bblue}[$v6]:$ports${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
         elif [[ -n $v4 && -n $v6 ]]; then
