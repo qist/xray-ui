@@ -10,7 +10,7 @@ jobs:
     name: build xray-ui amd64 version
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4.1.0
         with:
@@ -48,7 +48,7 @@ jobs:
     name: build xray-ui arm64 version
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4.1.0
         with:
