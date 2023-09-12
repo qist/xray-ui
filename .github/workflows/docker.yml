@@ -28,7 +28,7 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Login to dokcer Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_HUB_USER }}
