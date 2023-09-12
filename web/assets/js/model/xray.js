@@ -103,6 +103,7 @@ const SNIFFING_OPTION = {
     HTTP:    "http",
     TLS:     "tls",
     QUIC:    "quic",
+    FAKEDNS: "fakedns"
 };
 
 Object.freeze(Protocols);
@@ -684,6 +685,8 @@ class ReaLITyStreamSettings extends XrayCommonClass {
 
 class SockoptStreamSettings extends XrayCommonClass {
     constructor(tcpMaxSeg = 1440,
+        mark = 0,
+        tproxy="off",
         tcpFastOpen = false,
         domainStrategy = DOMAIN_STRATEGY.AsIs,
         acceptProxyProtocol = false,
@@ -692,10 +695,13 @@ class SockoptStreamSettings extends XrayCommonClass {
         tcpUserTimeout = 10000,
         tcpcongestion = '',
         tcpNoDelay = true,
+        TcpMptcp = true,
         _interface = "",
     ) {
         super();
         this.tcpMaxSeg = tcpMaxSeg;
+        this.mark = mark;
+        this.tproxy = tproxy;
         this.tcpFastOpen = tcpFastOpen;
         this.domainStrategy = domainStrategy;
         this.acceptProxyProtocol = acceptProxyProtocol;
@@ -704,12 +710,16 @@ class SockoptStreamSettings extends XrayCommonClass {
         this.tcpUserTimeout = tcpUserTimeout;
         this.tcpcongestion = tcpcongestion;
         this.tcpNoDelay = tcpNoDelay;
+        this.TcpMptcp = TcpMptcp;
         this.interface = _interface instanceof Array ? this.interface : _interface;
     }
 
     static fromJson(json = {}) {
+        if (Object.keys(json).length === 0) return undefined;
         return new SockoptStreamSettings(
             json.tcpMaxSeg,
+            json.mark,
+            json.tproxy,
             json.tcpFastOpen,
             json.domainStrategy,
             json.acceptProxyProtocol,
@@ -718,6 +728,7 @@ class SockoptStreamSettings extends XrayCommonClass {
             json.tcpUserTimeout,
             json.tcpcongestion,
             json.tcpNoDelay,
+            json.TcpMptcp,
             json.interface,
         );
     }
@@ -725,6 +736,8 @@ class SockoptStreamSettings extends XrayCommonClass {
     toJson() {
         return {
             tcpMaxSeg: this.tcpMaxSeg,
+            mark: this.mark,
+            tproxy: this.tproxy,
             tcpFastOpen: this.tcpFastOpen,
             domainStrategy: this.domainStrategy,
             acceptProxyProtocol: this.acceptProxyProtocol,
@@ -733,6 +746,7 @@ class SockoptStreamSettings extends XrayCommonClass {
             tcpUserTimeout: this.tcpUserTimeout,
             tcpcongestion: this.tcpcongestion,
             tcpNoDelay: this.tcpNoDelay,
+            TcpMptcp: this.TcpMptcp,
             interface: this.interface,
         };
     }
@@ -750,7 +764,7 @@ class StreamSettings extends XrayCommonClass {
         httpSettings = new HttpStreamSettings(),
         quicSettings = new QuicStreamSettings(),
         grpcSettings = new GrpcStreamSettings(),
-        sockopt = new SockoptStreamSettings(),
+        sockopt = undefined,
     ) {
         super();
         this.network = network;
@@ -790,14 +804,12 @@ class StreamSettings extends XrayCommonClass {
         }
     }
 
-    get isSockopt() {
-        return ['tcp', 'http', 'grpc', 'ws'].indexOf(this.network) !== -1;
+    get sockoptSwitch() {
+        return this.sockopt != undefined;
     }
 
-    set isSockopt(isSockopt) {
-        if (isSockopt) {
-            return ['tcp', 'http', 'grpc', 'ws'].indexOf(this.network) !== -1;
-        }
+    set sockoptSwitch(value) {
+        this.sockopt = value ? new SockoptStreamSettings() : undefined;
     }
 
     static fromJson(json = {}) {
@@ -829,7 +841,7 @@ class StreamSettings extends XrayCommonClass {
             httpSettings: network === 'http' ? this.http.toJson() : undefined,
             quicSettings: network === 'quic' ? this.quic.toJson() : undefined,
             grpcSettings: network === 'grpc' ? this.grpc.toJson() : undefined,
-            sockopt: this.isSockopt ? this.sockopt.toJson() : undefined,
+            sockopt: this.sockopt != undefined ? this.sockopt.toJson() : undefined,
         };
     }
 }
@@ -1098,19 +1110,19 @@ class Inbound extends XrayCommonClass {
         //return this.network === "tcp";
     }
 
-    canSockopt() {
-        switch (this.protocol) {
-            case Protocols.VLESS:
-            case Protocols.TROJAN:
-            case Protocols.SHADOWSOCKS:
-            case Protocols.VMESS:
-                break;
-            default:
-                return false;
-        }
-        return ['tcp', 'http', 'grpc', 'ws'].indexOf(this.network) !== -1;
-        //return this.network === "tcp";
-    }
+    // canSockopt() {
+    //     switch (this.protocol) {
+    //         case Protocols.VLESS:
+    //         case Protocols.TROJAN:
+    //         case Protocols.SHADOWSOCKS:
+    //         case Protocols.VMESS:
+    //             break;
+    //         default:
+    //             return false;
+    //     }
+    //     return ['tcp', 'http', 'grpc', 'ws'].indexOf(this.network) !== -1;
+    //     //return this.network === "tcp";
+    // }
 
     canEnableStream() {
         switch (this.protocol) {

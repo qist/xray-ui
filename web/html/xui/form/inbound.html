@@ -94,11 +94,6 @@
     {{template "form/streamSettings"}}
 </template>
 
-<!-- sockopt -->
-<template v-if="inbound.canSockopt()">
-    {{template "form/streamSOCKOPT"}}
-</template>
-
 <!-- tls settings -->
 <template v-if="inbound.canEnableTls()">
     {{template "form/tlsSettings"}}
