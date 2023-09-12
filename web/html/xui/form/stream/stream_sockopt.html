@@ -1,6 +1,6 @@
 {{define "form/streamSOCKOPT"}}
 <a-form layout="inline">
-    <a-form-item label="Transparent Proxy">
+    <a-form-item label="set sockopt">
         <a-switch v-model="inbound.stream.sockoptSwitch"></a-switch>
     </a-form-item>
     <a-form layout="inline" v-if="inbound.stream.sockoptSwitch">
