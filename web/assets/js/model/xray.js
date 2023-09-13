@@ -694,7 +694,7 @@ class SockoptStreamSettings extends XrayCommonClass {
         tcpKeepAliveIdle = 0,
         tcpUserTimeout = 10000,
         tcpcongestion = '',
-        tcpNoDelay = true,
+        tcpNoDelay = false,
         TcpMptcp = true,
         _interface = "",
     ) {
