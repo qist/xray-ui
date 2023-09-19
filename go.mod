@@ -11,7 +11,7 @@ require (
 	github.com/nicksnyder/go-i18n/v2 v2.2.1
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/shirou/gopsutil/v3 v3.23.7
+	github.com/shirou/gopsutil/v3 v3.23.8
 	github.com/xtls/xray-core v1.8.4
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.12.0
@@ -50,8 +50,8 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/sagernet/sing v0.2.9 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
-	github.com/tklauser/go-sysconf v0.3.11 // indirect
-	github.com/tklauser/numcpus v0.6.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.12 // indirect
+	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
