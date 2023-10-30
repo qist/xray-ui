@@ -1,7 +1,12 @@
-使用 **waro-go**，注册warp，导出wireguard配置
+使用 **warp-reg**，注册warp，导出wireguard配置
 
 ```bash
-mkdir warp && curl -sLo ./warp/warp https://gitlab.com/ProjectWARP/warp-go/-/releases/v1.0.8/downloads/warp-go_1.0.8_linux_amd64.tar.gz && tar -xzf ./warp/warp -C ./warp && cp ./warp/warp-go . && chmod 0755 warp-go && rm -r warp && ./warp-go --register && ./warp-go -export-singbox wireguard.json
+curl -sLo warp-reg https://github.com/badafans/warp-reg/releases/download/v1.0/main-linux-amd64 && chmod +x warp-reg && ./warp-reg && rm warp-reg
+```
+
+使用 **api.zeroteam.top**，获取warp账号
+```bash
+curl -sLo /root/warp "https://api.zeroteam.top/warp?format=xray" > /dev/null && grep -Eo --color=never '"2606:4700:[0-9a-f:]+/128"|"secretKey":"[0-9a-zA-Z\/+]+="|"reserved":\[[0-9]+(,[0-9]+){2}\]' warp && rm warp
 ```
 
 打开 **wireguard.json**，复制"private_key"的值，粘贴到"secretKey": "",处，复制"reserved"的值，粘贴到"reserved":[0, 0, 0],处， 复制"peer_public_key"的值，粘贴到"publicKey: "",处
