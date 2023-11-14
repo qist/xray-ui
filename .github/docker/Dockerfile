@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM  golang:bullseye AS build
+FROM --platform=$BUILDPLATFORM  golang:1.21.4-bullseye AS build
 
 RUN apt update && apt install -y gcc-aarch64-linux-gnu
 ARG TARGETOS TARGETARCH

@@ -1,6 +1,6 @@
 module xray-ui
 
-go 1.21
+go 1.21.4
 require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/Workiva/go-datastructures v1.1.1
