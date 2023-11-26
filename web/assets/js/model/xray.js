@@ -493,7 +493,8 @@ class TlsStreamSettings extends XrayCommonClass {
         this.rejectUnknownSni = rejectUnknownSni;
         this.minVersion = minVersion;
         this.maxVersion = maxVersion;
-        this.cipherSuites = cipherSuites;
+        // this.cipherSuites = cipherSuites;
+        this.cipherSuites= cipherSuites instanceof Array ? cipherSuites.join(':') : cipherSuites.split(':');
         this.certs = certificates;
         this.alpn = alpn;
         this.settings = settings;
