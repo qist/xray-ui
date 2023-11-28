@@ -1,6 +1,7 @@
 module xray-ui
 
 go 1.21.4
+
 require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/Workiva/go-datastructures v1.1.1
@@ -13,7 +14,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.23.10
 	github.com/xtls/xray-core v1.8.6
 	go.uber.org/atomic v1.11.0
-	golang.org/x/crypto v0.15.0
+	golang.org/x/crypto v0.16.0
 	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.59.0
 	gorm.io/driver/sqlite v1.5.4
@@ -56,7 +57,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
