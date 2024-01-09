@@ -125,6 +125,7 @@ curl -sLo /root/warp "https://api.zeroteam.top/warp?format=xray" > /dev/null && 
             "address": [
                 "172.16.0.2/32"
             ],
+            "network": "tcp,udp",
             "peers": [
                 {
                     "publicKey": "",
