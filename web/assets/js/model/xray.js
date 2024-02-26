@@ -84,6 +84,13 @@ const DOMAIN_STRATEGY = {
     UseIP: "UseIP",
     UseIPv4: "UseIPv4",
     UseIPv6: "UseIPv6",
+    UseIPv6v4: "UseIPv6v4",
+    UseIPv4v6: "UseIPv4v6",
+    ForceIP: "ForceIP",
+    ForceIPv6v4: "ForceIPv6v4",
+    ForceIPv6: "ForceIPv6",
+    ForceIPv4v6: "ForceIPv4v6",
+    ForceIPv4: "ForceIPv4",
 }
 
 const UTLS_FINGERPRINT = {
@@ -100,9 +107,9 @@ const UTLS_FINGERPRINT = {
 };
 
 const SNIFFING_OPTION = {
-    HTTP:    "http",
-    TLS:     "tls",
-    QUIC:    "quic",
+    HTTP: "http",
+    TLS: "tls",
+    QUIC: "quic",
     FAKEDNS: "fakedns"
 };
 
@@ -493,7 +500,7 @@ class TlsStreamSettings extends XrayCommonClass {
         this.rejectUnknownSni = rejectUnknownSni;
         this.minVersion = minVersion;
         this.maxVersion = maxVersion;
-        this.cipherSuites= cipherSuites instanceof Array ? cipherSuites.join(':') : cipherSuites.split(':');
+        this.cipherSuites = cipherSuites instanceof Array ? cipherSuites.join(':') : cipherSuites.split(':');
         this.certs = certificates;
         this.alpn = alpn;
         this.settings = settings;
@@ -537,7 +544,7 @@ class TlsStreamSettings extends XrayCommonClass {
             rejectUnknownSni: this.rejectUnknownSni,
             minVersion: this.minVersion,
             maxVersion: this.maxVersion,
-            cipherSuites: this.cipherSuites  instanceof Array ? this.cipherSuites.join(':') : this.cipherSuites.split(':'),
+            cipherSuites: this.cipherSuites instanceof Array ? this.cipherSuites.join(':') : this.cipherSuites.split(':'),
             certificates: TlsStreamSettings.toJsonArray(this.certs),
             alpn: this.alpn,
             settings: TlsStreamSettings.toJsonArray(this.settings),
@@ -684,70 +691,82 @@ class ReaLITyStreamSettings extends XrayCommonClass {
 }
 
 class SockoptStreamSettings extends XrayCommonClass {
-    constructor(tcpMaxSeg = 1440,
-        mark = 0,
-        tproxy="off",
+    constructor(mark = 0,
+        tcpMaxSeg = 1440,
         tcpFastOpen = false,
+        tproxy = "off",
         domainStrategy = DOMAIN_STRATEGY.AsIs,
+        dialerProxy = "",
         acceptProxyProtocol = false,
-        tcpKeepAliveInterval = 0,        
+        tcpKeepAliveInterval = 0,
         tcpKeepAliveIdle = 0,
         tcpUserTimeout = 10000,
-        tcpcongestion = '',
-        tcpNoDelay = false,
-        TcpMptcp = true,
+        tcpcongestion = "",
         _interface = "",
+        V6Only = false,
+        tcpWindowClamp = 600,
+        TcpMptcp = true,
+        tcpNoDelay = false,
     ) {
         super();
-        this.tcpMaxSeg = tcpMaxSeg;
         this.mark = mark;
-        this.tproxy = tproxy;
+        this.tcpMaxSeg = tcpMaxSeg;
         this.tcpFastOpen = tcpFastOpen;
+        this.tproxy = tproxy;
         this.domainStrategy = domainStrategy;
+        this.dialerProxy = dialerProxy;
         this.acceptProxyProtocol = acceptProxyProtocol;
         this.tcpKeepAliveInterval = tcpKeepAliveInterval;
         this.tcpKeepAliveIdle = tcpKeepAliveIdle;
         this.tcpUserTimeout = tcpUserTimeout;
         this.tcpcongestion = tcpcongestion;
-        this.tcpNoDelay = tcpNoDelay;
-        this.TcpMptcp = TcpMptcp;
         this.interface = _interface instanceof Array ? this.interface : _interface;
+        this.V6Only = V6Only;
+        this.tcpWindowClamp = tcpWindowClamp;
+        this.TcpMptcp = TcpMptcp;
+        this.tcpNoDelay = tcpNoDelay;
     }
 
     static fromJson(json = {}) {
         if (Object.keys(json).length === 0) return undefined;
         return new SockoptStreamSettings(
-            json.tcpMaxSeg,
             json.mark,
-            json.tproxy,
+            json.tcpMaxSeg,
             json.tcpFastOpen,
+            json.tproxy,
             json.domainStrategy,
+            json.dialerProxy,
             json.acceptProxyProtocol,
             json.tcpKeepAliveInterval,
             json.tcpKeepAliveIdle,
             json.tcpUserTimeout,
             json.tcpcongestion,
-            json.tcpNoDelay,
-            json.TcpMptcp,
             json.interface,
+            json.V6Only,
+            json.tcpWindowClamp,
+            json.TcpMptcp,
+            json.tcpNoDelay,
         );
     }
 
     toJson() {
         return {
-            tcpMaxSeg: this.tcpMaxSeg,
             mark: this.mark,
-            tproxy: this.tproxy,
+            tcpMaxSeg: this.tcpMaxSeg,
             tcpFastOpen: this.tcpFastOpen,
+            tproxy: this.tproxy,
             domainStrategy: this.domainStrategy,
+            dialerProxy: this.dialerProxy,
             acceptProxyProtocol: this.acceptProxyProtocol,
             tcpKeepAliveInterval: this.tcpKeepAliveInterval,
             tcpKeepAliveIdle: this.tcpKeepAliveIdle,
             tcpUserTimeout: this.tcpUserTimeout,
             tcpcongestion: this.tcpcongestion,
-            tcpNoDelay: this.tcpNoDelay,
-            TcpMptcp: this.TcpMptcp,
             interface: this.interface,
+            V6Only: this.V6Only,
+            tcpWindowClamp: this.tcpWindowClamp,
+            TcpMptcp: this.TcpMptcp,
+            tcpNoDelay: this.tcpNoDelay,
         };
     }
 }

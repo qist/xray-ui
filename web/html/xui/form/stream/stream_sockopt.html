@@ -6,13 +6,17 @@
     <a-form layout="inline" v-if="inbound.stream.sockoptSwitch">
         <transition name="list" appear>
             <a-card hoverable style="margin-bottom: 20px;" :class="siderDrawer.isDarkTheme ? darkClass : ''">
+                <a-form-item label="mark">
+                    <a-input v-model.number="inbound.stream.sockopt.mark" style="width: 165px;">
+                    </a-input>
+                </a-form-item>
                 <a-form-item label="tcpMaxSeg">
                     <a-input v-model.number="inbound.stream.sockopt.tcpMaxSeg" style="width: 65px;">
                     </a-input>
                 </a-form-item>
-                <a-form-item label="mark">
-                    <a-input v-model.number="inbound.stream.sockopt.mark" style="width: 165px;">
-                    </a-input>
+                <a-form-item label="tcpFastOpen">
+                    <a-switch v-model="inbound.stream.sockopt.tcpFastOpen">
+                    </a-switch>
                 </a-form-item>
                 <a-form-item label="tproxy">
                     <a-select v-model="inbound.stream.sockopt.tproxy" style="width: 250px;">
@@ -21,14 +25,13 @@
                         <a-select-option value="tproxy">T-Proxy</a-select-option>
                     </a-select>
                 </a-form-item>
-                <a-form-item label="tcpFastOpen">
-                    <a-switch v-model="inbound.stream.sockopt.tcpFastOpen">
-                    </a-switch>
-                </a-form-item>
                 <a-form-item label="domainStrategy">
                     <a-select v-model="inbound.stream.sockopt.domainStrategy" style="width:200px">
                         <a-select-option v-for="key in DOMAIN_STRATEGY" :value="key">[[ key ]]</a-select-option>
                         </a-se-chlect>
+                </a-form-item>
+                <a-form-item label="dialerProxy">
+                    <a-input v-model.trim="inbound.stream.sockopt.dialerProxy" style="width: 165px"></a-input>
                 </a-form-item>
                 <a-form-item label="acceptProxyProtocol">
                     <a-switch v-model="inbound.stream.sockopt.acceptProxyProtocol">
@@ -52,17 +55,27 @@
                         <a-select-option v-for="key in TCP_CONGESTION" :value="key">[[ key ]]</a-select-option>
                     </a-select>
                 </a-form-item>
-                <a-form-item label="tcpNoDelay">
-                    <a-switch v-model="inbound.stream.sockopt.tcpNoDelay">
+                <a-form-item label="interface">
+                    <a-input v-model.trim="inbound.stream.sockopt.interface" style="width: 165px"></a-input>
+                </a-form-item>
+                <a-form-item label="V6Only">
+                    <a-switch v-model="inbound.stream.sockopt.V6Only">
                     </a-switch>
+                </a-form-item>
+                <a-form-item label="tcpWindowClamp">
+                    <a-input v-model.number="inbound.stream.sockopt.tcpWindowClamp" style="width: 165px;">
+                    </a-input>
                 </a-form-item>
                 <a-form-item label="TcpMptcp">
                     <a-switch v-model="inbound.stream.sockopt.TcpMptcp">
                     </a-switch>
                 </a-form-item>
-                <a-form-item label="interface">
-                    <a-input v-model.trim="inbound.stream.sockopt.interface" style="width: 165px"></a-input>
+                <a-form-item label="tcpNoDelay">
+                    <a-switch v-model="inbound.stream.sockopt.tcpNoDelay">
+                    </a-switch>
                 </a-form-item>
+
+
             </a-card>
         </transition>
     </a-form>
