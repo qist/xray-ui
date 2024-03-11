@@ -151,7 +151,7 @@ docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui /root/xray-ui se
 
 ```bash
 # 下载 
-wget -N --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/latest/download/xray-ui-linux-amd64.tar.gz
+wget  --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/latest/download/xray-ui-linux-amd64.tar.gz
 
 # 解压
     cd /usr/local/
