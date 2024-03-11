@@ -110,7 +110,7 @@ if [[ -n $ports ]]; then
     acp=$(/usr/local/xray-ui/xray-ui setting -show 2>/dev/null)
     green "$acp"
     echo
-    readp "是否直接重装xray-ui，请输入Y/y键并回车。如不重装，输入非Y/y键回车退出脚本):" ins
+    readp "是否直接重装xray-ui，请输入Y/y键并回车。如不重装，输入非N/n键回车退出脚本):" ins
     if [[ $ins = [Yy] ]]; then
         systemctl stop xray-ui
         systemctl disable xray-ui
