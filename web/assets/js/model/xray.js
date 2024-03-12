@@ -1223,79 +1223,82 @@ class Inbound extends XrayCommonClass {
         this.sniffing = new Sniffing();
     }
 
-    genVmessLink(address='', port=this.port, forceTls, remark='', clientId) {
+    genVmessLink(address = '', remark = '') {
         if (this.protocol !== Protocols.VMESS) {
             return '';
         }
-        const security = forceTls == 'same' ? this.stream.security : forceTls;
+        let network = this.stream.network;
+        let type = 'none';
+        let host = '';
+        let path = '';
+        let authority = '';
+        let sni = '';
+        if (network === 'tcp') {
+            let tcp = this.stream.tcp;
+            type = tcp.type;
+            if (type === 'http') {
+                let request = tcp.request;
+                path = request.path.join(',');
+                let index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (index >= 0) {
+                    host = request.headers[index].value;
+                }
+            }
+        } else if (network === 'kcp') {
+            let kcp = this.stream.kcp;
+            type = kcp.type;
+            path = kcp.seed;
+        } else if (network === 'ws') {
+            let ws = this.stream.ws;
+            path = ws.path;
+            let index = ws.headers.findIndex(header => header.name.toLowerCase() === 'host');
+            if (index >= 0) {
+                host = ws.headers[index].value;
+            }
+        } else if (network === 'http') {
+            network = 'h2';
+            path = this.stream.http.path;
+            host = this.stream.http.host.join(',');
+        } else if (network === 'quic') {
+            type = this.stream.quic.type;
+            host = this.stream.quic.security;
+            path = this.stream.quic.key;
+        } else if (network === 'grpc') {
+            path = this.stream.grpc.serviceName;
+            authority = this.stream.grpc.authority;
+            if (this.stream.grpc.multiMode){
+                type = 'multi'
+            }
+        }else if (network === 'httpupgrade') {
+            let httpupgrade = this.stream.httpupgrade;
+            path = httpupgrade.path;
+            host = httpupgrade.host;
+        }
+
+        if (this.stream.security === 'tls') {
+            if (!ObjectUtil.isEmpty(this.stream.tls.server)) {
+                address = this.stream.tls.server;
+            }
+            if (!ObjectUtil.isEmpty(this.stream.tls.settings[0]['serverName'])) {
+                sni = this.stream.tls.settings[0]['serverName'];
+            }
+        }
+
         let obj = {
             v: '2',
             ps: remark,
             add: address,
             port: this.port,
             id: this.settings.vmesses[0].id,
-            net: this.stream.network,
-            type: 'none',
+            net: network,
+            type: type,
+            host: host,
+            path: path,
+            authority: authority,
             tls: this.stream.security,
+            sni: sni,
+            fp: this.stream.tls.settings[0]['fingerprint'],
         };
-        let network = this.stream.network;
-        if (network === 'tcp') {
-            let tcp = this.stream.tcp;
-            obj.type = tcp.type;
-            if (tcp.type === 'http') {
-                let request = tcp.request;
-                obj.path = request.path.join(',');
-                let index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (index >= 0) {
-                    obj.host = request.headers[index].value;
-                }
-            }
-        } else if (network === 'kcp') {
-            let kcp = this.stream.kcp;
-            obj.type = kcp.type;
-            obj.path = kcp.seed;
-        } else if (network === 'ws') {
-            let ws = this.stream.ws;
-            obj.path = ws.path;
-            let index = ws.headers.findIndex(header => header.name.toLowerCase() === 'host');
-            if (index >= 0) {
-                obj.host = ws.headers[index].value;
-            }
-        } else if (network === 'http') {
-            obj.net = 'h2';
-            obj.path = this.stream.http.path;
-            obj.host = this.stream.http.host.join(',');
-        } else if (network === 'quic') {
-            obj.type = this.stream.quic.type;
-            obj.host = this.stream.quic.security;
-            obj.path = this.stream.quic.key;
-        } else if (network === 'grpc') {
-            obj.path = this.stream.grpc.serviceName;
-            obj.authority = this.stream.grpc.authority;
-            if (this.stream.grpc.multiMode){
-                obj.type = 'multi'
-            }
-        } else if (network === 'httpupgrade') {
-            let httpupgrade = this.stream.httpupgrade;
-            obj.path = httpupgrade.path;
-            obj.host = httpupgrade.host;
-        }
-
-        if (security === 'tls') {
-            if (!ObjectUtil.isEmpty(this.stream.tls.sni)){
-                obj.sni = this.stream.tls.sni;
-            }
-            if (!ObjectUtil.isEmpty(this.stream.tls.settings.fingerprint)){
-                obj.fp = this.stream.tls.settings.fingerprint;
-            }
-            if (this.stream.tls.alpn.length>0){
-                obj.alpn = this.stream.tls.alpn.join(',');
-            }
-            if (this.stream.tls.settings.allowInsecure){
-                obj.allowInsecure = this.stream.tls.settings.allowInsecure;
-            }
-        }
-        
         return 'vmess://' + base64(JSON.stringify(obj, null, 2));
     }
 
