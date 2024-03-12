@@ -470,22 +470,57 @@ class QuicStreamSettings extends XrayCommonClass {
 }
 
 class GrpcStreamSettings extends XrayCommonClass {
-    constructor(serviceName = "") {
+    constructor(
+        serviceName = "",
+        authority = "",
+        multiMode = false,
+    ) {
         super();
         this.serviceName = serviceName;
+        this.authority = authority;
+        this.multiMode = multiMode;
     }
 
     static fromJson(json = {}) {
-        return new GrpcStreamSettings(json.serviceName);
+        return new GrpcStreamSettings(
+            json.serviceName,
+            json.authority,
+            json.multiMode);
     }
 
     toJson() {
         return {
             serviceName: this.serviceName,
+            authority: this.authority,
+            multiMode: this.multiMode,
         }
     }
 }
 
+class HttpUpgradeStreamSettings extends XrayCommonClass {
+    constructor(acceptProxyProtocol = false, path = '/', host = '') {
+        super();
+        this.acceptProxyProtocol = acceptProxyProtocol;
+        this.path = path;
+        this.host = host;
+    }
+
+    static fromJson(json = {}) {
+        return new HttpUpgradeStreamSettings(
+            json.acceptProxyProtocol,
+            json.path,
+            json.host,
+        );
+    }
+
+    toJson() {
+        return {
+            acceptProxyProtocol: this.acceptProxyProtocol,
+            path: this.path,
+            host: this.host,
+        };
+    }
+}
 
 class TlsStreamSettings extends XrayCommonClass {
     constructor(serverName = '',
@@ -783,6 +818,7 @@ class StreamSettings extends XrayCommonClass {
         httpSettings = new HttpStreamSettings(),
         quicSettings = new QuicStreamSettings(),
         grpcSettings = new GrpcStreamSettings(),
+        httpupgradeSettings = new HttpUpgradeStreamSettings(),
         sockopt = undefined,
     ) {
         super();
@@ -796,6 +832,7 @@ class StreamSettings extends XrayCommonClass {
         this.http = httpSettings;
         this.quic = quicSettings;
         this.grpc = grpcSettings;
+        this.httpupgrade = httpupgradeSettings;
         this.sockopt = sockopt;
     }
 
@@ -843,6 +880,7 @@ class StreamSettings extends XrayCommonClass {
             HttpStreamSettings.fromJson(json.httpSettings),
             QuicStreamSettings.fromJson(json.quicSettings),
             GrpcStreamSettings.fromJson(json.grpcSettings),
+            HttpUpgradeStreamSettings.fromJson(json.httpupgradeSettings),
             SockoptStreamSettings.fromJson(json.sockopt),
         );
     }
@@ -860,6 +898,7 @@ class StreamSettings extends XrayCommonClass {
             httpSettings: network === 'http' ? this.http.toJson() : undefined,
             quicSettings: network === 'quic' ? this.quic.toJson() : undefined,
             grpcSettings: network === 'grpc' ? this.grpc.toJson() : undefined,
+            httpupgradeSettings: network === 'httpupgrade' ? this.httpupgrade.toJson() : undefined,
             sockopt: this.sockopt != undefined ? this.sockopt.toJson() : undefined,
         };
     }
@@ -976,7 +1015,9 @@ class Inbound extends XrayCommonClass {
     get isH2() {
         return this.network === "http";
     }
-
+    get isHttpupgrade() {
+        return this.network === "httpupgrade";
+    }
     // VMess & VLess
     get uuid() {
         switch (this.protocol) {
@@ -1051,6 +1092,8 @@ class Inbound extends XrayCommonClass {
             return this.stream.ws.getHeader("Host");
         } else if (this.isH2) {
             return this.stream.http.host[0];
+        } else if (this.isHttpupgrade) {
+            return this.stream.httpupgrade.host;
         }
         return null;
     }
@@ -1062,6 +1105,8 @@ class Inbound extends XrayCommonClass {
             return this.stream.ws.path;
         } else if (this.isH2) {
             return this.stream.http.path[0];
+        } else if (this.isHttpupgrade) {
+            return this.stream.httpupgrade.path;
         }
         return null;
     }
@@ -1107,6 +1152,7 @@ class Inbound extends XrayCommonClass {
             case "http":
             case "quic":
             case "grpc":
+            case "httpupgrade":
                 return true;
             default:
                 return false;
@@ -1125,7 +1171,7 @@ class Inbound extends XrayCommonClass {
             default:
                 return false;
         }
-        return ['tcp', 'http', 'grpc'].indexOf(this.network) !== -1;
+        return ['tcp', 'http', 'grpc', 'httpupgrade'].indexOf(this.network) !== -1;
         //return this.network === "tcp";
     }
 
@@ -1177,67 +1223,79 @@ class Inbound extends XrayCommonClass {
         this.sniffing = new Sniffing();
     }
 
-    genVmessLink(address = '', remark = '') {
+    genVmessLink(address='', port=this.port, forceTls, remark='', clientId) {
         if (this.protocol !== Protocols.VMESS) {
             return '';
         }
-        let network = this.stream.network;
-        let type = 'none';
-        let host = '';
-        let path = '';
-        if (network === 'tcp') {
-            let tcp = this.stream.tcp;
-            type = tcp.type;
-            if (type === 'http') {
-                let request = tcp.request;
-                path = request.path.join(',');
-                let index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (index >= 0) {
-                    host = request.headers[index].value;
-                }
-            }
-        } else if (network === 'kcp') {
-            let kcp = this.stream.kcp;
-            type = kcp.type;
-            path = kcp.seed;
-        } else if (network === 'ws') {
-            let ws = this.stream.ws;
-            path = ws.path;
-            let index = ws.headers.findIndex(header => header.name.toLowerCase() === 'host');
-            if (index >= 0) {
-                host = ws.headers[index].value;
-            }
-        } else if (network === 'http') {
-            network = 'h2';
-            path = this.stream.http.path;
-            host = this.stream.http.host.join(',');
-        } else if (network === 'quic') {
-            type = this.stream.quic.type;
-            host = this.stream.quic.security;
-            path = this.stream.quic.key;
-        } else if (network === 'grpc') {
-            path = this.stream.grpc.serviceName;
-        }
-
-        if (this.stream.security === 'tls') {
-            if (!ObjectUtil.isEmpty(this.stream.tls.server)) {
-                address = this.stream.tls.server;
-            }
-        }
-
+        const security = forceTls == 'same' ? this.stream.security : forceTls;
         let obj = {
             v: '2',
             ps: remark,
             add: address,
             port: this.port,
             id: this.settings.vmesses[0].id,
-            net: network,
-            type: type,
-            host: host,
-            path: path,
+            net: this.stream.network,
+            type: 'none',
             tls: this.stream.security,
-            fp: this.stream.tls.settings[0]['fingerprint'],
         };
+        let network = this.stream.network;
+        if (network === 'tcp') {
+            let tcp = this.stream.tcp;
+            obj.type = tcp.type;
+            if (tcp.type === 'http') {
+                let request = tcp.request;
+                obj.path = request.path.join(',');
+                let index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (index >= 0) {
+                    obj.host = request.headers[index].value;
+                }
+            }
+        } else if (network === 'kcp') {
+            let kcp = this.stream.kcp;
+            obj.type = kcp.type;
+            obj.path = kcp.seed;
+        } else if (network === 'ws') {
+            let ws = this.stream.ws;
+            obj.path = ws.path;
+            let index = ws.headers.findIndex(header => header.name.toLowerCase() === 'host');
+            if (index >= 0) {
+                obj.host = ws.headers[index].value;
+            }
+        } else if (network === 'http') {
+            obj.net = 'h2';
+            obj.path = this.stream.http.path;
+            obj.host = this.stream.http.host.join(',');
+        } else if (network === 'quic') {
+            obj.type = this.stream.quic.type;
+            obj.host = this.stream.quic.security;
+            obj.path = this.stream.quic.key;
+        } else if (network === 'grpc') {
+            obj.path = this.stream.grpc.serviceName;
+            obj.authority = this.stream.grpc.authority;
+            if (this.stream.grpc.multiMode){
+                obj.type = 'multi'
+            }
+        } else if (network === 'httpupgrade') {
+            let httpupgrade = this.stream.httpupgrade;
+            obj.path = httpupgrade.path;
+            obj.host = httpupgrade.host;
+        }
+
+        if (security === 'tls') {
+            if (!ObjectUtil.isEmpty(this.stream.tls.sni)){
+                obj.sni = this.stream.tls.sni;
+            }
+            if (!ObjectUtil.isEmpty(this.stream.tls.settings.fingerprint)){
+                obj.fp = this.stream.tls.settings.fingerprint;
+            }
+            if (this.stream.tls.alpn.length>0){
+                obj.alpn = this.stream.tls.alpn.join(',');
+            }
+            if (this.stream.tls.settings.allowInsecure){
+                obj.allowInsecure = this.stream.tls.settings.allowInsecure;
+            }
+        }
+        
         return 'vmess://' + base64(JSON.stringify(obj, null, 2));
     }
 
@@ -1294,8 +1352,18 @@ class Inbound extends XrayCommonClass {
             case "grpc":
                 const grpc = this.stream.grpc;
                 params.set("serviceName", grpc.serviceName);
+                params.set("authority", grpc.authority);
+                if (grpc.multiMode) {
+                    params.set("mode", "multi");
+                }
+                break;
+            case "httpupgrade":
+                const httpupgrade = this.stream.httpupgrade;
+                params.set("path", httpupgrade.path);
+                params.set("host", httpupgrade.host);
                 break;
         }
+
         if (this.tls) {
             params.set("security", "tls");
             params.set("fp", this.stream.tls.settings[0]['fingerprint']);
@@ -1346,20 +1414,103 @@ class Inbound extends XrayCommonClass {
         return url.toString();
     }
 
-    genSSLink(address = '', remark = '') {
+    genSSLink(address = '', port = this.port, forceTls, remark = '', clientPassword) {
         let settings = this.settings;
-        const server = this.stream.tls.server;
-        if (!ObjectUtil.isEmpty(server)) {
-            address = server;
+        const type = this.stream.network;
+        const security = forceTls == 'same' ? this.stream.security : forceTls;
+        const params = new Map();
+        params.set("type", this.stream.network);
+        switch (type) {
+            case "tcp":
+                const tcp = this.stream.tcp;
+                if (tcp.type === 'http') {
+                    const request = tcp.request;
+                    params.set("path", request.path.join(','));
+                    const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                    if (index >= 0) {
+                        const host = request.headers[index].value;
+                        params.set("host", host);
+                    }
+                    params.set("headerType", 'http');
+                }
+                break;
+            case "kcp":
+                const kcp = this.stream.kcp;
+                params.set("headerType", kcp.type);
+                params.set("seed", kcp.seed);
+                break;
+            case "ws":
+                const ws = this.stream.ws;
+                params.set("path", ws.path);
+                const index = ws.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (index >= 0) {
+                    const host = ws.headers[index].value;
+                    params.set("host", host);
+                }
+                break;
+            case "http":
+                const http = this.stream.http;
+                params.set("path", http.path);
+                params.set("host", http.host);
+                break;
+            case "quic":
+                const quic = this.stream.quic;
+                params.set("quicSecurity", quic.security);
+                params.set("key", quic.key);
+                params.set("headerType", quic.type);
+                break;
+            case "grpc":
+                const grpc = this.stream.grpc;
+                params.set("serviceName", grpc.serviceName);
+                params.set("authority", grpc.authority);
+                if (grpc.multiMode) {
+                    params.set("mode", "multi");
+                }
+                break;
+            case "httpupgrade":
+                const httpupgrade = this.stream.httpupgrade;
+                params.set("path", httpupgrade.path);
+                params.set("host", httpupgrade.host);
+                break;
         }
-        if (settings.method == SSMethods.BLAKE3_AES_128_GCM || settings.method == SSMethods.BLAKE3_AES_256_GCM || settings.method == SSMethods.BLAKE3_CHACHA20_POLY1305) {
-            return `ss://${settings.method}:${settings.password}@${address}:${this.port}#${encodeURIComponent(remark)}`;
-        } else {
-            return 'ss://' + safeBase64(settings.method + ':' + settings.password + '@' + address + ':' + this.port)
-                + '#' + encodeURIComponent(remark);
-        }
-    }
 
+        if (security === 'tls') {
+            params.set("security", "tls");
+            if (this.stream.isTls) {
+                params.set("fp", this.stream.tls.settings.fingerprint);
+                params.set("alpn", this.stream.tls.alpn);
+                if (this.stream.tls.settings.allowInsecure) {
+                    params.set("allowInsecure", "1");
+                }
+                if (!ObjectUtil.isEmpty(this.stream.tls.sni)) {
+                    params.set("sni", this.stream.tls.sni);
+                }
+            }
+        }
+
+
+        if (settings.method == SSMethods.BLAKE3_AES_128_GCM || settings.method == SSMethods.BLAKE3_AES_256_GCM || settings.method == SSMethods.BLAKE3_CHACHA20_POLY1305) {
+            const link = `ss://${settings.method}:${settings.password}@${address}:${this.port}#${encodeURIComponent(remark)}`;
+
+            const url = new URL(link);
+            for (const [key, value] of params) {
+                url.searchParams.set(key, value)
+            }
+            url.hash = encodeURIComponent(remark);
+            return url.toString();
+        } else {
+            const link = 'ss://' + safeBase64(settings.method + ':' + settings.password + '@' + address + ':' + this.port)
+                + '#' + encodeURIComponent(remark);
+
+            const url = new URL(link);
+            for (const [key, value] of params) {
+                url.searchParams.set(key, value)
+            }
+            url.hash = encodeURIComponent(remark);
+            return url.toString();
+        }
+
+    }
     genTrojanLink(address = '', remark = '') {
         let settings = this.settings;
         const port = this.port;
@@ -1412,6 +1563,15 @@ class Inbound extends XrayCommonClass {
             case "grpc":
                 const grpc = this.stream.grpc;
                 params.set("serviceName", grpc.serviceName);
+                params.set("authority", grpc.authority);
+                if (grpc.multiMode) {
+                    params.set("mode", "multi");
+                }
+                break;
+            case "httpupgrade":
+                const httpupgrade = this.stream.httpupgrade;
+                params.set("path", httpupgrade.path);
+                params.set("host", httpupgrade.host);
                 break;
         }
 

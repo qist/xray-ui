@@ -9,6 +9,7 @@
             <a-select-option value="http">http</a-select-option>
             <a-select-option value="quic">quic</a-select-option>
             <a-select-option value="grpc">grpc</a-select-option>
+            <a-select-option value="httpupgrade">HTTPUpgrade</a-select-option>
         </a-select>
     </a-form-item>
 </a-form>
@@ -41,6 +42,11 @@
 <!-- grpc -->
 <template v-if="inbound.stream.network === 'grpc'">
     {{template "form/streamGRPC"}}
+</template>
+
+<!-- httpupgrade -->
+<template v-if="inbound.stream.network === 'httpupgrade'">
+    {{template "form/streamHTTPUpgrade"}}
 </template>
 
 <!-- sockopt -->
