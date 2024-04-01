@@ -498,11 +498,30 @@ class GrpcStreamSettings extends XrayCommonClass {
 }
 
 class HttpUpgradeStreamSettings extends XrayCommonClass {
-    constructor(acceptProxyProtocol = false, path = '/', host = '') {
+    constructor(acceptProxyProtocol = false, path = '/', host = '', headers = []) {
         super();
         this.acceptProxyProtocol = acceptProxyProtocol;
         this.path = path;
         this.host = host;
+        this.headers = headers;
+    }
+
+    
+    addHeader(name, value) {
+        this.headers.push({ name: name, value: value });
+    }
+
+    getHeader(name) {
+        for (const header of this.headers) {
+            if (header.name.toLowerCase() === name.toLowerCase()) {
+                return header.value;
+            }
+        }
+        return null;
+    }
+
+    removeHeader(index) {
+        this.headers.splice(index, 1);
     }
 
     static fromJson(json = {}) {
@@ -510,6 +529,7 @@ class HttpUpgradeStreamSettings extends XrayCommonClass {
             json.acceptProxyProtocol,
             json.path,
             json.host,
+            XrayCommonClass.toHeaders(json.headers),
         );
     }
 
@@ -518,6 +538,7 @@ class HttpUpgradeStreamSettings extends XrayCommonClass {
             acceptProxyProtocol: this.acceptProxyProtocol,
             path: this.path,
             host: this.host,
+            headers: XrayCommonClass.toV2Headers(this.headers, false),
         };
     }
 }
@@ -1417,7 +1438,7 @@ class Inbound extends XrayCommonClass {
         return url.toString();
     }
 
-    genSSLink(address = '', port = this.port, forceTls, remark = '', clientPassword) {
+    genSSLink(address = '', forceTls, remark = '') {
         let settings = this.settings;
         const type = this.stream.network;
         const security = forceTls == 'same' ? this.stream.security : forceTls;
