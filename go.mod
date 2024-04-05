@@ -16,7 +16,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.21.0
 	golang.org/x/text v0.14.0
-	google.golang.org/grpc v1.62.1
+	google.golang.org/grpc v1.63.0
 	gorm.io/driver/sqlite v1.5.5
 	gorm.io/gorm v1.25.9
 )
@@ -32,7 +32,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.19.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/gorilla/context v1.1.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.2.2 // indirect
