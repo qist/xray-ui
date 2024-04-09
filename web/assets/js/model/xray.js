@@ -1294,6 +1294,10 @@ class Inbound extends XrayCommonClass {
             let httpupgrade = this.stream.httpupgrade;
             path = httpupgrade.path;
             host = httpupgrade.host;
+            let index = httpupgrade.headers.findIndex(header => header.name.toLowerCase() === 'host');
+            if (index >= 0) {
+                host = httpupgrade.headers[index].value;
+            }
         }
 
         if (this.stream.security === 'tls') {
@@ -1385,6 +1389,11 @@ class Inbound extends XrayCommonClass {
                 const httpupgrade = this.stream.httpupgrade;
                 params.set("path", httpupgrade.path);
                 params.set("host", httpupgrade.host);
+                const httpupgradeIndex = httpupgrade.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (httpupgradeIndex >= 0) {
+                    const host = httpupgrade.headers[httpupgradeIndex].value;
+                    params.set("host", host);
+                }
                 break;
         }
 
@@ -1495,6 +1504,11 @@ class Inbound extends XrayCommonClass {
                 const httpupgrade = this.stream.httpupgrade;
                 params.set("path", httpupgrade.path);
                 params.set("host", httpupgrade.host);
+                const httpupgradeIndex = httpupgrade.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (httpupgradeIndex >= 0) {
+                    const host = httpupgrade.headers[httpupgradeIndex].value;
+                    params.set("host", host);
+                }
                 break;
         }
 
@@ -1596,6 +1610,11 @@ class Inbound extends XrayCommonClass {
                 const httpupgrade = this.stream.httpupgrade;
                 params.set("path", httpupgrade.path);
                 params.set("host", httpupgrade.host);
+                const httpUpgradeIndex = httpupgrade.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (httpUpgradeIndex >= 0) {
+                    const host = httpupgrade.headers[httpUpgradeIndex].value;
+                    params.set("host", host);
+                }
                 break;
         }
 
