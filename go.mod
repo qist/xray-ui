@@ -3,7 +3,7 @@ module xray-ui
 go 1.22.0
 
 require (
-	github.com/BurntSushi/toml v1.3.2
+	github.com/BurntSushi/toml v1.4.0
 	github.com/Workiva/go-datastructures v1.1.5
 	github.com/gin-contrib/sessions v1.0.1
 	github.com/gin-gonic/gin v1.10.0
