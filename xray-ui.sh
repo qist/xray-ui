@@ -31,6 +31,21 @@ else
     echo -e "${red}未检测到系统版本，请联系脚本作者！${plain}\n" && exit 1
 fi
 
+arch() {
+    case "$(uname -m)" in
+    x86_64 | x64 | amd64) echo 'amd64' ;;
+    i*86 | x86) echo '386' ;;
+    armv8* | armv8 | arm64 | aarch64) echo 'arm64' ;;
+    armv7* | armv7 | arm) echo 'armv7' ;;
+    armv6* | armv6) echo 'armv6' ;;
+    armv5* | armv5) echo 'armv5' ;;
+    s390x) echo 's390x' ;;
+    *) echo -e "${green}Unsupported CPU architecture! ${plain}" && rm -f install.sh && exit 1 ;;
+    esac
+}
+
+echo "arch: $(arch)"
+
 os_version=""
 
 # os version
@@ -127,18 +142,6 @@ update() {
         fi
         return 0
     fi
-    arch=$(arch)
-    if [[ $arch == "x86_64" || $arch == "x64" || $arch == "amd64" ]]; then
-        arch="amd64"
-    elif [[ $arch == "aarch64" || $arch == "arm64" ]]; then
-        arch="arm64"
-    elif [[ $arch == "s390x" ]]; then
-        arch="s390x"
-    else
-        arch="amd64"
-        echo -e "${red}检测架构失败，使用默认架构: ${arch}${plain}"
-    fi
-    
     if [[ x"${release}" == x"centos" ]]; then
         setenforce 0 >/dev/null 2>&1
     fi
@@ -174,6 +177,10 @@ update() {
     mv /tmp/xray/xray-ui/{xray-ui,xray-ui.service} /usr/local/xray-ui/
     rm /tmp/xray -rf
     cd /usr/local/xray-ui
+    if [[ $(arch) == "armv5" || $(arch) == "armv6" || $(arch) == "armv7" ]]; then
+        mv bin/xray-linux-$(arch) bin/xray-linux-arm
+        chmod +x bin/xray-linux-arm
+    fi   
     chmod +x xray-ui bin/xray-linux-${arch}
     \cp -f xray-ui.service /etc/systemd/system/
     wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
