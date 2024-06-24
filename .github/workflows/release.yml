@@ -1,4 +1,5 @@
 name: Release xray-ui
+
 on:
   push:
     tags:
@@ -6,58 +7,73 @@ on:
   workflow_dispatch:
 
 jobs:
-  linuxamd64build:
-    name: build xray-ui amd64 version
+  build:
+    strategy:
+      matrix:
+        platform:
+          - amd64
+          - arm64
+          - armv7
+          - armv6
+          - 386
+          - armv5
+          - s390x
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
         uses: actions/setup-go@v5.0.1
         with:
           go-version: "stable"
-      - name: build linux amd64 version
-        run: |
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o xray-release  -trimpath -ldflags '-s -w -buildid= -linkmode "external" -extldflags "-static"' main.go
-          mkdir xray-ui
-          cp xray-release xray-ui/xray-release
-          cp xray-ui.service xray-ui/xray-ui.service
-          cd xray-ui
-          mv xray-release xray-ui
-          mkdir bin
-          cd bin
-          wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip
-          unzip Xray-linux-64.zip
-          rm -f Xray-linux-64.zip geoip.dat geosite.dat
-          wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
-          wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-          mv xray xray-linux-amd64
-          cd ..
-          cd ..
-      - name: package
-        run: tar -zcvf xray-ui-linux-amd64.tar.gz xray-ui
-      - name: upload
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: xray-ui-linux-amd64.tar.gz
-          asset_name: xray-ui-linux-amd64.tar.gz
-          prerelease: true
-          overwrite: true
-  linuxarm64build:
-    name: build xray-ui arm64 version
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5.0.1
-        with:
-          go-version: "stable"
-      - name: build linux arm64 version
+
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt install gcc-aarch64-linux-gnu
-          CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC=aarch64-linux-gnu-gcc go build -o xray-release  -trimpath -ldflags '-s -w -buildid= -linkmode "external" -extldflags "-static"' main.go
+          if [ "${{ matrix.platform }}" == "arm64" ]; then
+            sudo apt install gcc-aarch64-linux-gnu
+          elif [ "${{ matrix.platform }}" == "armv7" ]; then
+            sudo apt install gcc-arm-linux-gnueabihf
+          elif [ "${{ matrix.platform }}" == "armv6" ]; then
+            sudo apt install gcc-arm-linux-gnueabihf
+          elif [ "${{ matrix.platform }}" == "386" ]; then
+            sudo apt install gcc-i686-linux-gnu
+          elif [ "${{ matrix.platform }}" == "armv5" ]; then
+            sudo apt install gcc-arm-linux-gnueabi
+          elif [ "${{ matrix.platform }}" == "s390x" ]; then
+            sudo apt install gcc-s390x-linux-gnu
+          fi
+
+      - name: Build xray-ui
+        run: |
+          export CGO_ENABLED=1
+          export GOOS=linux
+          export GOARCH=${{ matrix.platform }}
+          if [ "${{ matrix.platform }}" == "arm64" ]; then
+            export GOARCH=arm64
+            export CC=aarch64-linux-gnu-gcc
+          elif [ "${{ matrix.platform }}" == "armv7" ]; then
+            export GOARCH=arm
+            export GOARM=7
+            export CC=arm-linux-gnueabihf-gcc
+          elif [ "${{ matrix.platform }}" == "armv6" ]; then
+            export GOARCH=arm
+            export GOARM=6
+            export CC=arm-linux-gnueabihf-gcc
+          elif [ "${{ matrix.platform }}" == "386" ]; then
+            export GOARCH=386
+            export CC=i686-linux-gnu-gcc
+          elif [ "${{ matrix.platform }}" == "armv5" ]; then
+            export GOARCH=arm
+            export GOARM=5
+            export CC=arm-linux-gnueabi-gcc
+          elif [ "${{ matrix.platform }}" == "s390x" ]; then
+            export GOARCH=s390x
+            export CC=s390x-linux-gnu-gcc
+          fi
+          go build -o xui-release -trimpath -ldflags '-s -w -buildid= -linkmode "external" -extldflags "-static"' main.go
+          
           mkdir xray-ui
           cp xray-release xray-ui/xray-release
           cp xray-ui.service xray-ui/xray-ui.service
@@ -65,23 +81,54 @@ jobs:
           mv xray-release xray-ui
           mkdir bin
           cd bin
-          wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-arm64-v8a.zip
-          unzip Xray-linux-arm64-v8a.zip
-          rm -f Xray-linux-arm64-v8a.zip geoip.dat geosite.dat
+          
+          # Download dependencies
+          Xray_URL="https://github.com/XTLS/Xray-core/releases/latest/download/"
+          if [ "${{ matrix.platform }}" == "amd64" ]; then
+            wget ${Xray_URL}Xray-linux-64.zip
+            unzip Xray-linux-64.zip
+            rm -f Xray-linux-64.zip
+          elif [ "${{ matrix.platform }}" == "arm64" ]; then
+            wget ${Xray_URL}Xray-linux-arm64-v8a.zip
+            unzip Xray-linux-arm64-v8a.zip
+            rm -f Xray-linux-arm64-v8a.zip
+          elif [ "${{ matrix.platform }}" == "armv7" ]; then
+            wget ${Xray_URL}Xray-linux-arm32-v7a.zip
+            unzip Xray-linux-arm32-v7a.zip
+            rm -f Xray-linux-arm32-v7a.zip
+          elif [ "${{ matrix.platform }}" == "armv6" ]; then
+            wget ${Xray_URL}Xray-linux-arm32-v6.zip
+            unzip Xray-linux-arm32-v6.zip
+            rm -f Xray-linux-arm32-v6.zip
+          elif [ "${{ matrix.platform }}" == "386" ]; then
+            wget ${Xray_URL}Xray-linux-32.zip
+            unzip Xray-linux-32.zip
+            rm -f Xray-linux-32.zip
+          elif [ "${{ matrix.platform }}" == "armv5" ]; then
+            wget ${Xray_URL}Xray-linux-arm32-v5.zip
+            unzip Xray-linux-arm32-v5.zip
+            rm -f Xray-linux-arm32-v5.zip
+          elif [ "${{ matrix.platform }}" == "s390x" ]; then
+            wget ${Xray_URL}Xray-linux-s390x.zip
+            unzip Xray-linux-s390x.zip
+            rm -f Xray-linux-s390x.zip
+          fi
+          rm -f geoip.dat geosite.dat
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
           wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-          mv xray xray-linux-arm64
-          cd ..
-          cd ..
-      - name: package
-        run: tar -zcvf xray-ui-linux-arm64.tar.gz xray-ui
-      - name: upload
+          mv xray xray-linux-${{ matrix.platform }}
+          cd ../..
+          
+      - name: Package
+        run: tar -zcvf xray-ui-linux-${{ matrix.platform }}.tar.gz xray-ui
+        
+      - name: Upload files to GH release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
-          file: xray-ui-linux-arm64.tar.gz
-          asset_name: xray-ui-linux-arm64.tar.gz
+          file: xray-ui-linux-${{ matrix.platform }}.tar.gz
+          asset_name: xray-ui-linux-${{ matrix.platform }}.tar.gz
           prerelease: true
           overwrite: true
       - name: Release Changelog Builder

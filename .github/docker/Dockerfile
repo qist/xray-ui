@@ -1,42 +1,52 @@
-FROM --platform=$BUILDPLATFORM  golang:bullseye AS build
-
-RUN apt update && apt install -y gcc-aarch64-linux-gnu
-ARG TARGETOS TARGETARCH
-
-RUN echo "I'm building for $BUILDPLATFORM"
-
-WORKDIR /src
-
-COPY . .
-
-COPY .github/docker/files/cc-name.sh /tmp/cc-name.sh
- 
-RUN FILE_NAME=`bash /tmp/cc-name.sh` && echo $FILE_NAME && GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1  CC="$FILE_NAME" go build -o xray-ui -trimpath -ldflags '-s -w -buildid= -linkmode "external" -extldflags "-static"' main.go
-
-FROM --platform=${TARGETPLATFORM} alpine:latest
-
+# ========================================================
+# Stage: Builder
+# ========================================================
+FROM golang:bullseye AS build
+WORKDIR /app
 ARG TARGETARCH
 
-WORKDIR /root
+RUN apk --no-cache --update add \
+  build-base \
+  gcc \
+  wget \
+  unzip
 
-COPY --from=build /src/xray-ui /root/xray-ui
-COPY .github/docker/files/file-name.sh /tmp/file-name.sh
+COPY . .
+COPY .github/docker/files/DockerInit.sh  /app/DockerInit.sh
+ENV CGO_ENABLED=1
+ENV CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
+RUN go build -o build/xray-ui main.go
+RUN ./DockerInit.sh "$TARGETARCH"
 
-RUN set -ex \
-    && FILE_NAME=`sh /tmp/file-name.sh` && echo $FILE_NAME \
-    && apk add --no-cache tzdata ca-certificates bash \
-    && mkdir -p /root/bin \
-    && chmod +x /root/xray-ui \
-    && cd /root/bin \
-    && wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-${FILE_NAME}.zip \
-    && unzip Xray-linux-${FILE_NAME}.zip \
-    && rm -f Xray-linux-${FILE_NAME}.zip geoip.dat geosite.dat \
-    && mv xray xray-linux-${TARGETARCH} \
-    && rm -f /tmp/file-name.sh \
-    && wget -O /root/bin/geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
-    && wget -O /root/bin/geoip.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
-    
-
-VOLUME /etc/xray-ui
+# ========================================================
+# Stage: Final Image of xray-ui
+# ========================================================
+FROM alpine
 ENV TZ=Asia/Shanghai
+WORKDIR /app
+
+RUN apk add --no-cache --update \
+  ca-certificates \
+  tzdata \
+  fail2ban \
+  bash
+
+COPY --from=builder /app/build/ /app/
+COPY --from=builder /app/xray-ui.sh /usr/bin/xray-ui
+
+
+# Configure fail2ban
+RUN rm -f /etc/fail2ban/jail.d/alpine-ssh.conf \
+  && cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local \
+  && sed -i "s/^\[ssh\]$/&\nenabled = false/" /etc/fail2ban/jail.local \
+  && sed -i "s/^\[sshd\]$/&\nenabled = false/" /etc/fail2ban/jail.local \
+  && sed -i "s/#allowipv6 = auto/allowipv6 = auto/g" /etc/fail2ban/fail2ban.conf
+
+RUN chmod +x \
+  /app/DockerEntrypoint.sh \
+  /app/x-ui \
+  /usr/bin/x-ui
+
+VOLUME [ "/etc/xray-ui" ]
 CMD [ "./xray-ui" ]
+ENTRYPOINT [ "/app/DockerEntrypoint.sh" ]
