@@ -145,7 +145,7 @@ install_xray-ui() {
     systemctl stop xray-ui
     cd /usr/local/
     if [ $# == 0 ]; then
-        wget --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz
+        wget --no-check-certificate -O /usr/local/xray-ui-linux-$(arch).tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-$(arch).tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             rm -f install.sh
@@ -153,9 +153,9 @@ install_xray-ui() {
         fi
     else
         last_version=$1
-        url="https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz"
+        url="https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-$(arch).tar.gz"
         echo -e "开始安装 xray-ui v$1"
-        wget  --no-check-certificate -O /usr/local/xray-ui-linux-${arch}.tar.gz ${url}
+        wget  --no-check-certificate -O /usr/local/xray-ui-linux-$(arch).tar.gz ${url}
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui v$1 失败，请确保此版本存在${plain}"
             rm -f install.sh
@@ -167,15 +167,15 @@ install_xray-ui() {
         rm /usr/local/xray-ui/ -rf
     fi
 
-    tar -zxvf xray-ui-linux-${arch}.tar.gz
-    rm xray-ui-linux-${arch}.tar.gz -f
+    tar -zxvf xray-ui-linux-$(arch).tar.gz
+    rm xray-ui-linux-$(arch).tar.gz -f
     cd xray-ui
     # Check the system's architecture and rename the file accordingly
     if [[ $(arch) == "armv5" || $(arch) == "armv6" || $(arch) == "armv7" ]]; then
         mv bin/xray-linux-$(arch) bin/xray-linux-arm
         chmod +x bin/xray-linux-arm
     fi   
-    chmod +x xray-ui bin/xray-linux-${arch}
+    chmod +x xray-ui bin/xray-linux-$(arch)
     cp -f xray-ui.service /etc/systemd/system/
     wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     chmod +x /usr/bin/xray-ui

@@ -31,21 +31,6 @@ else
     echo -e "${red}未检测到系统版本，请联系脚本作者！${plain}\n" && exit 1
 fi
 
-arch() {
-    case "$(uname -m)" in
-    x86_64 | x64 | amd64) echo 'amd64' ;;
-    i*86 | x86) echo '386' ;;
-    armv8* | armv8 | arm64 | aarch64) echo 'arm64' ;;
-    armv7* | armv7 | arm) echo 'armv7' ;;
-    armv6* | armv6) echo 'armv6' ;;
-    armv5* | armv5) echo 'armv5' ;;
-    s390x) echo 's390x' ;;
-    *) echo -e "${green}Unsupported CPU architecture! ${plain}" && rm -f install.sh && exit 1 ;;
-    esac
-}
-
-echo "arch: $(arch)"
-
 os_version=""
 
 # os version
@@ -133,6 +118,21 @@ install() {
     fi
 }
 
+arch() {
+    case "$(uname -m)" in
+    x86_64 | x64 | amd64) echo 'amd64' ;;
+    i*86 | x86) echo '386' ;;
+    armv8* | armv8 | arm64 | aarch64) echo 'arm64' ;;
+    armv7* | armv7 | arm) echo 'armv7' ;;
+    armv6* | armv6) echo 'armv6' ;;
+    armv5* | armv5) echo 'armv5' ;;
+    s390x) echo 's390x' ;;
+    *) echo -e "${green}Unsupported CPU architecture! ${plain}" && rm -f install.sh && exit 1 ;;
+    esac
+}
+
+echo "arch: $(arch)"
+
 update() {
     confirm "本功能会强制重装当前最新版，数据不会丢失，是否继续?" "n"
     if [[ $? != 0 ]]; then
@@ -152,7 +152,7 @@ update() {
     mkdir -p /tmp/xray
     cd /tmp/xray
     if [ $# == 0 ]; then
-        wget --no-check-certificate -O /tmp/xray/xray-ui-linux-${arch}.tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz
+        wget --no-check-certificate -O /tmp/xray/xray-ui-linux-$(arch).tar.gz https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-$(arch).tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             rm -f install.sh
@@ -160,9 +160,9 @@ update() {
         fi
     else
         last_version=$1
-        url="https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-${arch}.tar.gz"
+        url="https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-$(arch).tar.gz"
         echo -e "开始安装 xray-ui v$1"
-        wget  --no-check-certificate -O /tmp/xray/xray-ui-linux-${arch}.tar.gz ${url}
+        wget  --no-check-certificate -O /tmp/xray/xray-ui-linux-$(arch).tar.gz ${url}
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui v$1 失败，请确保此版本存在${plain}"
             rm -f install.sh
@@ -173,7 +173,7 @@ update() {
         rm /usr/local/xray-ui/xray-ui -f
         rm /usr/local/xray-ui/xray-ui.service -f
     fi
-    tar zxvf xray-ui-linux-${arch}.tar.gz
+    tar zxvf xray-ui-linux-$(arch).tar.gz
     mv /tmp/xray/xray-ui/{xray-ui,xray-ui.service} /usr/local/xray-ui/
     rm /tmp/xray -rf
     cd /usr/local/xray-ui
@@ -181,7 +181,7 @@ update() {
         mv bin/xray-linux-$(arch) bin/xray-linux-arm
         chmod +x bin/xray-linux-arm
     fi   
-    chmod +x xray-ui bin/xray-linux-${arch}
+    chmod +x xray-ui bin/xray-linux-$(arch)
     \cp -f xray-ui.service /etc/systemd/system/
     wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
     chmod +x /usr/bin/xray-ui
@@ -391,7 +391,7 @@ x25519() {
     else
         arch="amd64"
     fi
-    /usr/local/xray-ui/bin/xray-linux-${arch} x25519
+    /usr/local/xray-ui/bin/xray-linux-$(arch) x25519
     echo ""
     exit 0
 }
