@@ -16,7 +16,8 @@ COPY .github/docker/files/DockerInit.sh  /app/DockerInit.sh
 ENV CGO_ENABLED=1
 ENV CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
 RUN go build -o build/xray-ui main.go
-RUN ./DockerInit.sh "$TARGETARCH"
+RUN chmod +x  ./DockerInit.sh && \
+     ./DockerInit.sh "$TARGETARCH"
 
 # ========================================================
 # Stage: Final Image of xray-ui
