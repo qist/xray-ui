@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "*"
-  workflow_dispatch:
+  # workflow_dispatch:
 
 jobs:
   build:
@@ -72,7 +72,7 @@ jobs:
             export GOARCH=s390x
             export CC=s390x-linux-gnu-gcc
           fi
-          go build -o xui-release -trimpath -ldflags '-s -w -buildid= -linkmode "external" -extldflags "-static"' main.go
+          go build -o xray-release -trimpath -ldflags '-s -w -buildid= -linkmode "external" -extldflags "-static"' main.go
           
           mkdir xray-ui
           cp xray-release xray-ui/xray-release
