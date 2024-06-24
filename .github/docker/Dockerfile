@@ -1,7 +1,7 @@
 # ========================================================
-# Stage: Builder
+# Stage: build
 # ========================================================
-FROM golang:bullseye AS build
+FROM  golang:1.22.3-alpine AS build
 WORKDIR /app
 ARG TARGETARCH
 
@@ -31,8 +31,9 @@ RUN apk add --no-cache --update \
   fail2ban \
   bash
 
-COPY --from=builder /app/build/ /app/
-COPY --from=builder /app/xray-ui.sh /usr/bin/xray-ui
+COPY --from=build /app/build/ /app/
+COPY --from=build /app/DockerEntrypoint.sh /app/
+COPY --from=build /app/xray-ui.sh /usr/bin/xray-ui
 
 
 # Configure fail2ban
@@ -44,8 +45,8 @@ RUN rm -f /etc/fail2ban/jail.d/alpine-ssh.conf \
 
 RUN chmod +x \
   /app/DockerEntrypoint.sh \
-  /app/x-ui \
-  /usr/bin/x-ui
+  /app/xray-ui \
+  /usr/bin/xray-ui
 
 VOLUME [ "/etc/xray-ui" ]
 CMD [ "./xray-ui" ]
