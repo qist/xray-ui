@@ -156,8 +156,8 @@ curl -sLo /root/warp "https://api.zeroteam.top/warp?format=xray" > /dev/null && 
                 "0": {
                     "handshake": 2,
                     "connIdle": 120,
-                    "statsUserDownlink": true,
-                    "statsUserUplink": true
+                    "uplinkOnly": 1,
+                    "downlinkOnly": 1
                 }
             }
         },

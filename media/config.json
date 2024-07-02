@@ -39,8 +39,8 @@
       "0": {
         "handshake": 2,
         "connIdle": 120,
-        "statsUserDownlink": true,
-        "statsUserUplink": true
+        "uplinkOnly": 1,
+        "downlinkOnly": 1
       }
     }
   },
