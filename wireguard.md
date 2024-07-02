@@ -82,119 +82,121 @@ curl -sLo /root/warp "https://api.zeroteam.top/warp?format=xray" > /dev/null && 
 
 ```json
 {
-    "log": {
-        "loglevel": "info"
-    },
-    "api": {
-        "services": [
-            "HandlerService",
-            "LoggerService",
-            "StatsService"
-        ],
-        "tag": "api"
-    },
-    "inbounds": [
-        {
-            "listen": "127.0.0.1",
-            "port": 62789,
-            "protocol": "dokodemo-door",
-            "settings": {
-                "address": "127.0.0.1"
-            },
+        "log": {
+            "loglevel": "info"
+        },
+        "api": {
+            "services": [
+                "HandlerService",
+                "LoggerService",
+                "StatsService"
+            ],
             "tag": "api"
-        }
-    ],
-    "outbounds": [
-        {
-            "protocol": "freedom",
-            "settings": {}
         },
-        {
-            "protocol": "blackhole",
-            "settings": {
-                "response": {
-                    "type": "http"
-                }
+        "inbounds": [
+            {
+                "listen": "127.0.0.1",
+                "port": 62789,
+                "protocol": "dokodemo-door",
+                "settings": {
+                    "address": "127.0.0.1"
+                },
+                "tag": "api"
+            }
+        ],
+        "outbounds": [
+            {
+                "protocol": "freedom",
+                "settings": {}
             },
-            "tag": "blocked"
-        },
-    {
-        "protocol": "wireguard",
-        "settings": {
-            "secretKey": "",
-            "address": [
-                "172.16.0.2/32"
-            ],
-            "network": "tcp,udp",
-            "peers": [
-                {
-                    "publicKey": "",
-                    "allowedIPs": [
-                        "0.0.0.0/0"
+            {
+                "protocol": "blackhole",
+                "settings": {
+                    "response": {
+                        "type": "http"
+                    }
+                },
+                "tag": "blocked"
+            },
+            {
+                "protocol": "wireguard",
+                "settings": {
+                    "secretKey": "",
+                    "address": [
+                        "172.16.0.2/32"
                     ],
-                    "endpoint": "engage.cloudflareclient.com:2408"
+                    "network": "tcp,udp",
+                    "peers": [
+                        {
+                            "publicKey": "",
+                            "allowedIPs": [
+                                "0.0.0.0/0"
+                            ],
+                            "endpoint": "engage.cloudflareclient.com:2408"
+                        }
+                    ],
+                    "reserved": [
+                        209,
+                        123,
+                        109
+                    ],
+                    "mtu": 1280
+                },
+                "tag": "wireguard"
+            }
+        ],
+        "policy": {
+            "system": {
+                "statsInboundDownlink": true,
+                "statsInboundUplink": true,
+                "statsOutboundDownlink": true,
+                "statsOutboundUplink": true
+            },
+            "levels": {
+                "0": {
+                    "handshake": 2,
+                    "connIdle": 120,
+                    "statsUserDownlink": true,
+                    "statsUserUplink": true
                 }
-            ],
-            "reserved": [
-                209,
-                123,
-                109
-            ],
-            "mtu": 1280
+            }
         },
-        "tag": "wireguard"
+        "routing": {
+            "domainStrategy": "IPIfNonMatch",
+            "rules": [
+                {
+                    "inboundTag": [
+                        "api"
+                    ],
+                    "outboundTag": "api",
+                    "type": "field"
+                },
+                {
+                    "type": "field",
+                    "domain": [
+                        "www.gstatic.com"
+                    ],
+                    "outboundTag": "direct"
+                },
+                {
+                    "type": "field",
+                    "domain": [
+                        "ip.sb",
+                        "geosite:openai",
+                        "geosite:geolocation-cn",
+                        "geosite:cn"
+                    ],
+                    "outboundTag": "wireguard"
+                },
+                {
+                    "type": "field",
+                    "ip": [
+                        "geoip:cn"
+                    ],
+                    "outboundTag": "wireguard"
+                }
+            ]
+        },
+        "stats": {}
     }
-    ],
-    "policy": {
-        "system": {
-            "statsInboundDownlink": true,
-            "statsInboundUplink": true
-        },
-        "levels": {
-            "0": {
-                "handshake": 2,
-                "connIdle": 120,
-                "uplinkOnly": 1,
-                "downlinkOnly": 1
-            }
-        }
-    },
-    "routing": {
-        "domainStrategy": "IPIfNonMatch",
-        "rules": [
-            {
-                "inboundTag": [
-                    "api"
-                ],
-                "outboundTag": "api",
-                "type": "field"
-            },
-            {
-                "type": "field",
-                "domain": [
-                    "www.gstatic.com"
-                ],
-                "outboundTag": "direct"
-            },
-            {
-                "type": "field",
-                "domain": [
-                    "ip.sb",
-                    "geosite:openai",
-                    "geosite:geolocation-cn",
-                    "geosite:cn"
-                ],
-                "outboundTag": "wireguard"
-            },
-            {
-                "type": "field",
-                "ip": [
-                    "geoip:cn"
-                ],
-                "outboundTag": "wireguard"
-            }
-        ]
-    },
-    "stats": {}
-}
 ```
