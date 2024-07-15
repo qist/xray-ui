@@ -544,7 +544,7 @@ class HttpUpgradeStreamSettings extends XrayCommonClass {
 }
 
 class SplitHTTPStreamSettings extends XrayCommonClass {
-    constructor(path = '/', host = '', headers = [], maxUploadSize = 1, maxConcurrentUploads = 10) {
+    constructor(path = '/', host = '', headers = [], maxUploadSize = 1000000, maxConcurrentUploads = 10) {
         super();
         this.path = path;
         this.host = host;
