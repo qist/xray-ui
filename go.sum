@@ -167,6 +167,8 @@ github.com/xtls/xray-core v1.8.19 h1:mml7smcO2FM5HyyKdqnf5F2BUvi3br2ldrqmeemEFRE
 github.com/xtls/xray-core v1.8.19/go.mod h1:0CwyMPNA5Cs+ukPXHbYQGgne/ug0PuXOSVqBu7zyXOc=
 github.com/xtls/xray-core v1.8.21 h1:cNdepud+R9PENKzXlSZsq0je4BWI6liXAuep6CD6xvk=
 github.com/xtls/xray-core v1.8.21/go.mod h1:0CwyMPNA5Cs+ukPXHbYQGgne/ug0PuXOSVqBu7zyXOc=
+github.com/xtls/xray-core v1.8.23 h1:A8Wr50ildMYLpaNu3EiK+Stg/tps6i0h7z5Hr4f9H2k=
+github.com/xtls/xray-core v1.8.23/go.mod h1:0CwyMPNA5Cs+ukPXHbYQGgne/ug0PuXOSVqBu7zyXOc=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yusufpapurcu/wmi v1.2.4 h1:zFUKzehAFReQwLys1b/iSMl+JQGSCSjtVqQn9bBrPo0=
 github.com/yusufpapurcu/wmi v1.2.4/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
