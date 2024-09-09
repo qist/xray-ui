@@ -9,11 +9,6 @@
     <p v-else>path: <a-tag color="orange">无</a-tag></p>
 </template>
 
-<template v-if="inbound.isQuic">
-    <p>quic 加密: <a-tag color="green">[[ inbound.quicSecurity ]]</a-tag></p>
-    <p>quic 密码: <a-tag color="green">[[ inbound.quicKey ]]</a-tag></p>
-    <p>quic 伪装: <a-tag color="green">[[ inbound.quicType ]]</a-tag></p>
-</template>
 
 <template v-if="inbound.isKcp">
     <p>kcp 加密: <a-tag color="green">[[ inbound.kcpType ]]</a-tag></p>
