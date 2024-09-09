@@ -7,6 +7,17 @@ green() { echo -e "\033[32m\033[01m$1\033[0m"; }
 blue() { echo -e "\033[36m\033[01m$1\033[0m"; }
 yellow() { echo -e "\033[33m\033[01m$1\033[0m"; }
 # check root
+function LOGD() {
+    echo -e "${yellow}[DEG] $* ${plain}"
+}
+
+function LOGE() {
+    echo -e "${red}[ERR] $* ${plain}"
+}
+
+function LOGI() {
+    echo -e "${green}[INF] $* ${plain}"
+}
 
 [[ $EUID -ne 0 ]] && echo -e "${red}错误: ${plain}  必须使用root用户运行此脚本！\n" && exit 1
 
@@ -162,7 +173,7 @@ update() {
         last_version=$1
         url="https://github.com/qist/xray-ui/releases/download/${releases_version}/xray-ui-linux-$(arch).tar.gz"
         echo -e "开始安装 xray-ui v$1"
-        wget  --no-check-certificate -O /tmp/xray/xray-ui-linux-$(arch).tar.gz ${url}
+        wget --no-check-certificate -O /tmp/xray/xray-ui-linux-$(arch).tar.gz ${url}
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 xray-ui v$1 失败，请确保此版本存在${plain}"
             rm -f install.sh
@@ -180,7 +191,7 @@ update() {
     if [[ $(arch) == "armv5" || $(arch) == "armv6" || $(arch) == "armv7" ]]; then
         mv bin/xray-linux-$(arch) bin/xray-linux-arm
         chmod +x bin/xray-linux-arm
-    fi   
+    fi
     chmod +x xray-ui bin/xray-linux-$(arch)
     \cp -f xray-ui.service /etc/systemd/system/
     wget --no-check-certificate -O /usr/bin/xray-ui https://raw.githubusercontent.com/qist/xray-ui/main/xray-ui.sh
@@ -397,14 +408,13 @@ x25519() {
 }
 
 geoip() {
-    pushd  /usr/local/xray-ui
+    pushd /usr/local/xray-ui
     ./xray-ui geoip
     echo "重启重新加载更新文件"
     systemctl restart xray-ui
     echo ""
     exit 0
 }
-
 
 crontab() {
     sed -i '/xray-ui geoip/d' /etc/crontab
@@ -521,6 +531,228 @@ show_xray_status() {
     fi
 }
 
+install_acme() {
+    cd ~
+    LOGI "正在安装 acme..."
+    curl https://get.acme.sh | sh
+    if [ $? -ne 0 ]; then
+        LOGE "acme 安装失败"
+        return 1
+    else
+        LOGI "acme 安装成功"
+    fi
+    return 0
+}
+
+ssl_cert_issue_main() {
+    echo -e "${green}\t1.${plain} 获取 SSL"
+    echo -e "${green}\t2.${plain} 撤销证书"
+    echo -e "${green}\t3.${plain} 强制续期"
+    echo -e "${green}\t0.${plain} 返回主菜单"
+    read -p "请选择一个选项: " choice
+    case "$choice" in
+    0)
+        show_menu
+        ;;
+    1)
+        ssl_cert_issue
+        ;;
+    2)
+        local domain=""
+        read -p "请输入要撤销证书的域名: " domain
+        ~/.acme.sh/acme.sh --revoke -d ${domain}
+        LOGI "证书已撤销"
+        ;;
+    3)
+        local domain=""
+        read -p "请输入要强制续期的域名: " domain
+        ~/.acme.sh/acme.sh --renew -d ${domain} --force
+        ;;
+    *) echo "无效选项" ;;
+    esac
+}
+
+ssl_cert_issue() {
+    # 首先检查是否安装了 acme.sh
+    if ! command -v ~/.acme.sh/acme.sh &>/dev/null; then
+        echo "未找到 acme.sh，将进行安装"
+        install_acme
+        if [ $? -ne 0 ]; then
+            LOGE "acme 安装失败，请检查日志"
+            exit 1
+        fi
+    fi
+    # 安装 socat
+    case "${release}" in
+    ubuntu | debian | armbian)
+        apt update && apt install socat -y
+        ;;
+    centos | almalinux | rocky | oracle)
+        yum -y update && yum -y install socat
+        ;;
+    fedora)
+        dnf -y update && dnf -y install socat
+        ;;
+    arch | manjaro | parch)
+        pacman -Sy --noconfirm socat
+        ;;
+    *)
+        echo -e "${red}不支持的操作系统，请手动安装必要的软件包${plain}\n"
+        exit 1
+        ;;
+    esac
+    if [ $? -ne 0 ]; then
+        LOGE "socat 安装失败，请检查日志"
+        exit 1
+    else
+        LOGI "socat 安装成功..."
+    fi
+
+    # 获取域名并验证
+    local domain=""
+    read -p "请输入您的域名:" domain
+    LOGD "您的域名是:${domain}，正在检查..."
+    # 判断是否已经存在证书
+    local currentCert=$(~/.acme.sh/acme.sh --list | tail -1 | awk '{print $1}')
+
+    if [ ${currentCert} == ${domain} ]; then
+        local certInfo=$(~/.acme.sh/acme.sh --list)
+        LOGE "系统中已存在该域名的证书，不能重复签发，当前证书详情:"
+        LOGI "$certInfo"
+        exit 1
+    else
+        LOGI "您的域名可以进行证书签发..."
+    fi
+
+    # 创建存放证书的目录
+    certPath="/root/cert/${domain}"
+    if [ ! -d "$certPath" ]; then
+        mkdir -p "$certPath"
+    else
+        rm -rf "$certPath"
+        mkdir -p "$certPath"
+    fi
+
+    # 获取需要使用的端口
+    local WebPort=80
+    read -p "请选择使用的端口，默认为80端口:" WebPort
+    if [[ ${WebPort} -gt 65535 || ${WebPort} -lt 1 ]]; then
+        LOGE "输入的端口号无效，将使用默认端口"
+    fi
+    LOGI "将使用端口:${WebPort} 进行证书签发，请确保此端口已开放..."
+    # 用户需手动处理开放端口及结束占用进程
+    ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+    ~/.acme.sh/acme.sh --issue -d ${domain} --listen-v6 --standalone --httpport ${WebPort}
+    if [ $? -ne 0 ]; then
+        LOGE "证书签发失败，请检查日志"
+        rm -rf ~/.acme.sh/${domain}
+        exit 1
+    else
+        LOGE "证书签发成功，正在安装证书..."
+    fi
+    # 安装证书
+    ~/.acme.sh/acme.sh --installcert -d ${domain} \
+        --key-file /root/cert/${domain}/privkey.pem \
+        --fullchain-file /root/cert/${domain}/fullchain.pem
+
+    if [ $? -ne 0 ]; then
+        LOGE "证书安装失败，退出"
+        rm -rf ~/.acme.sh/${domain}
+        exit 1
+    else
+        LOGI "证书安装成功，开启自动续期..."
+    fi
+
+    ~/.acme.sh/acme.sh --upgrade --auto-upgrade
+    if [ $? -ne 0 ]; then
+        LOGE "自动续期失败，证书详情如下:"
+        ls -lah cert/*
+        chmod 755 $certPath/*
+        exit 1
+    else
+        LOGI "自动续期成功，证书详情如下:"
+        ls -lah cert/*
+        chmod 755 $certPath/*
+    fi
+}
+
+ssl_cert_issue_CF() {
+    echo -E ""
+    LOGD "******使用说明******"
+    LOGI "此 Acme 脚本需要以下信息:"
+    LOGI "1. Cloudflare 注册的电子邮件"
+    LOGI "2. Cloudflare 全局 API 密钥"
+    LOGI "3. 已解析 DNS 至当前服务器的域名"
+    LOGI "4. 证书申请后默认安装路径为 /root/cert "
+    confirm "确认信息?[y/n]" "y"
+    if [ $? -eq 0 ]; then
+        # 首先检查是否安装了 acme.sh
+        if ! command -v ~/.acme.sh/acme.sh &>/dev/null; then
+            echo "未找到 acme.sh，将进行安装"
+            install_acme
+            if [ $? -ne 0 ]; then
+                LOGE "acme 安装失败，请检查日志"
+                exit 1
+            fi
+        fi
+        CF_Domain=""
+        CF_GlobalKey=""
+        CF_AccountEmail=""
+        certPath=/root/cert
+        if [ ! -d "$certPath" ]; then
+            mkdir $certPath
+        else
+            rm -rf $certPath
+            mkdir $certPath
+        fi
+        LOGD "请输入域名:"
+        read -p "输入您的域名:" CF_Domain
+        LOGD "域名设置为:${CF_Domain}"
+        LOGD "请输入 API 密钥:"
+        read -p "输入您的密钥:" CF_GlobalKey
+        LOGD "您的 API 密钥是:${CF_GlobalKey}"
+        LOGD "请输入注册邮箱:"
+        read -p "输入您的邮箱:" CF_AccountEmail
+        LOGD "您的注册邮箱是:${CF_AccountEmail}"
+        ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+        if [ $? -ne 0 ]; then
+            LOGE "默认 CA 设置为 Lets'Encrypt 失败，脚本退出..."
+            exit 1
+        fi
+        export CF_Key="${CF_GlobalKey}"
+        export CF_Email=${CF_AccountEmail}
+        ~/.acme.sh/acme.sh --issue --dns dns_cf -d ${CF_Domain} -d *.${CF_Domain} --log
+        if [ $? -ne 0 ]; then
+            LOGE "证书签发失败，脚本退出..."
+            exit 1
+        else
+            LOGI "证书签发成功，正在安装..."
+        fi
+        ~/.acme.sh/acme.sh --installcert -d ${CF_Domain} -d *.${CF_Domain} --ca-file /root/cert/ca.cer \
+            --cert-file /root/cert/${CF_Domain}.cer --key-file /root/cert/${CF_Domain}.key \
+            --fullchain-file /root/cert/fullchain.cer
+        if [ $? -ne 0 ]; then
+            LOGE "证书安装失败，脚本退出..."
+            exit 1
+        else
+            LOGI "证书安装成功，开启自动更新..."
+        fi
+        ~/.acme.sh/acme.sh --upgrade --auto-upgrade
+        if [ $? -ne 0 ]; then
+            LOGE "自动更新设置失败，脚本退出..."
+            ls -lah cert
+            chmod 755 $certPath
+            exit 1
+        else
+            LOGI "证书已安装并开启自动更新，具体信息如下:"
+            ls -lah cert
+            chmod 755 $certPath
+        fi
+    else
+        show_menu
+    fi
+}
+
 show_usage() {
     echo "xray-ui 管理脚本使用方法: "
     echo "------------------------------------------"
@@ -570,6 +802,8 @@ show_menu() {
   ${green}16.${plain} 更新 xray-ui 脚本
   ${green}17.${plain} 更新 geoip ip库
   ${green}18.${plain} 添加geoip到任务计划
+  ${green}19.${plain} SSL 证书管理
+  ${green}20.${plain} Cloudflare SSL 证书
  "
     show_status
     echo "------------------------------------------"
@@ -647,6 +881,12 @@ show_menu() {
         ;;
     18)
         crontab
+        ;;
+    19)
+        ssl_cert_issue_main
+        ;;
+    20)
+        ssl_cert_issue_CF
         ;;
     *)
         echo -e "${red}请输入正确的数字 [0-18]${plain}"
