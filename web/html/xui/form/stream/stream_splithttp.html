@@ -35,5 +35,18 @@
     <a-form-item label="No SSE Header">
         <a-switch v-model="inbound.stream.splithttp.noSSEHeader"></a-switch>
     </a-form-item>
+    <a-form-item>
+        <span slot="label">
+            xPadding Bytes (Byte)
+            <a-tooltip>
+                <template slot="title">
+                    设置请求（出站）和响应（入站）的填充大小，用于减少请求指纹。单位byte, 默认为 "100-1000" 每次会在该范围中随机选择一个数字。 也可以是单个数字 "200"/200
+                    设置为 -1 将完全禁用填充
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input v-model.trim="inbound.stream.splithttp.xPaddingBytes" style="width: 165px"></a-input>
+    </a-form-item>
 </a-form>
 {{end}}

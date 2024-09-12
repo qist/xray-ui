@@ -168,6 +168,16 @@ class RandomUtil {
         return await axios.post('server/xraysecretkey')
      }
 
+     static convertXPaddingBytes(value) {
+        if (Array.isArray(value)) {
+            return value.includes('-') ? value : Number(value[0]);
+        } else if (typeof value === 'string' && value.includes('-') && value !== "-1") {
+            return value;
+        } else {
+            return Number(value);
+        }
+    }
+
 }
 
 class ObjectUtil {
