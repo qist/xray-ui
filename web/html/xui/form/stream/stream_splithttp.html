@@ -46,7 +46,19 @@
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
         </span>
-        <a-input v-model.trim="inbound.stream.splithttp.xPaddingBytes" style="width: 165px"></a-input>
+        <a-input v-model.trim="inbound.stream.splithttp.xPaddingBytes" style="width: 100px"></a-input>
+    </a-form-item>
+    <a-form-item label="Max Connections">
+        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.maxConnections" :min="0"></a-input-number>
+    </a-form-item>
+    <a-form-item label="Max Concurrency">
+        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.maxConcurrency" :min="0"></a-input-number>
+    </a-form-item>
+    <a-form-item label="Max Reuse Times">
+        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.cMaxReuseTimes" :min="0"></a-input-number>
+    </a-form-item>
+    <a-form-item label="Max Lifetime (ms)">
+        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.cMaxLifetimeMs" :min="0"></a-input-number>
     </a-form-item>
 </a-form>
 {{end}}

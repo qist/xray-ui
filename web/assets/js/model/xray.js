@@ -523,7 +523,13 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
         scMaxConcurrentPosts = 100,
         scMinPostsIntervalMs = 30,
         noSSEHeader = false,
-        xPaddingBytes = "100-1000"
+        xPaddingBytes = "100-1000",
+        xmux = { 
+            maxConnections: 0, 
+            maxConcurrency: 0, 
+            cMaxReuseTimes: 0, 
+            cMaxLifetimeMs: 0 
+        }
     ) {
         super();
         this.path = path;
@@ -533,7 +539,8 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
         this.scMaxConcurrentPosts = scMaxConcurrentPosts;
         this.scMinPostsIntervalMs = scMinPostsIntervalMs;
         this.noSSEHeader = noSSEHeader;
-        this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);     
+        this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);
+        this.xmux = xmux;   
     }
 
     addHeader(name, value) {
@@ -560,7 +567,8 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             json.scMaxConcurrentPosts,
             json.scMinPostsIntervalMs,
             json.noSSEHeader,
-            json.xPaddingBytes
+            json.xPaddingBytes,
+            json.xmux,
         );
     }
 
@@ -574,6 +582,12 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             scMinPostsIntervalMs: this.scMinPostsIntervalMs,
             noSSEHeader: this.noSSEHeader,
             xPaddingBytes: RandomUtil.convertXPaddingBytes(this.xPaddingBytes),
+            xmux: {
+                maxConnections: this.xmux.maxConnections,
+                maxConcurrency: this.xmux.maxConcurrency,
+                cMaxReuseTimes: this.xmux.cMaxReuseTimes,
+                cMaxLifetimeMs: this.xmux.cMaxLifetimeMs
+            }
         };
     }
 }
