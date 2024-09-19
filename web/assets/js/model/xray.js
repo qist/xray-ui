@@ -524,11 +524,11 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
         scMinPostsIntervalMs = 30,
         noSSEHeader = false,
         xPaddingBytes = "100-1000",
-        xmux = { 
-            maxConnections: 0, 
-            maxConcurrency: 0, 
-            cMaxReuseTimes: 0, 
-            cMaxLifetimeMs: 0 
+        xmux = {
+            maxConnections: '',
+            maxConcurrency: '',
+            cMaxReuseTimes: 0,
+            cMaxLifetimeMs: 0
         }
     ) {
         super();
@@ -540,7 +540,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
         this.scMinPostsIntervalMs = scMinPostsIntervalMs;
         this.noSSEHeader = noSSEHeader;
         this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);
-        this.xmux = xmux;   
+        this.xmux = xmux;
     }
 
     addHeader(name, value) {
@@ -573,6 +573,15 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
     }
 
     toJson() {
+        const xmuxData = {};
+        if (!ObjectUtil.isEmpty(this.xmux.maxConnections)) {
+            xmuxData.maxConnections = RandomUtil.convertXPaddingBytes(this.xmux.maxConnections);
+        }
+        if (!ObjectUtil.isEmpty(this.xmux.maxConcurrency)) {
+            xmuxData.maxConcurrency = RandomUtil.convertXPaddingBytes(this.xmux.maxConcurrency);
+        }
+        xmuxData.cMaxReuseTimes = RandomUtil.convertXPaddingBytes(this.xmux.cMaxReuseTimes);
+        xmuxData.cMaxLifetimeMs = RandomUtil.convertXPaddingBytes(this.xmux.cMaxLifetimeMs);
         return {
             path: this.path,
             host: this.host,
@@ -582,12 +591,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             scMinPostsIntervalMs: this.scMinPostsIntervalMs,
             noSSEHeader: this.noSSEHeader,
             xPaddingBytes: RandomUtil.convertXPaddingBytes(this.xPaddingBytes),
-            xmux: {
-                maxConnections: this.xmux.maxConnections,
-                maxConcurrency: this.xmux.maxConcurrency,
-                cMaxReuseTimes: this.xmux.cMaxReuseTimes,
-                cMaxLifetimeMs: this.xmux.cMaxLifetimeMs
-            }
+            xmux: xmuxData,
         };
     }
 }

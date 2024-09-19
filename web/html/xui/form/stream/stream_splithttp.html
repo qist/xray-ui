@@ -48,17 +48,42 @@
         </span>
         <a-input v-model.trim="inbound.stream.splithttp.xPaddingBytes" style="width: 100px"></a-input>
     </a-form-item>
-    <a-form-item label="Max Connections">
-        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.maxConnections" :min="0"></a-input-number>
+
+    <a-form-item>
+        <span slot="label">
+            Max Connections
+            <a-tooltip>
+                <template slot="title">
+                    maxConnections: 默认值为空 为0(即无限) 要打开的最大连接数，连接达到此值前核心会积极打开连接，对每一条流都新建一个连接，直到达到该值。
+                    然后核心会开始复用已经建立的连接。 与 maxConcurrency 冲突。
+                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input v-model.trim="inbound.stream.splithttp.xmux.maxConnections" style="width: 100px"></a-input>
     </a-form-item>
-    <a-form-item label="Max Concurrency">
-        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.maxConcurrency" :min="0"></a-input-number>
+
+    <a-form-item>
+        <span slot="label">
+            Max Concurrency
+            <a-tooltip>
+                <template slot="title">
+                   maxConcurrency: 默认值为空 为0(即无限) 每个连接中复用的流的最大数量，连接中流的数量达到该值后核心会新建更多连接以容纳更多的流，
+                   类似于 mux.cool 的 concurrency. 与 maxConnections 冲突。
+                   所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input v-model.trim="inbound.stream.splithttp.xmux.maxConcurrency" style="width: 100px"></a-input>
     </a-form-item>
+
     <a-form-item label="Max Reuse Times">
-        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.cMaxReuseTimes" :min="0"></a-input-number>
+        <a-input v-model.trim="inbound.stream.splithttp.xmux.cMaxReuseTimes" style="width: 100px"></a-input>
     </a-form-item>
     <a-form-item label="Max Lifetime (ms)">
-        <a-input-number v-model.trim="inbound.stream.splithttp.xmux.cMaxLifetimeMs" :min="0"></a-input-number>
+        <a-input v-model.trim="inbound.stream.splithttp.xmux.cMaxLifetimeMs" style="width: 100px"></a-input>
     </a-form-item>
 </a-form>
 {{end}}
