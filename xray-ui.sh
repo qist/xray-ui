@@ -248,6 +248,19 @@ reset_user() {
     confirm_restart
 }
 
+generate_random_string() {
+    local n=$1
+    # 定义数字、大写字母和小写字母的集合
+    local characters='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+
+    # 生成随机字符并限制在指定字符集中
+    # 从 /dev/urandom 生成随机字节，使用 tr 进行过滤
+    local random_string=$(cat /dev/urandom | tr -dc "$characters" | fold -w "$n" | head -n 1)
+
+    echo "$random_string"
+}
+
+
 reset_path() {
     confirm "确定要将访问路径随机10位字符吗" "n"
     if [[ $? != 0 ]]; then
@@ -545,17 +558,6 @@ show_xray_status() {
     fi
 }
 
-generate_random_string() {
-    local n=$1
-    # 定义数字、大写字母和小写字母的集合
-    local characters='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-
-    # 生成随机字符并限制在指定字符集中
-    # 从 /dev/urandom 生成随机字节，使用 tr 进行过滤
-    local random_string=$(cat /dev/urandom | tr -dc "$characters" | fold -w "$n" | head -n 1)
-
-    echo "$random_string"
-}
 
 install_acme() {
     cd ~
@@ -849,7 +851,7 @@ show_menu() {
         yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
     fi
 
-    echo && read -p "请输入选择 [0-18]: " num
+    echo && read -p "请输入选择 [0-21]: " num
 
     case "${num}" in
     0)
