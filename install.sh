@@ -141,6 +141,18 @@ install_base() {
         apt update && apt install wget curl tar lsof gzip -y
     fi
 }
+generate_random_string() {
+    local n=$1
+    # 定义数字、大写字母和小写字母的集合
+    local characters='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+
+    # 生成随机字符并限制在指定字符集中
+    # 从 /dev/urandom 生成随机字节，使用 tr 进行过滤
+    local random_string=$(cat /dev/urandom | tr -dc "$characters" | fold -w "$n" | head -n 1)
+
+    echo "$random_string"
+}
+
 install_xray-ui() {
     systemctl stop xray-ui
     cd /usr/local/
@@ -202,7 +214,7 @@ EOF
     echo "0 1 1 * *  root xray-ui restart >/dev/null 2>&1" >>/etc/crontab
     sleep 1
     echo -e ""
-    blue "以下设置内容建议自定义，以防止账号密码及端口泄露"
+    blue "以下设置内容建议自定义，以防止账号密码路径及端口泄露"
     echo -e ""
     readp "设置xray-ui登录用户名（回车跳过为随机6位字符）：" username
     if [[ -z ${username} ]]; then
@@ -235,16 +247,24 @@ EOF
     /usr/local/xray-ui/xray-ui setting -port $port >/dev/null 2>&1
     green "xray-ui登录端口：${port}"
     sleep 1
+    echo -e ""
+    readp "设置xray-ui web 路径 （回车跳过为随机10位字符）：" path
+    if [[ -z ${path} ]]; then
+        path=$(generate_random_string 10)
+    fi
+    /usr/local/xray-ui/xray-ui setting -path $path >/dev/null 2>&1
+    green "xray-ui web 路径：${path}"
+    sleep 1
     xray-ui restart
     xuilogin() {
         v4=$(curl -s4m8 http://ip.sb -k)
         v6=$(curl -s6m8 http://ip.sb -k)
         if [[ -z $v4 ]]; then
-            int="${green}请在浏览器地址栏复制${plain}  ${bblue}[$v6]:$ports${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
+            int="${green}请在浏览器地址栏复制${plain}  ${bblue}[$v6]:$ports/$path${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
         elif [[ -n $v4 && -n $v6 ]]; then
-            int="${green}请在浏览器地址栏复制${plain}  ${bblue}$v4:$ports${plain}  ${yellow}或者${plain}  ${bblue}[$v6]:$ports${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
+            int="${green}请在浏览器地址栏复制${plain}  ${bblue}$v4:$ports/$path${plain}  ${yellow}或者${plain}  ${bblue}[$v6]:$ports${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
         else
-            int="${green}请在浏览器地址栏复制${plain}  ${bblue}$v4:$ports${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
+            int="${green}请在浏览器地址栏复制${plain}  ${bblue}$v4:$ports/$path${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
         fi
     }
     ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep tcp | awk '{print $5}' | sed "s/://g")

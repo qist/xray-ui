@@ -287,6 +287,10 @@ func (s *SettingService) GetBasePath() (string, error) {
 	return basePath, nil
 }
 
+func (s *SettingService) SetBasePath(path string) error {
+	return s.setString("webBasePath", "/" + path + "/")
+}
+
 func (s *SettingService) GetTimeLocation() (*time.Location, error) {
 	l, err := s.getString("timeLocation")
 	if err != nil {

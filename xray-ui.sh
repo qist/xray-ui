@@ -248,6 +248,20 @@ reset_user() {
     confirm_restart
 }
 
+reset_path() {
+    confirm "确定要将访问路径随机10位字符吗" "n"
+    if [[ $? != 0 ]]; then
+        if [[ $# == 0 ]]; then
+            show_menu
+        fi
+        return 0
+    fi
+    path_random=$(generate_random_string 10)
+    /usr/local/xray-ui/xray-ui setting -path ${path_random} >/dev/null 2>&1
+    green "xray-ui路径：${path_random}"
+    confirm_restart
+}
+
 reset_config() {
     confirm "确定要重置所有面板设置吗，账号数据不会丢失，用户名和密码不会改变" "n"
     if [[ $? != 0 ]]; then
@@ -531,6 +545,18 @@ show_xray_status() {
     fi
 }
 
+generate_random_string() {
+    local n=$1
+    # 定义数字、大写字母和小写字母的集合
+    local characters='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+
+    # 生成随机字符并限制在指定字符集中
+    # 从 /dev/urandom 生成随机字节，使用 tr 进行过滤
+    local random_string=$(cat /dev/urandom | tr -dc "$characters" | fold -w "$n" | head -n 1)
+
+    echo "$random_string"
+}
+
 install_acme() {
     cd ~
     LOGI "正在安装 acme..."
@@ -804,6 +830,7 @@ show_menu() {
   ${green}18.${plain} 添加geoip到任务计划
   ${green}19.${plain} SSL 证书管理
   ${green}20.${plain} Cloudflare SSL 证书
+  ${green}21.${plain} 重置web 路径
  "
     show_status
     echo "------------------------------------------"
@@ -888,8 +915,11 @@ show_menu() {
     20)
         ssl_cert_issue_CF
         ;;
+    21)
+        check_install && reset_path
+        ;;
     *)
-        echo -e "${red}请输入正确的数字 [0-18]${plain}"
+        echo -e "${red}请输入正确的数字 [0-21]${plain}"
         ;;
     esac
 }

@@ -98,6 +98,10 @@ func showSetting(show bool) {
 		if err != nil {
 			fmt.Println("get current port fialed,error info:", err)
 		}
+		path, err := settingService.GetBasePath()
+		if err != nil {
+			fmt.Println("get current path fialed,error info:", err)
+		}
 		userService := service.UserService{}
 		userModel, err := userService.GetFirstUser()
 		if err != nil {
@@ -112,9 +116,10 @@ func showSetting(show bool) {
 		fmt.Println("登录用户名:", username)
 		fmt.Println("登录密码:", userpasswd)
 		fmt.Println("登录端口:", port)
+		fmt.Println("路径:", path)
 	}
 }
-
+ 
 func updateTgbotEnableSts(status bool) {
 	settingService := service.SettingService{}
 	currentTgSts, err := settingService.GetTgbotenabled()
@@ -175,7 +180,7 @@ func updateTgbotSetting(tgBotToken string, tgBotChatid int, tgBotRuntime string)
 	}
 }
 
-func updateSetting(port int, username string, password string, listen  string) {
+func updateSetting(port int, username string, password string, listen  string, path string) {
 	err := database.InitDB(config.GetDBPath())
 	if err != nil {
 		fmt.Println(err)
@@ -207,6 +212,14 @@ func updateSetting(port int, username string, password string, listen  string) {
 			fmt.Println("set listen failed:", err)
 		} else {
 			fmt.Printf("set listen %v success", listen)
+		}		 
+	}
+	if path != "" {
+		err := settingService.SetBasePath(path)
+		if err != nil {
+			fmt.Println("set path failed:", err)
+		} else {
+			fmt.Printf("set path %v success", path)
 		}		 
 	}
 }
@@ -271,6 +284,7 @@ func main() {
 
 	var port int
 	var listen string
+	var path string
 	var username string
 	var password string
 	var tgbottoken string
@@ -283,6 +297,7 @@ func main() {
 	settingCmd.BoolVar(&show, "show", false, "show current settings")
 	settingCmd.IntVar(&port, "port", 0, "set panel port")
 	settingCmd.StringVar(&listen, "listen", "", "set panel listen")
+	settingCmd.StringVar(&path, "path", "", "set panel path")
 	settingCmd.StringVar(&username, "username", "", "set login username")
 	settingCmd.StringVar(&password, "password", "", "set login password")
 	settingCmd.StringVar(&tgbottoken, "tgbottoken", "", "set telegrame bot token")
@@ -334,7 +349,7 @@ func main() {
 		if reset {
 			resetSetting()
 		} else {
-			updateSetting(port, username, password, listen)
+			updateSetting(port, username, password, listen, path)
 		}
 		if show {
 			showSetting(show)
