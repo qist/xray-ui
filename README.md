@@ -212,12 +212,13 @@ upstream xray-ui {
         keepalive 1000;
 }
 server {
-    listen 80;
+    listen 443;
     server_name xray.test.com;
     location / {
         proxy_redirect     off;
         proxy_set_header   Host $host;
         proxy_set_header   X-Real-IP   $remote_addr;
+        proxy_set_header   X-Forwarded-Proto $scheme;
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
         proxy_ssl_session_reuse off;
         proxy_ssl_server_name on;
@@ -230,12 +231,51 @@ server {
         proxy_busy_buffers_size    64k;
         proxy_http_version 1.1;
         proxy_set_header Accept-Encoding "";
-        proxy_pass http://xray-ui;
+        proxy_pass https://xray-ui;
         #proxy_pass_request_headers on;
         proxy_set_header Connection "keep-alive";
         proxy_store off;
     }
  }
+
+ 自签名证书配置参考：
+
+ upstream xray-ui {
+        least_conn;
+        server 127.0.0.1:54321 max_fails=3 fail_timeout=30s;
+        keepalive 1000;
+}
+server {
+    listen 443;
+    server_name xray.test.com;
+    location / {
+        proxy_redirect     off;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP   $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_ssl_session_reuse off;
+        proxy_ssl_server_name on;
+        proxy_buffering    off;
+        # 关闭对后端服务器自签名证书的验证
+        proxy_ssl_verify off;
+        # 如果你有自签名的 CA 证书，可以选择性地指定 CA 证书
+        proxy_ssl_trusted_certificate /path/to/ca.crt;
+        proxy_connect_timeout      90;
+        proxy_send_timeout         90;
+        proxy_read_timeout         90;
+        proxy_buffer_size          4k;
+        proxy_buffers              4 32k;
+        proxy_busy_buffers_size    64k;
+        proxy_http_version 1.1;
+        proxy_set_header Accept-Encoding "";
+        proxy_pass https://xray-ui;
+        #proxy_pass_request_headers on;
+        proxy_set_header Connection "keep-alive";
+        proxy_store off;
+    }
+ }
+
  # vpn代理nginx 配置参考
 https://github.com/qist/xray/tree/main/xray/nginx
 ```
