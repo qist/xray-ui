@@ -176,7 +176,10 @@ wget  --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://gi
 ```bash
 bash <(curl -Ls  https://raw.githubusercontent.com/qist/xray-ui/main/install.sh)
 ```
-
+#### 指定版本 安装
+```bash
+bash <(curl -Ls https://raw.githubusercontent.com/qist/xray-ui/main/install.sh) 24.10.8
+```
 #### 编译
 
 ```bash

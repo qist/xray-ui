@@ -870,7 +870,7 @@ show_menu() {
         yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
     fi
 
-    echo && read -p "请输入选择 [0-21]: " num
+    echo && read -p "请输入选择 [0-22]: " num
 
     case "${num}" in
     0)
