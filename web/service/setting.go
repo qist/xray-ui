@@ -254,8 +254,16 @@ func (s *SettingService) SetPort(port int) error {
 	return s.setInt("webPort", port)
 }
 
+func (s *SettingService) SetCertFile(webCertFile string) error {
+	return s.setString("webCertFile", webCertFile)
+}
+
 func (s *SettingService) GetCertFile() (string, error) {
 	return s.getString("webCertFile")
+}
+
+func (s *SettingService) SetKeyFile(webKeyFile string) error {
+	return s.setString("webKeyFile", webKeyFile)
 }
 
 func (s *SettingService) GetKeyFile() (string, error) {
@@ -273,6 +281,16 @@ func (s *SettingService) GetSecret() ([]byte, error) {
 	return []byte(secret), err
 }
 
+func (s *SettingService) SetBasePath(basePath string) error {
+	if !strings.HasPrefix(basePath, "/") {
+		basePath = "/" + basePath
+	}
+	if !strings.HasSuffix(basePath, "/") {
+		basePath += "/"
+	}
+	return s.setString("webBasePath", basePath)
+}
+
 func (s *SettingService) GetBasePath() (string, error) {
 	basePath, err := s.getString("webBasePath")
 	if err != nil {
@@ -287,9 +305,6 @@ func (s *SettingService) GetBasePath() (string, error) {
 	return basePath, nil
 }
 
-func (s *SettingService) SetBasePath(path string) error {
-	return s.setString("webBasePath", "/" + path + "/")
-}
 
 func (s *SettingService) GetTimeLocation() (*time.Location, error) {
 	l, err := s.getString("timeLocation")

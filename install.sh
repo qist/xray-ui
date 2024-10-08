@@ -153,6 +153,100 @@ generate_random_string() {
     echo "$random_string"
 }
 
+# 生成自签名 CA 证书的函数
+generate_ca() {
+    mkdir -p /usr/local/xray-ui/ssl
+    echo "生成 CA 证书..."
+    openssl genpkey -algorithm RSA -out /usr/local/xray-ui/ssl/ca.key -pkeyopt rsa_keygen_bits:8192
+    openssl req -x509 -new -key /usr/local/xray-ui/ssl/ca.key -days 3650 -out /usr/local/xray-ui/ssl/ca.crt -subj "/C=CN/ST=Beijing/L=Beijing/O=XrayCA/OU=IT/CN=Xray Root CA"
+    echo "CA 证书已生成。"
+}
+
+# 生成服务器证书的函数
+generate_server_cert() {
+    echo "请输入服务器的域名 (如 example.com):"
+    read domain
+
+    echo "正在生成 openssl-server.cnf 配置文件..."
+
+    # 创建 openssl-server.cnf 文件，包含 IPv4 和 IPv6
+    cat > /usr/local/xray-ui/ssl/openssl-server.cnf <<EOF
+[ req ]
+distinguished_name = req_distinguished_name
+prompt = no
+
+[ req_distinguished_name ]
+C = CN
+ST = Beijing
+L = Beijing
+O = XrayCompany
+OU = IT
+CN = $domain
+
+[ v3_req ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = $domain
+IP.1 = 127.0.0.1
+IP.2 = ::1
+EOF
+
+# 检测服务器的 IPv4 和 IPv6
+v4=$(curl -s4m8 http://ip.sb -k)
+v6=$(curl -s6m8 http://ip.sb -k)
+
+# 判断 IPv4 和 IPv6 是否存在
+if [ -z "$v4" ] && [ -z "$v6" ]; then
+    echo "未检测到 IPv4 和 IPv6 地址，请检查网络配置。"
+    exit 1
+elif [ -z "$v4" ]; then
+    echo "未检测到 IPv4 地址，仅生成 IPv6 证书。"
+    has_ipv4=false
+else
+    echo "检测到 IPv4 地址：$v4"
+    has_ipv4=true
+fi
+
+if [ -z "$v6" ]; then
+    echo "未检测到 IPv6 地址，仅生成 IPv4 证书。"
+    has_ipv6=false
+else
+    echo "检测到 IPv6 地址：$v6"
+    has_ipv6=true
+fi
+
+    # 如果检测到 IPv4，则添加到配置文件
+    if [ "$has_ipv4" = true ]; then
+        echo "IP.3 = $v4" >> /usr/local/xray-ui/ssl/openssl-server.cnf
+    fi
+
+    # 如果检测到 IPv6，则添加到配置文件
+    if [ "$has_ipv6" = true ]; then
+        echo "IP.4 = $v6" >> /usr/local/xray-ui/ssl/openssl-server.cnf
+    fi
+
+    echo "正在生成服务器私钥..."
+    openssl genpkey -algorithm RSA -out /usr/local/xray-ui/ssl/private.key -pkeyopt rsa_keygen_bits:8192
+
+    echo "正在生成服务器 CSR..."
+    openssl req -new -key /usr/local/xray-ui/ssl/private.key -out /usr/local/xray-ui/ssl/server.csr -subj "/C=CN/ST=Beijing/L=Beijing/O=XrayCompany/OU=IT/CN=$domain"
+
+    echo "使用 CA 签署服务器证书..."
+    openssl x509 -req -in /usr/local/xray-ui/ssl/server.csr -CA /usr/local/xray-ui/ssl/ca.crt -CAkey /usr/local/xray-ui/ssl/ca.key -CAcreateserial -out /usr/local/xray-ui/ssl/cert.crt -days 3650 -extfile /usr/local/xray-ui/ssl/openssl-server.cnf -extensions v3_req
+
+    echo "服务器证书已生成。"
+    echo "cert.crt：服务器的 CA 签名证书"
+    echo "private.key：服务器的私钥"
+}
+
+# 生成合成的 PEM 文件，包含 CA 和服务器证书
+generate_combined_cert() {
+    echo "生成合成证书文件 fullchain.crt..."
+    cat /usr/local/xray-ui/ssl/cert.crt /usr/local/xray-ui/ssl//ca.crt > /usr/local/xray-ui/ssl/fullchain.crt
+    echo "合成证书文件 fullchain.crt 已生成。"
+}
+
 install_xray-ui() {
     systemctl stop xray-ui
     cd /usr/local/
@@ -252,8 +346,15 @@ EOF
     if [[ -z ${path} ]]; then
         path=$(generate_random_string 10)
     fi
-    /usr/local/xray-ui/xray-ui setting -path $path >/dev/null 2>&1
+    /usr/local/xray-ui/xray-ui setting -webBasePath $path >/dev/null 2>&1
     green "xray-ui web 路径：${path}"
+    sleep 1
+    echo -e ""
+    echo "生成自签名 CA 和服务器证书"
+    generate_ca
+    generate_server_cert
+    generate_combined_cert
+    /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key
     sleep 1
     xray-ui restart
     xuilogin() {
@@ -271,6 +372,8 @@ EOF
     if [[ -n $ports ]]; then
         echo -e ""
         yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
+        yellow "默认生成自签名证书可以在/usr/local/xray-ui/ssl/ 下载 ca.crt 证书，桌面双击打开->安装证书->本地计算机->下一步->将所有证书都放入下列存储->受信任的根证书颁发机构->完成"
+        yellow "修改证书 /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key 或者面板修改"
         xuilogin
     else
         red "xray-ui安装失败，请查看日志，运行 xray-ui log"

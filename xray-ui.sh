@@ -270,8 +270,26 @@ reset_path() {
         return 0
     fi
     path_random=$(generate_random_string 10)
-    /usr/local/xray-ui/xray-ui setting -path ${path_random} >/dev/null 2>&1
+    /usr/local/xray-ui/xray-ui setting -webBasePath ${path_random} >/dev/null 2>&1
     green "xray-ui路径：${path_random}"
+    confirm_restart
+}
+
+reset_cert() {
+    confirm "确定要重新设置证书吗" "n"
+    if [[ $? != 0 ]]; then
+        if [[ $# == 0 ]]; then
+            show_menu
+        fi
+        return 0
+    fi
+    LOGD "请输入证书路径:"
+    read -p "输入您的证书路径:" Xray_cert
+    LOGD "证书路径为:${Xray_cert}"
+    LOGD "请输入密钥路径:"
+    read -p "输入您的密钥路径:" Xray_Key
+    LOGD "您的密钥是:${Xray_Key}"
+    /usr/local/xray-ui/xray-ui cert -webCert "${Xray_cert}" -webCertKey "${Xray_Key}"
     confirm_restart
 }
 
@@ -833,6 +851,7 @@ show_menu() {
   ${green}19.${plain} SSL 证书管理
   ${green}20.${plain} Cloudflare SSL 证书
   ${green}21.${plain} 重置web 路径
+  ${green}22.${plain} 重置ssl证书
  "
     show_status
     echo "------------------------------------------"
@@ -920,8 +939,11 @@ show_menu() {
     21)
         check_install && reset_path
         ;;
+    22)
+        check_install && reset_cert
+        ;;
     *)
-        echo -e "${red}请输入正确的数字 [0-21]${plain}"
+        echo -e "${red}请输入正确的数字 [0-22]${plain}"
         ;;
     esac
 }
