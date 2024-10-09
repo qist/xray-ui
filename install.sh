@@ -404,16 +404,22 @@ ssh_forwarding() {
     if [[ -z $v4 ]]; then
         echo -e "${green}请在 xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
         echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        echo -e "${green}客户端转发${plain} ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@[$v6]${plain} 输入 root 密码进行转发"
+        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[::1]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
         echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
     elif [[ -n $v4 && -n $v6 ]]; then
         echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} ${yellow}或者 ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
         echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        echo -e "${green}客户端转发${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@$v4${plain} ${yellow}或者 ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@[$v6]${plain} 输入 root 密码进行转发"
+        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}127.0.0.1:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[::1]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
         echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
     else
         echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
         echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        echo -e "${green}客户端转发${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@$v4${plain} 输入 root 密码进行转发"
+        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}127.0.0.1:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
         echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
     fi
