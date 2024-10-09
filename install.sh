@@ -349,6 +349,8 @@ EOF
     /usr/local/xray-ui/xray-ui setting -webBasePath $path >/dev/null 2>&1
     green "xray-ui web 路径：${path}"
     sleep 1
+    read -p "请输入 'ssl' 来生成证书，或输入 'ssh' 来进行 SSH 转发: " user_input
+    if [ "$user_input" == "ssl" ]; then
     echo -e ""
     echo "生成自签名 CA 和服务器证书"
     generate_ca
@@ -356,6 +358,14 @@ EOF
     generate_combined_cert
     /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key
     sleep 1
+    elif [ "$user_input" == "ssh" ]; then
+    echo -e ""
+    echo "SSH 转发"
+    /usr/local/xray-ui/xray-ui setting -listen 127.0.0.1 >/dev/null 2>&1
+    sleep 1
+    else
+    echo "输入无效，请输入 'ssl' 或 'ssh'"
+    fi
     xray-ui restart
     xuilogin() {
         v4=$(curl -s4m8 http://ip.sb -k)
@@ -368,13 +378,58 @@ EOF
             int="${green}请在浏览器地址栏复制${plain}  ${bblue}$v4:$ports/$path${plain}  ${green}进入xray-ui登录界面\n当前xray-ui登录用户名：${plain}${bblue}${username}${plain}${green} \n当前xray-ui登录密码：${plain}${bblue}${password}${plain}"
         fi
     }
-    ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep tcp | awk '{print $5}' | sed "s/://g")
+ssh_forwarding() {
+    # 获取 IPv4 和 IPv6 地址
+    v4=$(curl -s4m8 http://ip.sb -k)
+    v6=$(curl -s6m8 http://ip.sb -k)
+
+    echo -e ""
+    read -p "设置 xray-ui ssh 转发端口 [1-65535]（回车跳过为 2000-65535 之间的随机端口）：" ssh_port
+
+    # 如果未输入端口，则随机生成一个2000-65535之间的端口
+    if [[ -z $ssh_port ]]; then
+        ssh_port=$(shuf -i 2000-65535 -n 1)
+    fi
+
+    # 检查端口是否被占用，直到找到未占用的端口
+    while [[ -n $(ss -ntlp | awk '{print $4}' | grep -w ":$ssh_port") ]]; do
+        echo -e "\n端口 $ssh_port 被占用，请重新输入端口"
+        read -p "自定义 xray-ui ssh 转发端口:" ssh_port
+        if [[ -z $ssh_port ]]; then
+            ssh_port=$(shuf -i 2000-65535 -n 1)
+        fi
+    done
+
+    # 检查 IP 并输出相应的 SSH 和浏览器访问信息
+    if [[ -z $v4 ]]; then
+        echo -e "${green}请在 xray-ui 服务器系统输入${plain} ${bblue}ssh -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
+        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
+        echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
+    elif [[ -n $v4 && -n $v6 ]]; then
+        echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} ${yellow}或者 ${bblue}ssh -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
+        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
+        echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
+    else
+        echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
+        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
+        echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
+    fi
+}
+
+    ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep "tcp" | awk '{print $5}' | cut -d':' -f2)
     if [[ -n $ports ]]; then
         echo -e ""
         yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
+        if [ "$user_input" == "ssl" ]; then
         yellow "默认生成自签名证书可以在/usr/local/xray-ui/ssl/ 下载 ca.crt 证书，桌面双击打开->安装证书->本地计算机->下一步->将所有证书都放入下列存储->受信任的根证书颁发机构->完成"
         yellow "修改证书 /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key 或者面板修改"
         xuilogin
+        elif [ "$user_input" == "ssh" ]; then
+        ssh_forwarding
+        fi
     else
         red "xray-ui安装失败，请查看日志，运行 xray-ui log"
     fi
