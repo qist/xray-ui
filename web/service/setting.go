@@ -26,6 +26,7 @@ var defaultValueMap = map[string]string{
 	"webPort":            "54321",
 	"webCertFile":        "",
 	"webKeyFile":         "",
+	"webCAFile":         "",
 	"secret":             random.Seq(32),
 	"webBasePath":        "/",
 	"timeLocation":       "Asia/Shanghai",
@@ -268,6 +269,14 @@ func (s *SettingService) SetKeyFile(webKeyFile string) error {
 
 func (s *SettingService) GetKeyFile() (string, error) {
 	return s.getString("webKeyFile")
+}
+
+func (s *SettingService) SetCaFile(webCAFile string) error {
+	return s.setString("webCAFile", webCAFile)
+}
+
+func (s *SettingService) GetCaFile() (string, error) {
+	return s.getString("webCAFile")
 }
 
 func (s *SettingService) GetSecret() ([]byte, error) {

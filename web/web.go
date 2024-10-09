@@ -3,8 +3,11 @@ package web
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"embed"
+	"fmt"
 	"html/template"
+	"io/ioutil"
 	"io"
 	"io/fs"
 	"net"
@@ -354,6 +357,10 @@ func (s *Server) Start() (err error) {
 	if err != nil {
 		return err
 	}
+	caFile, err := s.settingService.GetCaFile()
+	if err != nil {
+		return err
+	}
 	listen, err := s.settingService.GetListen()
 	if err != nil {
 		return err
@@ -367,7 +374,42 @@ func (s *Server) Start() (err error) {
 	if err != nil {
 		return err
 	}
-	if certFile != "" || keyFile != "" {
+
+	if certFile != "" && keyFile != "" && caFile != "" {
+		// Load server certificate and key
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			listener.Close()
+			return err
+		}
+	
+		// Load the CA certificate that will be used to verify client certificates
+		caCert, err := ioutil.ReadFile(caFile)
+		if err != nil {
+			listener.Close()
+			return fmt.Errorf("failed to read CA certificate: %v", err)
+		}
+	
+		// Create a CertPool and add the CA certificate to it
+		caCertPool := x509.NewCertPool()
+		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+			listener.Close()
+			return fmt.Errorf("failed to append CA certificate")
+		}
+	
+		// Configure TLS with the server cert and require client cert verification (mTLS)
+		c := &tls.Config{
+			Certificates: []tls.Certificate{cert},    // Server certificate
+			ClientCAs:    caCertPool,                // CA pool for verifying client certs
+			ClientAuth:   tls.RequireAndVerifyClientCert, // Require and verify client certificates
+		}
+	
+		// Wrap the listener with AutoHTTPS and TLS support
+		listener = network.NewAutoHttpsListener(listener)
+		listener = tls.NewListener(listener, c) // Apply TLS config to listener
+	}	
+
+	if certFile != "" && keyFile != "" && caFile == ""{
 		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 		if err != nil {
 			listener.Close()
@@ -380,7 +422,9 @@ func (s *Server) Start() (err error) {
 		listener = tls.NewListener(listener, c)
 	}
 
-	if certFile != "" || keyFile != "" {
+	if certFile != "" && keyFile != "" && caFile != "" {
+		logger.Info("web server run mTLS on", listener.Addr())
+	} else if certFile != "" && keyFile != "" && caFile == "" {
 		logger.Info("web server run https on", listener.Addr())
 	} else {
 		logger.Info("web server run http on", listener.Addr())

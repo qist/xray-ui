@@ -31,6 +31,7 @@ type AllSetting struct {
 	WebPort            int    `json:"webPort" form:"webPort"`
 	WebCertFile        string `json:"webCertFile" form:"webCertFile"`
 	WebKeyFile         string `json:"webKeyFile" form:"webKeyFile"`
+	WebCAFile          string `json:"webCAFile" form:"webCAFile"`
 	WebBasePath        string `json:"webBasePath" form:"webBasePath"`
 	TgBotEnable        bool   `json:"tgBotEnable" form:"tgBotEnable"`
 	TgBotToken         string `json:"tgBotToken" form:"tgBotToken"`

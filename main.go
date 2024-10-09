@@ -110,6 +110,10 @@ func showSetting(show bool) {
 		if err != nil {
 			fmt.Println("get GetKeyFile failed, error info:", err)
 		}
+		GetCaFile, err := settingService.GetCaFile()
+		if err != nil {
+			fmt.Println("get GetCaFile failed, error info:", err)
+		}
 		userService := service.UserService{}
 		userModel, err := userService.GetFirstUser()
 		if err != nil {
@@ -135,6 +139,12 @@ func showSetting(show bool) {
 		} else {
 			fmt.Println("证书 is not set")
 		}
+		if GetCaFile != "" {
+			fmt.Println("CA mTLS 开启:", GetCaFile)
+		} else {
+			fmt.Println("CA is not set")
+		}
+
 	}
 }
  
@@ -280,7 +290,7 @@ func UpdateAllip() {
 	}
 }
 
-func updateCert(publicKey string, privateKey string) {
+func updateCert(publicKey string, privateKey string, clientCa string) {
 	err := database.InitDB(config.GetDBPath())
 	if err != nil {
 		fmt.Println(err)
@@ -304,6 +314,16 @@ func updateCert(publicKey string, privateKey string) {
 		}
 	} else {
 		fmt.Println("both public and private key should be entered.")
+	}
+
+	if (clientCa != "") || (clientCa == "") {
+		settingService := service.SettingService{}
+		err = settingService.SetCaFile(clientCa)
+		if err != nil {
+			fmt.Println("set mTLS ca failed:", err)
+		} else {
+			fmt.Println("set mTLS ca success")
+		}
 	}
 }
 
@@ -333,6 +353,7 @@ func main() {
 	var webBasePath string
 	var webCertFile string
 	var webKeyFile string
+	var webCAFile string
 	var tgbottoken string
 	var tgbotchatid int
 	var enabletgbot bool
@@ -348,6 +369,7 @@ func main() {
 	settingCmd.StringVar(&webBasePath, "webBasePath", "", "Set base path for Panel")
 	settingCmd.StringVar(&webCertFile, "webCert", "", "Set path to public key file for panel")
 	settingCmd.StringVar(&webKeyFile, "webCertKey", "", "Set path to private key file for panel")
+	settingCmd.StringVar(&webCAFile, "webCa", "", "Set path to mTLS ca file for panel")
 	settingCmd.StringVar(&tgbottoken, "tgbottoken", "", "set telegrame bot token")
 	settingCmd.StringVar(&tgbotRuntime, "tgbotRuntime", "", "set telegrame bot cron time")
 	settingCmd.IntVar(&tgbotchatid, "tgbotchatid", 0, "set telegrame bot chat id")
@@ -419,9 +441,9 @@ func main() {
 			return
 		}
 		if reset {
-			updateCert("", "")
+			updateCert("", "", "")
 		} else {
-			updateCert(webCertFile, webKeyFile)
+			updateCert(webCertFile, webKeyFile , webCAFile)
 		}
 	default:
 		fmt.Println("except 'run' or 'v2-ui' or 'setting' subcommands")

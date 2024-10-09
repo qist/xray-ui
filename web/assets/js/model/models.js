@@ -162,6 +162,7 @@ class AllSetting {
         this.webPort = 54321;
         this.webCertFile = "";
         this.webKeyFile = "";
+        this.webCAFile = "";
         this.webBasePath = "/";
         this.tgBotEnable = false;
         this.tgBotToken = "";
