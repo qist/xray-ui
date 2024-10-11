@@ -113,13 +113,21 @@ firewall-cmd --list-all
 
 ```bash
 # juestnow/xray-ui:latest 最新版本 指定版本号docker pull juestnow/xray-ui:1.8.6
- docker run -d --net=host -v/etc/xray-ui:/etc/xray-ui --restart=unless-stopped --name xray-ui juestnow/xray-ui:latest
+ docker run -d --net=host -v/etc/xray-ui:/etc/xray-ui  -v/root/cert:/root/cert --restart=unless-stopped --name xray-ui juestnow/xray-ui:latest
 # 查看默认账号密码
 docker exec -ti  启动的容器名 /app/xray-ui setting -show
-docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui  /app/xray-ui setting -show
+docker exec -ti xray-ui  /app/xray-ui setting -show
 # 设置账号密码
 docker exec -ti  启动的容器名 /app/xray-ui setting -password abcd -username abacd 
-docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui /app/xray-ui setting -password abcd -username abacd
+docker exec -ti xray-ui  /app/xray-ui setting -password abcd -username abacd
+# 设置path 
+docker exec -ti  启动的容器名 /app/xray-ui setting --webBasePath aaaaddffdf
+docker exec -ti xray-ui  /app/xray-ui setting --webBasePath aaaaddffdf
+# 证书配置 
+## TLS 配置
+docker exec -ti xray-ui  /app/xray-ui  cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem
+## mTLS 配置
+docker exec -ti xray-ui  /app/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem -webCa /root/cert/ca.cer
 # 第一次访问
 当前面板http只支持12.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书
 ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)
