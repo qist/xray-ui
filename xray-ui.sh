@@ -310,7 +310,7 @@ reset_mTLS() {
     LOGD "请输入CA路径:"
     read -p "输入您的CA路径:" Xray_Ca
     LOGD "您的CA是:${Xray_Ca}"
-    /usr/local/xray-ui/xray-ui cert -webCert "${Xray_cert}" -webCertKey "${Xray_Key} -webCa ${Xray_Ca}"
+    /usr/local/xray-ui/xray-ui cert -webCert "${Xray_cert}" -webCertKey "${Xray_Key}" -webCa "${Xray_Ca}"
     confirm_restart
 }
 
