@@ -254,7 +254,6 @@ EOF
     fi
     /usr/local/xray-ui/xray-ui setting -webBasePath $path >/dev/null 2>&1
     green "xray-ui web 路径：${path}"
-    /usr/local/xray-ui/xray-ui setting -listen 127.0.0.1 >/dev/null 2>&1
     sleep 1
     xray-ui restart
     xuilogin() {
