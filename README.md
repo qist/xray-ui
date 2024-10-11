@@ -120,6 +120,10 @@ docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui  /app/xray-ui se
 # 设置账号密码
 docker exec -ti  启动的容器名 /app/xray-ui setting -password abcd -username abacd 
 docker run  --rm  -v/etc/xray-ui:/etc/xray-ui  juestnow/xray-ui /app/xray-ui setting -password abcd -username abacd
+# 第一次访问
+当前面板http只支持12.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书
+ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)
+浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)
 ```
 
 2023.4.20 添加 配置文件下载本地，DB文件下载到本地，更新依赖到最新！
