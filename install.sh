@@ -153,117 +153,6 @@ generate_random_string() {
     echo "$random_string"
 }
 
-# 生成自签名 CA 证书的函数
-generate_ca() {
-    mkdir -p /usr/local/xray-ui/ssl
-    echo "生成 CA 证书..."
-    openssl genpkey -algorithm RSA -out /usr/local/xray-ui/ssl/ca.key -pkeyopt rsa_keygen_bits:8192
-    openssl req -x509 -new -key /usr/local/xray-ui/ssl/ca.key -days 3650 -out /usr/local/xray-ui/ssl/ca.crt -subj "/C=CN/ST=Beijing/L=Beijing/O=XrayCA/OU=IT/CN=Xray Root CA"
-    echo "CA 证书已生成。"
-}
-
-# 生成服务器证书的函数
-generate_server_cert() {
-    echo "请输入服务器的域名 (如 example.com):"
-    read domain
-
-    echo "正在生成 openssl-server.cnf 配置文件..."
-
-    # 创建 openssl-server.cnf 文件，包含 IPv4 和 IPv6
-    cat > /usr/local/xray-ui/ssl/openssl-server.cnf <<EOF
-[ req ]
-distinguished_name = req_distinguished_name
-prompt = no
-
-[ req_distinguished_name ]
-C = CN
-ST = Beijing
-L = Beijing
-O = XrayCompany
-OU = IT
-CN = $domain
-
-[ v3_req ]
-subjectAltName = @alt_names
-
-[ alt_names ]
-DNS.1 = $domain
-IP.1 = 127.0.0.1
-IP.2 = ::1
-EOF
-
-# 检测服务器的 IPv4 和 IPv6
-v4=$(curl -s4m8 http://ip.sb -k)
-v6=$(curl -s6m8 http://ip.sb -k)
-
-# 判断 IPv4 和 IPv6 是否存在
-if [ -z "$v4" ] && [ -z "$v6" ]; then
-    echo "未检测到 IPv4 和 IPv6 地址，请检查网络配置。"
-    exit 1
-elif [ -z "$v4" ]; then
-    echo "未检测到 IPv4 地址，仅生成 IPv6 证书。"
-    has_ipv4=false
-else
-    echo "检测到 IPv4 地址：$v4"
-    has_ipv4=true
-fi
-
-if [ -z "$v6" ]; then
-    echo "未检测到 IPv6 地址，仅生成 IPv4 证书。"
-    has_ipv6=false
-else
-    echo "检测到 IPv6 地址：$v6"
-    has_ipv6=true
-fi
-
-    # 如果检测到 IPv4，则添加到配置文件
-    if [ "$has_ipv4" = true ]; then
-        echo "IP.3 = $v4" >> /usr/local/xray-ui/ssl/openssl-server.cnf
-    fi
-
-    # 如果检测到 IPv6，则添加到配置文件
-    if [ "$has_ipv6" = true ]; then
-        echo "IP.4 = $v6" >> /usr/local/xray-ui/ssl/openssl-server.cnf
-    fi
-
-    echo "正在生成服务器私钥..."
-    openssl genpkey -algorithm RSA -out /usr/local/xray-ui/ssl/private.key -pkeyopt rsa_keygen_bits:8192
-
-    echo "正在生成服务器 CSR..."
-    openssl req -new -key /usr/local/xray-ui/ssl/private.key -out /usr/local/xray-ui/ssl/server.csr -subj "/C=CN/ST=Beijing/L=Beijing/O=XrayCompany/OU=IT/CN=$domain"
-
-    echo "使用 CA 签署服务器证书..."
-    openssl x509 -req -in /usr/local/xray-ui/ssl/server.csr -CA /usr/local/xray-ui/ssl/ca.crt -CAkey /usr/local/xray-ui/ssl/ca.key -CAcreateserial -out /usr/local/xray-ui/ssl/cert.crt -days 3650 -extfile /usr/local/xray-ui/ssl/openssl-server.cnf -extensions v3_req
-
-    echo "服务器证书已生成。"
-    echo "cert.crt：服务器的 CA 签名证书"
-    echo "private.key：服务器的私钥"
-}
-
-generate_client_cert() {
-   echo "正在生成客户端私钥..."
-   openssl genpkey -algorithm RSA -out /usr/local/xray-ui/ssl/client.key -pkeyopt rsa_keygen_bits:8192
-   echo "正在生成客户端 CSR..."
-   openssl req -new -key /usr/local/xray-ui/ssl/client.key -out /usr/local/xray-ui/ssl/client.csr -subj "/C=CN/ST=Beijing/L=Beijing/O=XrayCompany/OU=IT/CN=client"
-   echo "使用 CA 签署客户端证书..."
-   openssl x509 -req -in /usr/local/xray-ui/ssl/client.csr -CA /usr/local/xray-ui/ssl/ca.crt -CAkey /usr/local/xray-ui/ssl/ca.key -CAcreateserial -out /usr/local/xray-ui/ssl/client.crt -days 3650 -extensions v3_req
-   
-   echo "生成windows客户端证书 client.p12..."
-   openssl pkcs12 -export -out /usr/local/xray-ui/ssl/client.p12 -inkey /usr/local/xray-ui/ssl/client.key -in /usr/local/xray-ui/ssl/client.crt -certfile /usr/local/xray-ui/ssl/ca.crt
-
-   echo "客户端证书已生成。"
-   echo "client.crt：客户端的 CA 签名证书"
-   echo "client.key：客户端的私钥"
-   echo "client.p12: windows客户端证书 记得设置密码 导入证书需要密码"
- 
-}
-# 生成合成的 PEM 文件，包含 CA 和服务器证书
-generate_combined_cert() {
-    echo "生成合成证书文件 fullchain.crt..."
-    cat /usr/local/xray-ui/ssl/cert.crt /usr/local/xray-ui/ssl/ca.crt > /usr/local/xray-ui/ssl/fullchain.crt
-    echo "合成证书文件 fullchain.crt 已生成。"
-}
-
 install_xray-ui() {
     systemctl stop xray-ui
     cd /usr/local/
@@ -366,33 +255,6 @@ EOF
     /usr/local/xray-ui/xray-ui setting -webBasePath $path >/dev/null 2>&1
     green "xray-ui web 路径：${path}"
     sleep 1
-    read -p "请输入 'ssl' 来生成证书，或输入mTLS 开启双向验证 或输入 'ssh' 来进行 SSH 转发, 不输入就http访问: " user_input
-    if [ "$user_input" == "ssl" ]; then
-    echo -e ""
-    echo "生成自签名 CA 和服务器证书"
-    generate_ca
-    generate_server_cert
-    generate_combined_cert
-    /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key
-    sleep 1
-    elif [ "$user_input" == "mTLS" ]; then
-    echo -e ""
-    echo "生成 mTLS 证书"
-     echo "生成自签名 CA 和服务器证书"
-    generate_ca
-    generate_server_cert
-    generate_client_cert
-    generate_combined_cert
-    /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key -webCa /usr/local/xray-ui/ssl/ca.crt
-    sleep 1
-    elif [ "$user_input" == "ssh" ]; then
-    echo -e ""
-    echo "SSH 转发"
-    /usr/local/xray-ui/xray-ui setting -listen 127.0.0.1 >/dev/null 2>&1
-    sleep 1
-    else
-    yellow "http访问 没加密不安全"
-    fi
     xray-ui restart
     xuilogin() {
         v4=$(curl -s4m8 http://ip.sb -k)
@@ -429,47 +291,47 @@ ssh_forwarding() {
 
     # 检查 IP 并输出相应的 SSH 和浏览器访问信息
     if [[ -z $v4 ]]; then
-        echo -e "${green}请在 xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
-        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        # echo -e "${green}请在 xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发 不建议使用"
+        # echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}客户端转发 安全性高${plain} ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@[$v6]${plain} 输入 root 密码进行转发"
         echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[::1]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
         echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
+        yellow "不使用ssh 转发请配置nginx https代理或者xray-ui 配置证书"
     elif [[ -n $v4 && -n $v6 ]]; then
-        echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} ${yellow}或者 ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
-        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        # echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} ${yellow}或者 ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发 不建议使用"
+        # echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}客户端转发 安全性高 ${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@$v4${plain} ${yellow}或者 ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@[$v6]${plain} 输入 root 密码进行转发"
         echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}127.0.0.1:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[::1]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
         echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
+        yellow "不使用ssh 转发请配置nginx https代理或者xray-ui 配置证书"
     else
-        echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发"
-        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
+        # echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发 "
+        # echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}客户端转发 安全性高${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@$v4${plain} 输入 root 密码进行转发"
         echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}127.0.0.1:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
         echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
         echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
+        yellow "不使用ssh 转发请配置nginx https代理或者xray-ui 配置证书"
     fi
-}
-
+    }
     ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep "tcp" | awk '{print $5}' | cut -d':' -f2)
     if [[ -n $ports ]]; then
         echo -e ""
         yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
-        if [ "$user_input" == "ssl" ]; then
-        yellow "默认生成自签名证书可以在/usr/local/xray-ui/ssl/ 下载 ca.crt 证书，桌面双击打开->安装证书->本地计算机->下一步->将所有证书都放入下列存储->受信任的根证书颁发机构->完成"
-        yellow "修改证书 /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key 或者面板修改"
-        xuilogin
-        elif [ "$user_input" == "mTLS" ]; then
-        yellow "默认生成自签名证书可以在/usr/local/xray-ui/ssl/ 下载 ca.crt 证书，桌面双击打开->安装证书->本地计算机->下一步->将所有证书都放入下列存储->受信任的根证书颁发机构->完成"
-        yellow "修改证书 /usr/local/xray-ui/xray-ui cert -webCert /usr/local/xray-ui/ssl/fullchain.crt -webCertKey /usr/local/xray-ui/ssl/private.key -webCa /usr/local/xray-ui/ssl/ca.crt 或者面板修改"
-        yellow "client.p12 文件导入windows系统 桌面双击打开->导入->下一步->将所有证书都放入下列存储->个人->完成 如果导入失败开始菜单搜证书 打开管理用户证书管理->个人->所有任务->导入->输入密码"
-        xuilogin
-        elif [ "$user_input" == "ssh" ]; then
         ssh_forwarding
-        else
-        xuilogin
-        fi
+        yellow "下面是xray-ui tls mTLS 配置信息"
+        yellow "证书管理 xray-ui ssl_main  cf 证书申请 xray-ui ssl_CF"
+        yellow "TLS 配置 /usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem 重启 xray-ui restart 生效"
+        yellow "mTLS 配置 /usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem -webCa /root/cert/ca.cer 重启 xray-ui restart 生效"
+        yellow "访问：https://你的域名:$ports/$path"
+        yellow "mTLS windows 使用....."
+        yellow "生成windows客户端证书 client.p12..."
+        yellow "openssl pkcs12 -export -out client.p12 -inkey /root/cert/你的域名/privkey.pem -in  /root/cert/${domain}.cer -certfile /root/cert/ca.cer"
+        yellow "client.p12: windows客户端证书 记得设置密码 导入证书需要密码"
+        yellow "client.p12 文件导入windows系统 桌面双击打开->导入->下一步->将所有证书都放入下列存储->个人->完成 如果导入失败开始菜单搜证书 打开管理用户证书管理->个人->所有任务->导入->输入密码"
+    
     else
         red "xray-ui安装失败，请查看日志，运行 xray-ui log"
     fi
@@ -493,6 +355,8 @@ ssh_forwarding() {
     echo -e "xray-ui update_shell - 更新 xray-ui 脚本"
     echo -e "xray-ui install      - 安装 xray-ui 面板"
     echo -e "xray-ui x25519       - REALITY  key 生成"
+    echo -e "xray-ui ssl_main     - SSL 证书管理"
+    echo -e "xray-ui ssl_CF       - Cloudflare SSL 证书"
     echo -e "xray-ui crontab      - 添加geoip到任务计划每天凌晨1.30执行"    
     echo -e "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo -e "----------------------------------------------"

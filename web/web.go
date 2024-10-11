@@ -369,6 +369,10 @@ func (s *Server) Start() (err error) {
 	if err != nil {
 		return err
 	}
+	if certFile == "" || keyFile == "" {
+		// If any of the files are empty, override `listen` to use "127.0.0.1"
+		listen = "127.0.0.1"
+	}
 	listenAddr := net.JoinHostPort(listen, strconv.Itoa(port))
 	listener, err := net.Listen("tcp", listenAddr)
 	if err != nil {
@@ -403,7 +407,6 @@ func (s *Server) Start() (err error) {
 			ClientCAs:    caCertPool,                // CA pool for verifying client certs
 			ClientAuth:   tls.RequireAndVerifyClientCert, // Require and verify client certificates
 		}
-	
 		// Wrap the listener with AutoHTTPS and TLS support
 		listener = network.NewAutoHttpsListener(listener)
 		listener = tls.NewListener(listener, c) // Apply TLS config to listener

@@ -293,6 +293,27 @@ reset_cert() {
     confirm_restart
 }
 
+reset_mTLS() {
+    confirm "确定要重新设置证书吗" "n"
+    if [[ $? != 0 ]]; then
+        if [[ $# == 0 ]]; then
+            show_menu
+        fi
+        return 0
+    fi
+    LOGD "请输入证书路径:"
+    read -p "输入您的证书路径:" Xray_cert
+    LOGD "证书路径为:${Xray_cert}"
+    LOGD "请输入密钥路径:"
+    read -p "输入您的密钥路径:" Xray_Key
+    LOGD "您的密钥是:${Xray_Key}"
+    LOGD "请输入CA路径:"
+    read -p "输入您的CA路径:" Xray_Ca
+    LOGD "您的CA是:${Xray_Ca}"
+    /usr/local/xray-ui/xray-ui cert -webCert "${Xray_cert}" -webCertKey "${Xray_Key} -webCa ${Xray_Ca}"
+    confirm_restart
+}
+
 reset_config() {
     confirm "确定要重置所有面板设置吗，账号数据不会丢失，用户名和密码不会改变" "n"
     if [[ $? != 0 ]]; then
@@ -698,6 +719,8 @@ ssl_cert_issue() {
     fi
     # 安装证书
     ~/.acme.sh/acme.sh --installcert -d ${domain} \
+        --ca-file /root/cert/ca.cer \
+        --cert-file /root/cert/${domain}.cer
         --key-file /root/cert/${domain}/privkey.pem \
         --fullchain-file /root/cert/${domain}/fullchain.pem
 
@@ -816,6 +839,8 @@ show_usage() {
     echo "xray-ui update_shell - 更新 xray-ui 脚本"
     echo "xray-ui install      - 安装 xray-ui 面板"
     echo "xray-ui x25519       - REALITY  key 生成"
+    echo "xray-ui ssl_main     - SSL 证书管理"
+    echo "xray-ui ssl_CF       - Cloudflare SSL 证书"
     echo "xray-ui crontab      - 添加geoip到任务计划每天凌晨1.30执行"
     echo "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo "------------------------------------------"
@@ -852,11 +877,15 @@ show_menu() {
   ${green}20.${plain} Cloudflare SSL 证书
   ${green}21.${plain} 重置web 路径
   ${green}22.${plain} 重置ssl证书
+  ${green}23.${plain} 重置mTLS证书
  "
     show_status
     echo "------------------------------------------"
     acp=$(/usr/local/xray-ui/xray-ui setting -show 2>/dev/null)
     green "$acp"
+    yellow "当前面板http只支持12.0.0.1访问如果外面访问请用ssh转发或者nginx代理"
+    yellow "ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)"
+    yellow "浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)"
     echo "------------------------------------------"
     uiV=$(/usr/local/xray-ui/xray-ui -v)
     curl -sS -H "Accept: application/vnd.github.v3+json" -o "/tmp/tmp_file" 'https://api.github.com/repos/qist/xray-ui/releases/latest'
@@ -870,7 +899,7 @@ show_menu() {
         yellow "检测到最新版本：${remoteV} ，可选择2进行更新！"
     fi
 
-    echo && read -p "请输入选择 [0-22]: " num
+    echo && read -p "请输入选择 [0-23]: " num
 
     case "${num}" in
     0)
@@ -942,8 +971,11 @@ show_menu() {
     22)
         check_install && reset_cert
         ;;
+    23)
+        check_install && reset_mTLS
+        ;;
     *)
-        echo -e "${red}请输入正确的数字 [0-22]${plain}"
+        echo -e "${red}请输入正确的数字 [0-23]${plain}"
         ;;
     esac
 }
@@ -991,6 +1023,12 @@ if [[ $# > 0 ]]; then
         ;;
     "crontab")
         crontab 0
+        ;;
+    "ssl_main")
+        ssl_cert_issue_main 0
+        ;;
+    "ssl_CF")
+        ssl_cert_issue_CF 0
         ;;
     "uninstall")
         check_install 0 && uninstall 0
