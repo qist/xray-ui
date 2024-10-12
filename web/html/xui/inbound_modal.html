@@ -89,6 +89,16 @@
                          console.error("Error fetching the X25519 cert:", error);
                      });
              }
+            //  async getNewX25519Cert() {
+            //     inModal.loading(true);
+            //     const msg = await HttpUtil.post('/server/xraysecretkey');
+            //     inModal.loading(false);
+            //     if (!msg.success) {
+            //         return;
+            //     }
+            //     inModal.inbound.stream.reality.privateKey = msg.obj.key;
+            //     inModal.inbound.stream.reality.publicKey = msg.obj.value;
+            // }
         }
     });
 
