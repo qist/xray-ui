@@ -71,7 +71,24 @@
                 if (oldValue === 'kcp') {
                     this.inModal.inbound.tls = false;
                 }
-            }
+            },
+            async getNewX25519Cert() {
+                 inModal.loading(true);
+                 axios.post('server/xraysecretkey')
+                     .then((res) => {
+                         inModal.loading(false);
+            
+                         if (!res.data.success) {
+                             return;
+                         }
+                         inModal.inbound.stream.reality.privateKey = res.data.obj.key;
+                         inModal.inbound.stream.reality.publicKey = res.data.obj.value;
+                     })
+                     .catch((error) => {
+                         inModal.loading(false);
+                         console.error("Error fetching the X25519 cert:", error);
+                     });
+             }
         }
     });
 
