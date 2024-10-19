@@ -277,7 +277,7 @@ server {
     }
  }
 
- https配置参考：
+ 后端https转发配置参考：
 
  upstream xray-ui {
         least_conn;
@@ -333,7 +333,7 @@ server {
     }
  }
 
-mTLS 配置
+后端mTLS 转发配置参考：
  upstream xray-ui {
         least_conn;
         server 127.0.0.1:54321 max_fails=3 fail_timeout=30s;
