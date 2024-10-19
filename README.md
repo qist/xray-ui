@@ -134,6 +134,18 @@ ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使�
 浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)
 ```
 
+### 第一次访问
+
+```bash
+当前面板http只支持12.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书
+ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)
+例子：ssh  -f -N -L 127.0.0.1:22222:127.0.0.1:54321 root@8.8.8.8
+浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)
+或者服务器执行 ssh -f -N -L 0.0.0.0:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@127.0.0.1 
+例子：ssh -f -N -L 0.0.0.0:22222:127.0.0.1:54321 root@127.0.0.1
+然后用你服务器地址+ssh转发端口访问
+```
+
 2023.4.20 添加 配置文件下载本地，DB文件下载到本地，更新依赖到最新！
 
 2023.4.17 添加uTLS REALITY x25519 使用go原生生成公钥私钥
@@ -222,6 +234,25 @@ upstream xray-ui {
 server {
     listen 443;
     server_name xray.test.com;
+    client_max_body_size 0;
+    chunked_transfer_encoding on;
+    client_body_buffer_size 202400k;
+    client_body_in_single_buffer on;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options "DENY";
+    add_header Alt-Svc 'h3=":443"; ma=86400, h3-29=":443"; ma=86400';
+    ssl_certificate /apps/nginx/sslkey/test.com/fullchain.crt;
+    ssl_certificate_key /apps/nginx/sslkey/test.com/private.key;
+    ssl_buffer_size 4k;
+    ssl_protocols TLSv1.3 TLSv1.2;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers on;
+    ssl_ecdh_curve X25519:P-256:P-384;
+    client_header_timeout 24h;
+    keepalive_timeout 24h;
     location / {
         proxy_redirect     off;
         proxy_set_header   Host $host;
@@ -239,14 +270,14 @@ server {
         proxy_busy_buffers_size    64k;
         proxy_http_version 1.1;
         proxy_set_header Accept-Encoding "";
-        proxy_pass https://xray-ui;
+        proxy_pass http://xray-ui;
         #proxy_pass_request_headers on;
         proxy_set_header Connection "keep-alive";
         proxy_store off;
     }
  }
 
- 自签名证书配置参考：
+ https配置参考：
 
  upstream xray-ui {
         least_conn;
@@ -256,6 +287,25 @@ server {
 server {
     listen 443;
     server_name xray.test.com;
+    client_max_body_size 0;
+    chunked_transfer_encoding on;
+    client_body_buffer_size 202400k;
+    client_body_in_single_buffer on;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options "DENY";
+    add_header Alt-Svc 'h3=":443"; ma=86400, h3-29=":443"; ma=86400';
+    ssl_certificate /apps/nginx/sslkey/test.com/fullchain.crt;
+    ssl_certificate_key /apps/nginx/sslkey/test.com/private.key;
+    ssl_buffer_size 4k;
+    ssl_protocols TLSv1.3 TLSv1.2;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers on;
+    ssl_ecdh_curve X25519:P-256:P-384;
+    client_header_timeout 24h;
+    keepalive_timeout 24h;
     location / {
         proxy_redirect     off;
         proxy_set_header   Host $host;
@@ -265,10 +315,9 @@ server {
         proxy_ssl_session_reuse off;
         proxy_ssl_server_name on;
         proxy_buffering    off;
+        proxy_ssl_name xray.test.com; #证书域名
         # 关闭对后端服务器自签名证书的验证
         proxy_ssl_verify off;
-        # 如果你有自签名的 CA 证书，可以选择性地指定 CA 证书
-        proxy_ssl_trusted_certificate /path/to/ca.crt;
         proxy_connect_timeout      90;
         proxy_send_timeout         90;
         proxy_read_timeout         90;
@@ -284,6 +333,75 @@ server {
     }
  }
 
+mTLS 配置
+ upstream xray-ui {
+        least_conn;
+        server 127.0.0.1:54321 max_fails=3 fail_timeout=30s;
+        keepalive 1000;
+}
+server {
+    listen 443;
+    server_name xray.test.com;
+    client_max_body_size 0;
+    chunked_transfer_encoding on;
+    client_body_buffer_size 202400k;
+    client_body_in_single_buffer on;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options "DENY";
+    add_header Alt-Svc 'h3=":443"; ma=86400, h3-29=":443"; ma=86400';
+    ssl_certificate /apps/nginx/sslkey/test.com/fullchain.crt;
+    ssl_certificate_key /apps/nginx/sslkey/test.com/private.key;
+    ssl_buffer_size 4k;
+    ssl_protocols TLSv1.3 TLSv1.2;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers on;
+    ssl_ecdh_curve X25519:P-256:P-384;
+    client_header_timeout 24h;
+    keepalive_timeout 24h;
+    # 添加客户端证书和私钥路径
+    ssl_client_certificate /apps/nginx/sslkey/test.com/fullchain.crt;
+    ssl_certificate_key /apps/nginx/sslkey/test.com/private.key;
+
+    # 如果需要指定 CA 证书
+    # ssl_trusted_certificate /apps/nginx/sslkey/test.com/ca.crt;
+
+    # 强制 SSL/TLS
+    proxy_ssl_certificate /apps/nginx/sslkey/test.com/fullchain.crt;
+    proxy_ssl_certificate_key /apps/nginx/sslkey/test.com/private.key;
+    proxy_ssl_trusted_certificate /apps/nginx/sslkey/test.com/ca.crt;
+
+    # 确保启用 TLS 验证
+    proxy_ssl_verify on;
+    proxy_ssl_verify_depth 2; # 可根据需要调整
+    location / {
+        proxy_redirect     off;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP   $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_ssl_session_reuse off;
+        proxy_ssl_server_name on;
+        proxy_buffering    off;
+        proxy_ssl_name xray.test.com; #证书域名
+        # 关闭对后端服务器自签名证书的验证
+        proxy_ssl_verify off;
+        proxy_connect_timeout      90;
+        proxy_send_timeout         90;
+        proxy_read_timeout         90;
+        proxy_buffer_size          4k;
+        proxy_buffers              4 32k;
+        proxy_busy_buffers_size    64k;
+        proxy_http_version 1.1;
+        proxy_set_header Accept-Encoding "";
+        proxy_pass https://xray-ui;
+        #proxy_pass_request_headers on;
+        proxy_set_header Connection "keep-alive";
+        proxy_store off;
+    }
+ }
  # vpn代理nginx 配置参考
 https://github.com/qist/xray/tree/main/xray/nginx
 ```
