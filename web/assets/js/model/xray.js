@@ -886,7 +886,7 @@ class StreamSettings extends XrayCommonClass {
         security = 'none',
         tlsSettings = new TlsStreamSettings(),
         realitySettings = new ReaLITyStreamSettings(),
-        tcpSettings = new TcpStreamSettings(),
+        rawSettings = new TcpStreamSettings(),
         kcpSettings = new KcpStreamSettings(),
         wsSettings = new WsStreamSettings(),
         httpSettings = new HttpStreamSettings(),
@@ -900,7 +900,7 @@ class StreamSettings extends XrayCommonClass {
         this.security = security;
         this.tls = tlsSettings;
         this.reality = realitySettings;
-        this.tcp = tcpSettings;
+        this.tcp = rawSettings;
         this.kcp = kcpSettings;
         this.ws = wsSettings;
         this.http = httpSettings;
@@ -948,7 +948,7 @@ class StreamSettings extends XrayCommonClass {
             json.security,
             TlsStreamSettings.fromJson(json.tlsSettings),
             ReaLITyStreamSettings.fromJson(json.realitySettings),
-            TcpStreamSettings.fromJson(json.tcpSettings),
+            TcpStreamSettings.fromJson(json.rawSettings),
             KcpStreamSettings.fromJson(json.kcpSettings),
             WsStreamSettings.fromJson(json.wsSettings),
             HttpStreamSettings.fromJson(json.httpSettings),
@@ -966,7 +966,7 @@ class StreamSettings extends XrayCommonClass {
             security: this.security,
             tlsSettings: this.isTls ? this.tls.toJson() : undefined,
             realitySettings: this.isReaLITy ? this.reality.toJson() : undefined,
-            tcpSettings: network === 'tcp' ? this.tcp.toJson() : undefined,
+            rawSettings: network === 'tcp' ? this.tcp.toJson() : undefined,
             kcpSettings: network === 'kcp' ? this.kcp.toJson() : undefined,
             wsSettings: network === 'ws' ? this.ws.toJson() : undefined,
             httpSettings: network === 'http' ? this.http.toJson() : undefined,
