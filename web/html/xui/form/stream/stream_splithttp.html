@@ -23,6 +23,11 @@
             </a-input>
         </a-input-group>
     </a-form-item>
+    <a-form-item label="Mode">
+        <a-select v-model="inbound.stream.splithttp.mode" style="width: 50%">
+            <a-select-option v-for="key in MODE_OPTION" :value="key">[[ key ]]</a-select-option>
+            </a-se-chlect>
+    </a-form-item>
     <a-form-item label="Max Concurrent Upload">
         <a-input-number v-model="inbound.stream.splithttp.scMaxConcurrentPosts" :min="0"></a-input-number>
     </a-form-item>
@@ -69,9 +74,9 @@
             Max Concurrency
             <a-tooltip>
                 <template slot="title">
-                   maxConcurrency: 默认值为空 为0(即无限) 每个连接中复用的流的最大数量，连接中流的数量达到该值后核心会新建更多连接以容纳更多的流，
-                   类似于 mux.cool 的 concurrency. 与 maxConnections 冲突。
-                   所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法
+                    maxConcurrency: 默认值为空 为0(即无限) 每个连接中复用的流的最大数量，连接中流的数量达到该值后核心会新建更多连接以容纳更多的流，
+                    类似于 mux.cool 的 concurrency. 与 maxConnections 冲突。
+                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法
                 </template>
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>

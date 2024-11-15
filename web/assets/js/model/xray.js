@@ -113,6 +113,12 @@ const SNIFFING_OPTION = {
     FAKEDNS: "fakedns"
 };
 
+const MODE_OPTION = {
+    AUTO: "auto",
+    PACKET_UP: "packet-up",
+    STREAM_UP: "stream-up",
+};
+
 Object.freeze(Protocols);
 Object.freeze(VmessMethods);
 Object.freeze(SSMethods);
@@ -125,6 +131,7 @@ Object.freeze(ALPN_OPTION);
 Object.freeze(TCP_CONGESTION);
 Object.freeze(DOMAIN_STRATEGY);
 Object.freeze(SNIFFING_OPTION);
+Object.freeze(MODE_OPTION);
 
 class XrayCommonClass {
 
@@ -529,7 +536,8 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             maxConcurrency: '',
             cMaxReuseTimes: 0,
             cMaxLifetimeMs: 0
-        }
+        },
+        mode = MODE_OPTION.AUTO,
     ) {
         super();
         this.path = path;
@@ -541,6 +549,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
         this.noSSEHeader = noSSEHeader;
         this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);
         this.xmux = xmux;
+        this.mode = mode;
     }
 
     addHeader(name, value) {
@@ -569,6 +578,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             json.noSSEHeader,
             json.xPaddingBytes,
             json.xmux,
+            json.mode,
         );
     }
 
@@ -592,6 +602,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             noSSEHeader: this.noSSEHeader,
             xPaddingBytes: RandomUtil.convertXPaddingBytes(this.xPaddingBytes),
             xmux: xmuxData,
+            mode: this.mode,
         };
     }
 }
@@ -1345,7 +1356,8 @@ class Inbound extends XrayCommonClass {
             let index = splithttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
             if (index >= 0) {
                 host = splithttp.headers[index].value;
-            }
+            };
+            mode = splithttp.mode;
         }
 
         if (this.stream.security === 'tls') {
@@ -1367,6 +1379,7 @@ class Inbound extends XrayCommonClass {
             type: type,
             host: host,
             path: path,
+            mode: mode,
             authority: authority,
             tls: this.stream.security,
             sni: sni,
@@ -1445,7 +1458,8 @@ class Inbound extends XrayCommonClass {
                 if (splithttpIndex >= 0) {
                     const host = splithttp.headers[splithttpIndex].value;
                     params.set("host", host);
-                }
+                };
+                params.set("mode", splithttp.mode);
                 break;
         }
 
@@ -1564,7 +1578,8 @@ class Inbound extends XrayCommonClass {
                 if (splithttpIndex >= 0) {
                     const host = splithttp.headers[splithttpIndex].value;
                     params.set("host", host);
-                }
+                };
+                params.set("mode", splithttp.mode);
                 break;
         }
 
@@ -1674,7 +1689,8 @@ class Inbound extends XrayCommonClass {
                 if (splithttpIndex >= 0) {
                     const host = splithttp.headers[splithttpIndex].value;
                     params.set("host", host);
-                }
+                };
+                params.set("mode", splithttp.mode);
                 break;
         }
 
