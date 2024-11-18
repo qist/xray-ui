@@ -720,7 +720,7 @@ ssl_cert_issue() {
     # 安装证书
     ~/.acme.sh/acme.sh --installcert -d ${domain} \
         --ca-file /root/cert/ca.cer \
-        --cert-file /root/cert/${domain}.cer
+        --cert-file /root/cert/${domain}.cer \
         --key-file /root/cert/${domain}/privkey.pem \
         --fullchain-file /root/cert/${domain}/fullchain.pem
 
