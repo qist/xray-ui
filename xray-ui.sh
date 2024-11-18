@@ -806,6 +806,7 @@ ssl_cert_issue_CF() {
             exit 1
         else
             LOGI "证书安装成功，开启自动更新..."
+            LOGE "最后记得给xray-ui配置证书， 选择22 重置ssl证书"
         fi
         ~/.acme.sh/acme.sh --upgrade --auto-upgrade
         if [ $? -ne 0 ]; then
