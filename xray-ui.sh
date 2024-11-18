@@ -887,7 +887,7 @@ show_menu() {
     green "$acp"
     tlsx=$(/usr/local/xray-ui/xray-ui setting -show 2>&1 | grep 证书文件)
     if [ -z "${tlsx}" ]; then
-    yellow "当前面板http只支持12.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书"
+    yellow "当前面板http只支持127.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书"
     yellow "ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)"
     yellow "浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)"
     fi
