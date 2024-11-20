@@ -897,6 +897,7 @@ class StreamSettings extends XrayCommonClass {
         security = 'none',
         tlsSettings = new TlsStreamSettings(),
         realitySettings = new ReaLITyStreamSettings(),
+        tcpSettings = new TcpStreamSettings(),
         rawSettings = new TcpStreamSettings(),
         kcpSettings = new KcpStreamSettings(),
         wsSettings = new WsStreamSettings(),
@@ -911,7 +912,8 @@ class StreamSettings extends XrayCommonClass {
         this.security = security;
         this.tls = tlsSettings;
         this.reality = realitySettings;
-        this.tcp = rawSettings;
+        this.tcp = tcpSettings;
+        this.raw = rawSettings;
         this.kcp = kcpSettings;
         this.ws = wsSettings;
         this.http = httpSettings;
@@ -959,6 +961,7 @@ class StreamSettings extends XrayCommonClass {
             json.security,
             TlsStreamSettings.fromJson(json.tlsSettings),
             ReaLITyStreamSettings.fromJson(json.realitySettings),
+            TcpStreamSettings.fromJson(json.tcpSettings),
             TcpStreamSettings.fromJson(json.rawSettings),
             KcpStreamSettings.fromJson(json.kcpSettings),
             WsStreamSettings.fromJson(json.wsSettings),
@@ -977,7 +980,8 @@ class StreamSettings extends XrayCommonClass {
             security: this.security,
             tlsSettings: this.isTls ? this.tls.toJson() : undefined,
             realitySettings: this.isReaLITy ? this.reality.toJson() : undefined,
-            rawSettings: network === 'tcp' ? this.tcp.toJson() : undefined,
+            tcpSettings: network === 'tcp' ? this.tcp.toJson() : undefined,
+            rawSettings: network === 'raw' ? this.raw.toJson() : undefined,
             kcpSettings: network === 'kcp' ? this.kcp.toJson() : undefined,
             wsSettings: network === 'ws' ? this.ws.toJson() : undefined,
             httpSettings: network === 'http' ? this.http.toJson() : undefined,
@@ -1037,7 +1041,7 @@ class Inbound extends XrayCommonClass {
         this._protocol = protocol;
         this.settings = Inbound.Settings.getSettings(protocol);
         if (protocol === Protocols.TROJAN) {
-            if (this.network === "tcp") {
+            if (this.network === "tcp" || this.network === "raw") {
                 this.tls = true;
             }
         }
@@ -1080,7 +1084,9 @@ class Inbound extends XrayCommonClass {
     get isTcp() {
         return this.network === "tcp";
     }
-
+    get isRaw() {
+        return this.network === "raw";
+    }
     get isWs() {
         return this.network === "ws";
     }
@@ -1172,6 +1178,8 @@ class Inbound extends XrayCommonClass {
     get host() {
         if (this.isTcp) {
             return this.stream.tcp.request.getHeader("Host");
+        } else if (this.isRaw) {
+            return this.stream.raw.request.getHeader("Host");
         } else if (this.isWs) {
             return this.stream.ws.getHeader("Host");
         } else if (this.isH2) {
@@ -1187,6 +1195,8 @@ class Inbound extends XrayCommonClass {
     get path() {
         if (this.isTcp) {
             return this.stream.tcp.request.path[0];
+        } else if (this.isRaw) {
+            return this.stream.raw.request.path[0];
         } else if (this.isWs) {
             return this.stream.ws.path;
         } else if (this.isH2) {
@@ -1224,6 +1234,7 @@ class Inbound extends XrayCommonClass {
 
         switch (this.network) {
             case "tcp":
+            case "raw":
             case "ws":
             case "http":
             case "grpc":
@@ -1247,7 +1258,7 @@ class Inbound extends XrayCommonClass {
             default:
                 return false;
         }
-        return ['tcp', 'http', 'grpc', 'httpupgrade', 'splithttp'].indexOf(this.network) !== -1;
+        return ['tcp', 'raw', 'http', 'grpc', 'httpupgrade', 'splithttp'].indexOf(this.network) !== -1;
         //return this.network === "tcp";
     }
 
@@ -1309,11 +1320,23 @@ class Inbound extends XrayCommonClass {
         let path = '';
         let authority = '';
         let sni = '';
+        let mode = '';
         if (network === 'tcp') {
             let tcp = this.stream.tcp;
             type = tcp.type;
             if (type === 'http') {
                 let request = tcp.request;
+                path = request.path.join(',');
+                let index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (index >= 0) {
+                    host = request.headers[index].value;
+                }
+            }
+        } else if (network === 'raw') {
+            let raw = this.stream.raw;
+            type = raw.type;
+            if (type === 'http') {
+                let request = raw.request;
                 path = request.path.join(',');
                 let index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
                 if (index >= 0) {
@@ -1379,7 +1402,7 @@ class Inbound extends XrayCommonClass {
             type: type,
             host: host,
             path: path,
-            mode: mode,
+            ...(network === 'splithttp' && { mode: mode }),
             authority: authority,
             tls: this.stream.security,
             sni: sni,
@@ -1405,6 +1428,18 @@ class Inbound extends XrayCommonClass {
                 const tcp = this.stream.tcp;
                 if (tcp.type === 'http') {
                     const request = tcp.request;
+                    params.set("path", request.path.join(','));
+                    const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                    if (index >= 0) {
+                        const host = request.headers[index].value;
+                        params.set("host", host);
+                    }
+                }
+                break;
+            case "raw":
+                const raw = this.stream.raw;
+                if (raw.type === 'http') {
+                    const request = raw.request;
                     params.set("path", request.path.join(','));
                     const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
                     if (index >= 0) {
@@ -1479,6 +1514,9 @@ class Inbound extends XrayCommonClass {
             if (type === "tcp" && this.settings.vlesses[0].flow.length > 0) {
                 params.set("flow", this.settings.vlesses[0].flow);
             }
+            if (type === "raw" && this.settings.vlesses[0].flow.length > 0) {
+                params.set("flow", this.settings.vlesses[0].flow);
+            }
         }
 
         if (this.stream.security === 'reality') {
@@ -1493,7 +1531,9 @@ class Inbound extends XrayCommonClass {
             if (this.stream.network === 'tcp') {
                 params.set("flow", this.settings.vlesses[0].flow);
             }
-
+            if (this.stream.network === 'raw') {
+                params.set("flow", this.settings.vlesses[0].flow);
+            }
             // var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
             // var index1 = Math.floor(Math.random() * shortIds1.length);
             // var value1 = shortIds1[index1];
@@ -1524,6 +1564,19 @@ class Inbound extends XrayCommonClass {
                 const tcp = this.stream.tcp;
                 if (tcp.type === 'http') {
                     const request = tcp.request;
+                    params.set("path", request.path.join(','));
+                    const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                    if (index >= 0) {
+                        const host = request.headers[index].value;
+                        params.set("host", host);
+                    }
+                    params.set("headerType", 'http');
+                }
+                break;
+            case "raw":
+                const raw = this.stream.raw;
+                if (raw.type === 'http') {
+                    const request = raw.request;
                     params.set("path", request.path.join(','));
                     const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
                     if (index >= 0) {
@@ -1644,6 +1697,18 @@ class Inbound extends XrayCommonClass {
                     }
                 }
                 break;
+                case "raw":
+                    const raw = this.stream.raw;
+                    if (raw.type === 'http') {
+                        const request = raw.request;
+                        params.set("path", request.path.join(','));
+                        const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                        if (index >= 0) {
+                            const host = request.headers[index].value;
+                            params.set("host", host);
+                        }
+                    }
+                    break;
             case "kcp":
                 const kcp = this.stream.kcp;
                 params.set("headerType", kcp.type);

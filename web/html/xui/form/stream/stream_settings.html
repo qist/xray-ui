@@ -4,6 +4,7 @@
     <a-form-item label="传输">
         <a-select v-model="inbound.stream.network" @change="streamNetworkChange" style="width: 130px;">
             <a-select-option value="tcp">tcp</a-select-option>
+            <a-select-option value="raw">raw</a-select-option>
             <a-select-option value="kcp">kcp</a-select-option>
             <a-select-option value="ws">ws</a-select-option>
             <a-select-option value="http">http</a-select-option>
@@ -17,6 +18,11 @@
 <!-- tcp -->
 <template v-if="inbound.stream.network === 'tcp'">
     {{template "form/streamTCP"}}
+</template>
+
+<!-- tcp -->
+<template v-if="inbound.stream.network === 'raw'">
+    {{template "form/streamRaw"}}
 </template>
 
 <!-- kcp -->

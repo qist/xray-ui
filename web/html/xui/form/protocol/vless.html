@@ -4,7 +4,7 @@
         <a-input v-model.trim="inbound.settings.vlesses[0].id"></a-input>
     </a-form-item>
 
-    <a-form-item v-if="inbound.tls && inbound.isTcp" label="flow">
+    <a-form-item v-if="inbound.tls && inbound.isTcp || inbound.tls && inbound.isRaw " label="flow">
         <a-select v-model="inbound.settings.vlesses[0].flow" style="width: 180px">
             <a-select-option value="">无</a-select-option>
             <a-select-option v-for="key in FLOW_VISION" :value="key">[[ key ]]</a-select-option>

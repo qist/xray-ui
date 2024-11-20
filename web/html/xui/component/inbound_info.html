@@ -1,7 +1,7 @@
 {{define "inboundInfoStream"}}
 <p>传输: <a-tag color="green">[[ inbound.network ]]</a-tag></p>
 
-<template v-if="inbound.isTcp || inbound.isWs || inbound.isH2">
+<template v-if="inbound.isTcp ||inbound.isRaw|| inbound.isWs || inbound.isH2">
     <p v-if="inbound.host">host: <a-tag color="green">[[ inbound.host ]]</a-tag></p>
     <p v-else>host: <a-tag color="orange">无</a-tag></p>
 
