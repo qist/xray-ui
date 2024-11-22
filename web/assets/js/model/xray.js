@@ -538,6 +538,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             cMaxLifetimeMs: 0
         },
         mode = MODE_OPTION.AUTO,
+        noGRPCHeader = false,
     ) {
         super();
         this.path = path;
@@ -550,6 +551,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
         this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);
         this.xmux = xmux;
         this.mode = mode;
+        this.noGRPCHeader = noGRPCHeader;
     }
 
     addHeader(name, value) {
@@ -579,6 +581,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             json.xPaddingBytes,
             json.xmux,
             json.mode,
+            json.noGRPCHeader,        
         );
     }
 
@@ -603,6 +606,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
             xPaddingBytes: RandomUtil.convertXPaddingBytes(this.xPaddingBytes),
             xmux: xmuxData,
             mode: this.mode,
+            noGRPCHeader: this.noGRPCHeader,
         };
     }
 }
