@@ -119,7 +119,7 @@ firewall-cmd --list-all
 
 <details>
   <summary>点击查看SSL证书详情</summary>
-  
+
 ### ACME
 使用ACME管理SSL证书：
 
@@ -504,8 +504,13 @@ server {
 https://github.com/qist/xray/tree/main/xray/nginx
 ```
 </details>
+
 --------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### 关于TG通知（上游内容）
+
+<details>
+  <summary>点击查看 关于TG通知</summary>
 
 使用说明:在面板后台设置机器人相关参数
 
@@ -550,3 +555,5 @@ Tg机器人ChatId
 /version 0.1.1.1 xray升级到1.6.0版本
 
 /help 获取帮助信息
+
+</details>
