@@ -18,6 +18,9 @@
     
 ### VPS 安全加固 建议
 
+<details>
+  <summary>点击查看 VPS 安全加固 建议</summary>
+
 1、保持内核版本更新修复内核级别漏洞 
 
 2、开启防火墙千万别裸奔
@@ -89,6 +92,7 @@ firewall-cmd --reload
 # 查看规则
 firewall-cmd --list-all
 ```
+</details>
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 更新日志：
@@ -110,6 +114,75 @@ firewall-cmd --list-all
 2023.4.24 添加一键更新geoip,geosite 添加geoip,geosite 更新版本号
 
 2023.4.23 添加docker镜像
+
+### ACME
+
+使用ACME管理SSL证书：
+
+1. 确保您的域名正确解析到服务器。
+2. 在终端中运行 `xray-ui` 命令，然后选择 `SSL证书管理`。
+3. 您将看到以下选项：
+
+   - **获取 SSL:** 获取SSL证书。
+   - **撤销证书:** 吊销现有的SSL证书。
+   - **强制续期:** 强制更新SSL证书。
+
+### Certbot
+
+安装并使用Certbot：
+
+```bash
+apt-get install certbot -y
+certbot certonly --standalone --agree-tos --register-unsafely-without-email -d yourdomain.com
+certbot renew --dry-run
+```
+
+### Cloudflare
+
+管理脚本内置了Cloudflare的SSL证书申请。要使用此脚本申请证书，您需要以下信息：
+
+- Cloudflare注册的电子邮件
+- Cloudflare全局API密钥
+- 域名必须通过Cloudflare解析到当前服务器
+
+**如何获取Cloudflare全局API密钥：**
+
+1. 在终端中运行 `xray-ui` 命令，然后选择 `Cloudflare SSL证书`。
+2. 访问链接：[Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)。
+3. 点击“查看全局API密钥”（参见下图）：
+   ![](media/APIKey1.PNG)
+4. 您可能需要重新验证您的账户。之后将显示API密钥（参见下图）：
+   ![](media/APIKey2.png)
+
+使用时，只需输入您的 `域名`、`电子邮件` 和 `API密钥`。如下图所示：
+   ![](media/DetailEnter.png)
+
+### xray-ui 配置ssl证书
+```bash
+xray-ui  选择22
+输入证书路径跟密钥路径
+手动配置证书
+/usr/local/xray-ui/xray-ui  /app/xray-ui  cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem
+清理证书不输入任何东西直接回车
+重启xray-ui
+xray-ui  选择10
+
+```
+### xray-ui 配置mTLS
+```bash
+xray-ui  选择23
+输入证书路径跟密钥路径CA路径
+手动配置证书
+/usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem -webCa /root/cert/ca.cer
+清理证书不输入任何东西直接回车
+重启xray-ui
+xray-ui  选择10
+```
+</details>
+
+### docker运行
+<details>
+  <summary>点击查看 docker运行</summary>
 
 ```bash
 # juestnow/xray-ui:latest 最新版本 指定版本号docker pull juestnow/xray-ui:1.8.6
@@ -133,8 +206,12 @@ docker exec -ti xray-ui  /app/xray-ui cert -webCert /root/cert/你的域名/full
 ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)
 浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)
 ```
+</details>
 
 ### 第一次访问
+
+<details>
+  <summary>点击查看 手动安装</summary>
 
 ```bash
 当前面板http只支持127.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书
@@ -150,6 +227,7 @@ putty 配置：https://knowledge.exlibrisgroup.com/Voyager/Knowledge_Articles/Se
 SecureCRT  配置：https://www.vandyke.com/support/tips/socksproxy.html
 windows openssh 配置： https://www.cnblogs.com/managechina/p/18189889
 ```
+</details>
 
 2023.4.20 添加 配置文件下载本地，DB文件下载到本地，更新依赖到最新！
 
@@ -178,6 +256,9 @@ windows openssh 配置： https://www.cnblogs.com/managechina/p/18189889
 -------------------------------------------------------------------------------------------------------------------------------------------------
 ### 手动安装
 
+<details>
+  <summary>点击查看 手动安装</summary>
+
 ```bash
 # 下载 
 wget  --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://github.com/qist/xray-ui/releases/latest/download/xray-ui-linux-amd64.tar.gz
@@ -199,6 +280,7 @@ wget  --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://gi
     # 设置端口
    /usr/local/xray-ui/xray-ui setting -port  5432
 ```
+</details>
 
 ### VPS直接运行一键脚本
 
@@ -206,6 +288,9 @@ wget  --no-check-certificate -O /usr/local/xray-ui-linux-amd64.tar.gz https://gi
 bash <(curl -Ls  https://raw.githubusercontent.com/qist/xray-ui/main/install.sh)
 ```
 #### 编译
+
+<details>
+  <summary>点击查看 编译</summary>
 
 ```bash
 git clone https://github.com/qist/xray-ui.git
@@ -226,9 +311,13 @@ debian/ubuntu解决方案
 apt install gcc-aarch64-linux-gnu
 CGO_ENABLED=1 GOARCH=arm64 CC="aarch64-linux-gnu-gcc" go build -o xray-ui/xray-ui  -ldflags '-linkmode "external" -extldflags "-static"' main.go 
 ```
+</details>
 
 --------------------------------------------------------------------------------------------------------------------------------------------------
 ### nginx 代理设置
+
+<details>
+  <summary>点击查看 反向代理配置</summary>
 
 ```nginx
 upstream xray-ui {
@@ -410,7 +499,7 @@ server {
  # vpn代理nginx 配置参考
 https://github.com/qist/xray/tree/main/xray/nginx
 ```
-
+</details>
 --------------------------------------------------------------------------------------------------------------------------------------------------
 ### 关于TG通知（上游内容）
 
