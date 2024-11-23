@@ -166,7 +166,7 @@ certbot renew --dry-run
 xray-ui  选择22
 输入证书路径跟密钥路径
 手动配置证书
-/usr/local/xray-ui/xray-ui  /app/xray-ui  cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem
+/usr/local/xray-ui/xray-ui  cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem
 清理证书不输入任何东西直接回车
 重启xray-ui
 xray-ui  选择10
