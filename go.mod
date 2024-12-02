@@ -12,7 +12,7 @@ require (
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shirou/gopsutil/v3 v3.24.5
-	github.com/xtls/xray-core v1.8.25-0.20241121054707-513f18bf531e
+	github.com/xtls/xray-core v1.8.25-0.20241201231301-03d7d07c5b77
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.29.0
 	golang.org/x/text v0.20.0

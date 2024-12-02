@@ -371,8 +371,12 @@ func (s *Server) Start() (err error) {
 	}
 	if certFile == "" || keyFile == "" {
 		// If any of the files are empty, override `listen` to use "127.0.0.1"
-		listen = "127.0.0.1"
+		if !isInternalIP(listen) {
+			// If not internal, fallback to "127.0.0.1"
+			listen = "127.0.0.1"
+		}
 	}
+	
 	listenAddr := net.JoinHostPort(listen, strconv.Itoa(port))
 	listener, err := net.Listen("tcp", listenAddr)
 	if err != nil {
@@ -488,4 +492,15 @@ func (s *Server) GetCtx() context.Context {
 
 func (s *Server) GetCron() *cron.Cron {
 	return s.cron
+}
+
+func isInternalIP(ip string) bool {
+	if strings.HasPrefix(ip, "127.") || // Loopback
+		strings.HasPrefix(ip, "10.") || // Class A
+		strings.HasPrefix(ip, "192.168.") || // Class C
+		(ip >= "172.16.0.0" && ip <= "172.31.255.255") || // Class B
+		(ip >= "100.64.0.0" && ip <= "100.127.255.255") { // Shared Address Space
+		return true
+	}
+	return false
 }

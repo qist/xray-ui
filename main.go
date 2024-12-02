@@ -98,6 +98,10 @@ func showSetting(show bool) {
 		if err != nil {
 			fmt.Println("get current port fialed,error info:", err)
 		}
+		listen, err := settingService.GetListen()
+		if err != nil {
+			fmt.Println("get current listen fialed,error info:", err)
+		}
 		webBasePath, err := settingService.GetBasePath()
 		if err != nil {
 			fmt.Println("get webBasePath failed, error info:", err)
@@ -128,6 +132,7 @@ func showSetting(show bool) {
 		fmt.Println("登录用户名:", username)
 		fmt.Println("登录密码:", userpasswd)
 		fmt.Println("登录端口:", port)
+		fmt.Println("监听地址:", listen)
 		if webBasePath != "" {
 			fmt.Println("Web 路径:", webBasePath)
 		} else {
