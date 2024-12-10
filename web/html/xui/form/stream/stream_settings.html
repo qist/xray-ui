@@ -10,7 +10,7 @@
             <a-select-option value="http">http</a-select-option>
             <a-select-option value="grpc">grpc</a-select-option>
             <a-select-option value="httpupgrade">HTTPUpgrade</a-select-option>
-            <a-select-option value="splithttp">SplitHTTP</a-select-option>
+            <a-select-option value="xhttp">xHTTP</a-select-option>
         </a-select>
     </a-form-item>
 </a-form>
@@ -50,9 +50,9 @@
     {{template "form/streamHTTPUpgrade"}}
 </template>
 
-<!-- splithttp -->
-<template v-if="inbound.stream.network === 'splithttp'">
-    {{template "form/streamSplitHTTP"}}
+<!-- xhttp -->
+<template v-if="inbound.stream.network === 'xhttp'">
+    {{template "form/streamXHTTP"}}
 </template>
 <!-- sockopt -->
 <template>

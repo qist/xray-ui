@@ -117,6 +117,7 @@ const MODE_OPTION = {
     AUTO: "auto",
     PACKET_UP: "packet-up",
     STREAM_UP: "stream-up",
+    STREAM_ONE: "stream-one",
 };
 
 Object.freeze(Protocols);
@@ -521,7 +522,7 @@ class HttpUpgradeStreamSettings extends XrayCommonClass {
     }
 }
 
-class SplitHTTPStreamSettings extends XrayCommonClass {
+class xHTTPStreamSettings extends XrayCommonClass {
     constructor(
         path = '/',
         host = '',
@@ -532,9 +533,9 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
         noSSEHeader = false,
         xPaddingBytes = "100-1000",
         xmux = {
-            maxConnections: '',
-            maxConcurrency: '',
-            cMaxReuseTimes: 0,
+            maxConnections: '16-32',
+            maxConcurrency: 0,
+            cMaxReuseTimes: '64-128',
             cMaxLifetimeMs: 0
         },
         mode = MODE_OPTION.AUTO,
@@ -570,7 +571,7 @@ class SplitHTTPStreamSettings extends XrayCommonClass {
     }
 
     static fromJson(json = {}) {
-        return new SplitHTTPStreamSettings(
+        return new xHTTPStreamSettings(
             json.path,
             json.host,
             XrayCommonClass.toHeaders(json.headers),
@@ -908,7 +909,7 @@ class StreamSettings extends XrayCommonClass {
         httpSettings = new HttpStreamSettings(),
         grpcSettings = new GrpcStreamSettings(),
         httpupgradeSettings = new HttpUpgradeStreamSettings(),
-        splithttpSettings = new SplitHTTPStreamSettings(),
+        xhttpSettings = new xHTTPStreamSettings(),
         sockopt = undefined,
     ) {
         super();
@@ -923,7 +924,7 @@ class StreamSettings extends XrayCommonClass {
         this.http = httpSettings;
         this.grpc = grpcSettings;
         this.httpupgrade = httpupgradeSettings;
-        this.splithttp = splithttpSettings;
+        this.xhttp = xhttpSettings;
         this.sockopt = sockopt;
     }
 
@@ -972,7 +973,7 @@ class StreamSettings extends XrayCommonClass {
             HttpStreamSettings.fromJson(json.httpSettings),
             GrpcStreamSettings.fromJson(json.grpcSettings),
             HttpUpgradeStreamSettings.fromJson(json.httpupgradeSettings),
-            SplitHTTPStreamSettings.fromJson(json.splithttpSettings),
+            xHTTPStreamSettings.fromJson(json.xhttpSettings),
             SockoptStreamSettings.fromJson(json.sockopt),
         );
     }
@@ -991,7 +992,7 @@ class StreamSettings extends XrayCommonClass {
             httpSettings: network === 'http' ? this.http.toJson() : undefined,
             grpcSettings: network === 'grpc' ? this.grpc.toJson() : undefined,
             httpupgradeSettings: network === 'httpupgrade' ? this.httpupgrade.toJson() : undefined,
-            splithttpSettings: network === 'splithttp' ? this.splithttp.toJson() : undefined,
+            xhttpSettings: network === 'xhttp' ? this.xhttp.toJson() : undefined,
             sockopt: this.sockopt != undefined ? this.sockopt.toJson() : undefined,
         };
     }
@@ -1109,8 +1110,8 @@ class Inbound extends XrayCommonClass {
     get isHttpupgrade() {
         return this.network === "httpupgrade";
     }
-    get isSplithttp() {
-        return this.network === "splithttp";
+    get isXHTTP() {
+        return this.network === "xhttp";
     }
     // VMess & VLess
     get uuid() {
@@ -1190,8 +1191,8 @@ class Inbound extends XrayCommonClass {
             return this.stream.http.host[0];
         } else if (this.isHttpupgrade) {
             return this.stream.httpupgrade.host;
-        } else if (this.isSplithttp) {
-            return this.stream.splithttp.host;
+        } else if (this.isXHTTP) {
+            return this.stream.xhttp.host;
         }
         return null;
     }
@@ -1207,8 +1208,8 @@ class Inbound extends XrayCommonClass {
             return this.stream.http.path[0];
         } else if (this.isHttpupgrade) {
             return this.stream.httpupgrade.path;
-        } else if (this.isSplithttp) {
-            return this.stream.splithttp.path;
+        } else if (this.isXHTTP) {
+            return this.stream.xhttp.path;
         }
         return null;
     }
@@ -1243,7 +1244,7 @@ class Inbound extends XrayCommonClass {
             case "http":
             case "grpc":
             case "httpupgrade":
-            case "splithttp":
+            case "xhttp":
                 return true;
             default:
                 return false;
@@ -1262,7 +1263,7 @@ class Inbound extends XrayCommonClass {
             default:
                 return false;
         }
-        return ['tcp', 'raw', 'http', 'grpc', 'httpupgrade', 'splithttp'].indexOf(this.network) !== -1;
+        return ['tcp', 'raw', 'http', 'grpc', 'httpupgrade', 'xhttp'].indexOf(this.network) !== -1;
         //return this.network === "tcp";
     }
 
@@ -1376,15 +1377,15 @@ class Inbound extends XrayCommonClass {
             if (index >= 0) {
                 host = httpupgrade.headers[index].value;
             }
-        } else if (network === 'splithttp') {
-            const splithttp = this.stream.splithttp;
-            path = splithttp.path;
-            host = splithttp.host;
-            let index = splithttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
+        } else if (network === 'xhttp') {
+            const xhttp = this.stream.xhttp;
+            path = xhttp.path;
+            host = xhttp.host;
+            let index = xhttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
             if (index >= 0) {
-                host = splithttp.headers[index].value;
+                host = xhttp.headers[index].value;
             };
-            mode = splithttp.mode;
+            mode = xhttp.mode;
         }
 
         if (this.stream.security === 'tls') {
@@ -1406,7 +1407,7 @@ class Inbound extends XrayCommonClass {
             type: type,
             host: host,
             path: path,
-            ...(network === 'splithttp' && { mode: mode }),
+            ...(network === 'xhttp' && { mode: mode }),
             authority: authority,
             tls: this.stream.security,
             sni: sni,
@@ -1489,16 +1490,16 @@ class Inbound extends XrayCommonClass {
                     params.set("host", host);
                 }
                 break;
-            case "splithttp":
-                const splithttp = this.stream.splithttp;
-                params.set("path", splithttp.path);
-                params.set("host", splithttp.host);
-                const splithttpIndex = splithttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (splithttpIndex >= 0) {
-                    const host = splithttp.headers[splithttpIndex].value;
+            case "xhttp":
+                const xhttp = this.stream.xhttp;
+                params.set("path", xhttp.path);
+                params.set("host", xhttp.host);
+                const xhttpIndex = xhttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (xhttpIndex >= 0) {
+                    const host = xhttp.headers[xhttpIndex].value;
                     params.set("host", host);
                 };
-                params.set("mode", splithttp.mode);
+                params.set("mode", xhttp.mode);
                 break;
         }
 
@@ -1627,16 +1628,16 @@ class Inbound extends XrayCommonClass {
                     params.set("host", host);
                 }
                 break;
-            case "splithttp":
-                const splithttp = this.stream.splithttp;
-                params.set("path", splithttp.path);
-                params.set("host", splithttp.host);
-                const splithttpIndex = splithttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (splithttpIndex >= 0) {
-                    const host = splithttp.headers[splithttpIndex].value;
+            case "xhttp":
+                const xhttp = this.stream.xhttp;
+                params.set("path", xhttp.path);
+                params.set("host", xhttp.host);
+                const xhttpIndex = xhttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (xhttpIndex >= 0) {
+                    const host = xhttp.headers[xhttpIndex].value;
                     params.set("host", host);
                 };
-                params.set("mode", splithttp.mode);
+                params.set("mode", xhttp.mode);
                 break;
         }
 
@@ -1750,16 +1751,16 @@ class Inbound extends XrayCommonClass {
                     params.set("host", host);
                 }
                 break;
-            case "splithttp":
-                const splithttp = this.stream.splithttp;
-                params.set("path", splithttp.path);
-                params.set("host", splithttp.host);
-                const splithttpIndex = splithttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (splithttpIndex >= 0) {
-                    const host = splithttp.headers[splithttpIndex].value;
+            case "xhttp":
+                const xhttp = this.stream.xhttp;
+                params.set("path", xhttp.path);
+                params.set("host", xhttp.host);
+                const xhttpIndex = xhttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                if (xhttpIndex >= 0) {
+                    const host = xhttp.headers[xhttpIndex].value;
                     params.set("host", host);
                 };
-                params.set("mode", splithttp.mode);
+                params.set("mode", xhttp.mode);
                 break;
         }
 

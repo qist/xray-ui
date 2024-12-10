@@ -1,22 +1,22 @@
-{{define "form/streamSplitHTTP"}}
+{{define "form/streamXHTTP"}}
 <a-form :colon="false" :label-col="{ md: {span:8} }" :wrapper-col="{ md: {span:14} }">
     <a-form-item label='host'>
-        <a-input v-model.trim="inbound.stream.splithttp.host"></a-input>
+        <a-input v-model.trim="inbound.stream.xhttp.host"></a-input>
     </a-form-item>
     <a-form-item label='path'>
-        <a-input v-model.trim="inbound.stream.splithttp.path"></a-input>
+        <a-input v-model.trim="inbound.stream.xhttp.path"></a-input>
     </a-form-item>
     <a-form-item label="请求头">
         <a-row>
-            <a-button size="small" @click="inbound.stream.splithttp.addHeader('Host', '')">
+            <a-button size="small" @click="inbound.stream.xhttp.addHeader('Host', '')">
                 +
             </a-button>
         </a-row>
-        <a-input-group v-for="(header, index) in inbound.stream.splithttp.headers">
+        <a-input-group v-for="(header, index) in inbound.stream.xhttp.headers">
             <a-input style="width: 50%" v-model.trim="header.name" addon-before="名称"></a-input>
             <a-input style="width: 50%" v-model.trim="header.value" addon-before="值">
                 <template slot="addonAfter">
-                    <a-button size="small" @click="inbound.stream.splithttp.removeHeader(index)">
+                    <a-button size="small" @click="inbound.stream.xhttp.removeHeader(index)">
                         -
                     </a-button>
                 </template>
@@ -24,21 +24,21 @@
         </a-input-group>
     </a-form-item>
     <a-form-item label="Mode">
-        <a-select v-model="inbound.stream.splithttp.mode" style="width: 50%">
+        <a-select v-model="inbound.stream.xhttp.mode" style="width: 50%">
             <a-select-option v-for="key in MODE_OPTION" :value="key">[[ key ]]</a-select-option>
             </a-se-chlect>
     </a-form-item>
     <a-form-item label="Max Concurrent Upload">
-        <a-input-number v-model="inbound.stream.splithttp.scMaxConcurrentPosts" :min="0"></a-input-number>
+        <a-input-number v-model="inbound.stream.xhttp.scMaxConcurrentPosts" :min="0"></a-input-number>
     </a-form-item>
     <a-form-item label="Max Upload Size (Byte)">
-        <a-input-number v-model="inbound.stream.splithttp.scMaxEachPostBytes" :min="0"></a-input-number>
+        <a-input-number v-model="inbound.stream.xhttp.scMaxEachPostBytes" :min="0"></a-input-number>
     </a-form-item>
     <a-form-item label="Min Upload Interval (Ms)">
-        <a-input-number v-model="inbound.stream.splithttp.scMinPostsIntervalMs" :min="0"></a-input-number>
+        <a-input-number v-model="inbound.stream.xhttp.scMinPostsIntervalMs" :min="0"></a-input-number>
     </a-form-item>
     <a-form-item label="No SSE Header">
-        <a-switch v-model="inbound.stream.splithttp.noSSEHeader"></a-switch>
+        <a-switch v-model="inbound.stream.xhttp.noSSEHeader"></a-switch>
     </a-form-item>
     <a-form-item>
         <span slot="label">
@@ -51,47 +51,47 @@
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
         </span>
-        <a-input v-model.trim="inbound.stream.splithttp.xPaddingBytes" style="width: 100px"></a-input>
+        <a-input v-model.trim="inbound.stream.xhttp.xPaddingBytes" style="width: 100px"></a-input>
     </a-form-item>
 
-    <a-form-item>
+    <a-form-item v-if="!inbound.stream.xhttp.xmux.maxConcurrency">
         <span slot="label">
-            Max Connections
+            Max Connections 
             <a-tooltip>
                 <template slot="title">
                     maxConnections: 默认值为空 为0(即无限) 要打开的最大连接数，连接达到此值前核心会积极打开连接，对每一条流都新建一个连接，直到达到该值。
                     然后核心会开始复用已经建立的连接。 与 maxConcurrency 冲突。
-                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法
+                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法 [删除里面内容可选择maxConcurrency]
                 </template>
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
         </span>
-        <a-input v-model.trim="inbound.stream.splithttp.xmux.maxConnections" style="width: 100px"></a-input>
+        <a-input v-model.trim="inbound.stream.xhttp.xmux.maxConnections" style="width: 100px"></a-input>
     </a-form-item>
 
-    <a-form-item>
+    <a-form-item v-if="!inbound.stream.xhttp.xmux.maxConnections">
         <span slot="label">
-            Max Concurrency
+            Max Concurrency  
             <a-tooltip>
                 <template slot="title">
                     maxConcurrency: 默认值为空 为0(即无限) 每个连接中复用的流的最大数量，连接中流的数量达到该值后核心会新建更多连接以容纳更多的流，
                     类似于 mux.cool 的 concurrency. 与 maxConnections 冲突。
-                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法
+                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法 [删除里面内容可选择maxConnections]
                 </template>
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
         </span>
-        <a-input v-model.trim="inbound.stream.splithttp.xmux.maxConcurrency" style="width: 100px"></a-input>
+        <a-input v-model.trim="inbound.stream.xhttp.xmux.maxConcurrency" style="width: 100px"></a-input>
     </a-form-item>
 
     <a-form-item label="Max Reuse Times">
-        <a-input v-model.trim="inbound.stream.splithttp.xmux.cMaxReuseTimes" style="width: 100px"></a-input>
+        <a-input v-model.trim="inbound.stream.xhttp.xmux.cMaxReuseTimes" style="width: 100px"></a-input>
     </a-form-item>
     <a-form-item label="Max Lifetime (ms)">
-        <a-input v-model.trim="inbound.stream.splithttp.xmux.cMaxLifetimeMs" style="width: 100px"></a-input>
+        <a-input v-model.trim="inbound.stream.xhttp.xmux.cMaxLifetimeMs" style="width: 100px"></a-input>
     </a-form-item>
     <a-form-item label="No gRPC Header">
-        <a-switch v-model="inbound.stream.splithttp.noGRPCHeader"></a-switch>
+        <a-switch v-model="inbound.stream.xhttp.noGRPCHeader"></a-switch>
     </a-form-item>
 </a-form>
 {{end}}
