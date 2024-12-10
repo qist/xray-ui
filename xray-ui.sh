@@ -736,12 +736,12 @@ ssl_cert_issue() {
     ~/.acme.sh/acme.sh --upgrade --auto-upgrade
     if [ $? -ne 0 ]; then
         LOGE "自动续期失败，证书详情如下:"
-        ls -lah cert/*
+        ls -lah $certPath/*
         chmod 755 $certPath/*
         exit 1
     else
         LOGI "自动续期成功，证书详情如下:"
-        ls -lah cert/*
+        ls -lah $certPath/*
         chmod 755 $certPath/*
     fi
 }
@@ -811,12 +811,12 @@ ssl_cert_issue_CF() {
         ~/.acme.sh/acme.sh --upgrade --auto-upgrade
         if [ $? -ne 0 ]; then
             LOGE "自动更新设置失败，脚本退出..."
-            ls -lah cert
+            ls -lah $certPath
             chmod 755 $certPath
             exit 1
         else
             LOGI "证书已安装并开启自动更新，具体信息如下:"
-            ls -lah cert
+            ls -lah $certPath
             chmod 755 $certPath
         fi
     else
