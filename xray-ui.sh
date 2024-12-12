@@ -730,7 +730,14 @@ ssl_cert_issue() {
         exit 1
     else
         LOGI "证书安装成功，开启自动续期..."
-        LOGE "最后记得给xray-ui配置证书， 选择22 重置ssl证书"
+        confirm "是否自动应用ssl?[y/n]" "y"
+        if [ $? -eq 0 ]; then
+           /usr/local/xray-ui/xray-ui cert -webCert "/root/cert/${domain}/fullchain.pem" -webCertKey "/root/cert/${domain}/privkey.pem"
+           confirm_restart
+        else
+          LOGE "手动重置ssl"
+          LOGE "xray-ui 选择22 重置ssl证书"
+        fi
     fi
 
     ~/.acme.sh/acme.sh --upgrade --auto-upgrade
@@ -806,7 +813,14 @@ ssl_cert_issue_CF() {
             exit 1
         else
             LOGI "证书安装成功，开启自动更新..."
-            LOGE "最后记得给xray-ui配置证书， 选择22 重置ssl证书"
+            confirm "是否自动应用ssl?[y/n]" "y"
+            if [ $? -eq 0 ]; then
+               /usr/local/xray-ui/xray-ui cert -webCert "/root/cert/fullchain.cer" -webCertKey "/root/cert/${CF_Domain}.key"
+               confirm_restart
+            else
+              LOGE "手动重置ssl"
+              LOGE "xray-ui  选择22 重置ssl证书"
+           fi
         fi
         ~/.acme.sh/acme.sh --upgrade --auto-upgrade
         if [ $? -ne 0 ]; then
