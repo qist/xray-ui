@@ -14,10 +14,10 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/xtls/xray-core v1.8.25-0.20241207144338-9cb6816383dd
 	go.uber.org/atomic v1.11.0
-	golang.org/x/crypto v0.30.0
+	golang.org/x/crypto v0.31.0
 	golang.org/x/text v0.21.0
 	google.golang.org/grpc v1.68.1
-	gorm.io/driver/sqlite v1.5.6
+	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )
 
