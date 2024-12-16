@@ -28,6 +28,9 @@
             <a-select-option v-for="key in MODE_OPTION" :value="key">[[ key ]]</a-select-option>
             </a-se-chlect>
     </a-form-item>
+    <a-form-item label='keep-Alive Period'>
+        <a-input-number v-model.number="inbound.stream.xhttp.keepAlivePeriod"></a-input-number>
+    </a-form-item>
     <a-form-item label="Max Concurrent Upload">
         <a-input-number v-model="inbound.stream.xhttp.scMaxConcurrentPosts" :min="0"></a-input-number>
     </a-form-item>

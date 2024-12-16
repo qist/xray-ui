@@ -7,7 +7,6 @@
             <a-select-option value="raw">raw</a-select-option>
             <a-select-option value="kcp">kcp</a-select-option>
             <a-select-option value="ws">ws</a-select-option>
-            <a-select-option value="http">http</a-select-option>
             <a-select-option value="grpc">grpc</a-select-option>
             <a-select-option value="httpupgrade">HTTPUpgrade</a-select-option>
             <a-select-option value="xhttp">xHTTP</a-select-option>
@@ -33,11 +32,6 @@
 <!-- ws -->
 <template v-if="inbound.stream.network === 'ws'">
     {{template "form/streamWS"}}
-</template>
-
-<!-- http -->
-<template v-if="inbound.stream.network === 'http'">
-    {{template "form/streamHTTP"}}
 </template>
 
 <!-- grpc -->

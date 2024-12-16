@@ -415,39 +415,6 @@ class WsStreamSettings extends XrayCommonClass {
     }
 }
 
-class HttpStreamSettings extends XrayCommonClass {
-    constructor(path = '/', host = ['']) {
-        super();
-        this.path = path;
-        this.host = host.length === 0 ? [''] : host;
-    }
-
-    addHost(host) {
-        this.host.push(host);
-    }
-
-    removeHost(index) {
-        this.host.splice(index, 1);
-    }
-
-    static fromJson(json = {}) {
-        return new HttpStreamSettings(json.path, json.host);
-    }
-
-    toJson() {
-        let host = [];
-        for (let i = 0; i < this.host.length; ++i) {
-            if (!ObjectUtil.isEmpty(this.host[i])) {
-                host.push(this.host[i]);
-            }
-        }
-        return {
-            path: this.path,
-            host: host,
-        }
-    }
-}
-
 class GrpcStreamSettings extends XrayCommonClass {
     constructor(
         serviceName = "",
@@ -540,6 +507,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
         },
         mode = MODE_OPTION.AUTO,
         noGRPCHeader = false,
+        keepAlivePeriod = 45,
     ) {
         super();
         this.path = path;
@@ -553,6 +521,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
         this.xmux = xmux;
         this.mode = mode;
         this.noGRPCHeader = noGRPCHeader;
+        this.keepAlivePeriod = keepAlivePeriod;
     }
 
     addHeader(name, value) {
@@ -582,7 +551,8 @@ class xHTTPStreamSettings extends XrayCommonClass {
             json.xPaddingBytes,
             json.xmux,
             json.mode,
-            json.noGRPCHeader,        
+            json.noGRPCHeader,
+            json.keepAlivePeriod,        
         );
     }
 
@@ -608,6 +578,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
             xmux: xmuxData,
             mode: this.mode,
             noGRPCHeader: this.noGRPCHeader,
+            keepAlivePeriod: this.keepAlivePeriod,
         };
     }
 }
@@ -906,7 +877,6 @@ class StreamSettings extends XrayCommonClass {
         rawSettings = new TcpStreamSettings(),
         kcpSettings = new KcpStreamSettings(),
         wsSettings = new WsStreamSettings(),
-        httpSettings = new HttpStreamSettings(),
         grpcSettings = new GrpcStreamSettings(),
         httpupgradeSettings = new HttpUpgradeStreamSettings(),
         xhttpSettings = new xHTTPStreamSettings(),
@@ -921,7 +891,6 @@ class StreamSettings extends XrayCommonClass {
         this.raw = rawSettings;
         this.kcp = kcpSettings;
         this.ws = wsSettings;
-        this.http = httpSettings;
         this.grpc = grpcSettings;
         this.httpupgrade = httpupgradeSettings;
         this.xhttp = xhttpSettings;
@@ -970,7 +939,6 @@ class StreamSettings extends XrayCommonClass {
             TcpStreamSettings.fromJson(json.rawSettings),
             KcpStreamSettings.fromJson(json.kcpSettings),
             WsStreamSettings.fromJson(json.wsSettings),
-            HttpStreamSettings.fromJson(json.httpSettings),
             GrpcStreamSettings.fromJson(json.grpcSettings),
             HttpUpgradeStreamSettings.fromJson(json.httpupgradeSettings),
             xHTTPStreamSettings.fromJson(json.xhttpSettings),
@@ -989,7 +957,6 @@ class StreamSettings extends XrayCommonClass {
             rawSettings: network === 'raw' ? this.raw.toJson() : undefined,
             kcpSettings: network === 'kcp' ? this.kcp.toJson() : undefined,
             wsSettings: network === 'ws' ? this.ws.toJson() : undefined,
-            httpSettings: network === 'http' ? this.http.toJson() : undefined,
             grpcSettings: network === 'grpc' ? this.grpc.toJson() : undefined,
             httpupgradeSettings: network === 'httpupgrade' ? this.httpupgrade.toJson() : undefined,
             xhttpSettings: network === 'xhttp' ? this.xhttp.toJson() : undefined,
@@ -1104,9 +1071,6 @@ class Inbound extends XrayCommonClass {
         return this.network === "grpc";
     }
 
-    get isH2() {
-        return this.network === "http";
-    }
     get isHttpupgrade() {
         return this.network === "httpupgrade";
     }
@@ -1241,7 +1205,6 @@ class Inbound extends XrayCommonClass {
             case "tcp":
             case "raw":
             case "ws":
-            case "http":
             case "grpc":
             case "httpupgrade":
             case "xhttp":
@@ -1263,7 +1226,7 @@ class Inbound extends XrayCommonClass {
             default:
                 return false;
         }
-        return ['tcp', 'raw', 'http', 'grpc', 'httpupgrade', 'xhttp'].indexOf(this.network) !== -1;
+        return ['tcp', 'raw', 'grpc', 'httpupgrade', 'xhttp'].indexOf(this.network) !== -1;
         //return this.network === "tcp";
     }
 
@@ -1359,10 +1322,6 @@ class Inbound extends XrayCommonClass {
             if (index >= 0) {
                 host = ws.headers[index].value;
             }
-        } else if (network === 'http') {
-            network = 'h2';
-            path = this.stream.http.path;
-            host = this.stream.http.host.join(',');
         } else if (network === 'grpc') {
             path = this.stream.grpc.serviceName;
             authority = this.stream.grpc.authority;
@@ -1466,11 +1425,6 @@ class Inbound extends XrayCommonClass {
                     const host = ws.headers[index].value;
                     params.set("host", host);
                 }
-                break;
-            case "http":
-                const http = this.stream.http;
-                params.set("path", http.path);
-                params.set("host", http.host);
                 break;
             case "grpc":
                 const grpc = this.stream.grpc;
@@ -1605,11 +1559,6 @@ class Inbound extends XrayCommonClass {
                     params.set("host", host);
                 }
                 break;
-            case "http":
-                const http = this.stream.http;
-                params.set("path", http.path);
-                params.set("host", http.host);
-                break;
             case "grpc":
                 const grpc = this.stream.grpc;
                 params.set("serviceName", grpc.serviceName);
@@ -1727,11 +1676,6 @@ class Inbound extends XrayCommonClass {
                     const host = ws.headers[index].value;
                     params.set("host", host);
                 }
-                break;
-            case "http":
-                const http = this.stream.http;
-                params.set("path", http.path);
-                params.set("host", http.host);
                 break;
             case "grpc":
                 const grpc = this.stream.grpc;
