@@ -495,7 +495,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
         host = '',
         headers = [],
         scMaxEachPostBytes = 1000000,
-        scMaxConcurrentPosts = 100,
+        scMaxBufferedPosts = 100,
         scMinPostsIntervalMs = 30,
         noSSEHeader = false,
         xPaddingBytes = "100-1000",
@@ -503,25 +503,25 @@ class xHTTPStreamSettings extends XrayCommonClass {
             maxConnections: '16-32',
             maxConcurrency: 0,
             cMaxReuseTimes: '64-128',
-            cMaxLifetimeMs: 0
+            cMaxLifetimeMs: 0,
+            hMaxRequestTimes: '800-900',
+            hKeepAlivePeriod: 45,
         },
         mode = MODE_OPTION.AUTO,
         noGRPCHeader = false,
-        keepAlivePeriod = 45,
     ) {
         super();
         this.path = path;
         this.host = host;
         this.headers = headers;
         this.scMaxEachPostBytes = scMaxEachPostBytes;
-        this.scMaxConcurrentPosts = scMaxConcurrentPosts;
+        this.scMaxBufferedPosts = scMaxBufferedPosts;
         this.scMinPostsIntervalMs = scMinPostsIntervalMs;
         this.noSSEHeader = noSSEHeader;
         this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);
         this.xmux = xmux;
         this.mode = mode;
         this.noGRPCHeader = noGRPCHeader;
-        this.keepAlivePeriod = keepAlivePeriod;
     }
 
     addHeader(name, value) {
@@ -545,14 +545,13 @@ class xHTTPStreamSettings extends XrayCommonClass {
             json.host,
             XrayCommonClass.toHeaders(json.headers),
             json.scMaxEachPostBytes,
-            json.scMaxConcurrentPosts,
+            json.scMaxBufferedPosts,
             json.scMinPostsIntervalMs,
             json.noSSEHeader,
             json.xPaddingBytes,
             json.xmux,
             json.mode,
-            json.noGRPCHeader,
-            json.keepAlivePeriod,        
+            json.noGRPCHeader,      
         );
     }
 
@@ -566,19 +565,20 @@ class xHTTPStreamSettings extends XrayCommonClass {
         }
         xmuxData.cMaxReuseTimes = RandomUtil.convertXPaddingBytes(this.xmux.cMaxReuseTimes);
         xmuxData.cMaxLifetimeMs = RandomUtil.convertXPaddingBytes(this.xmux.cMaxLifetimeMs);
+        xmuxData.hMaxRequestTimes = RandomUtil.convertXPaddingBytes(this.xmux.hMaxRequestTimes);
+        xmuxData.hKeepAlivePeriod = RandomUtil.convertXPaddingBytes(this.xmux.hKeepAlivePeriod);
         return {
             path: this.path,
             host: this.host,
             headers: XrayCommonClass.toV2Headers(this.headers, false),
             scMaxEachPostBytes: this.scMaxEachPostBytes,
-            scMaxConcurrentPosts: this.scMaxConcurrentPosts,
+            scMaxBufferedPosts: this.scMaxBufferedPosts,
             scMinPostsIntervalMs: this.scMinPostsIntervalMs,
             noSSEHeader: this.noSSEHeader,
             xPaddingBytes: RandomUtil.convertXPaddingBytes(this.xPaddingBytes),
             xmux: xmuxData,
             mode: this.mode,
             noGRPCHeader: this.noGRPCHeader,
-            keepAlivePeriod: this.keepAlivePeriod,
         };
     }
 }
