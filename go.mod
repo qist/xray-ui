@@ -15,7 +15,7 @@ require (
 	github.com/xtls/xray-core v1.8.25-0.20241218133935-cab2fdefd321
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.35.0
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 	google.golang.org/grpc v1.70.0
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
