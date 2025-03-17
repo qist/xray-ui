@@ -1355,7 +1355,9 @@ class Inbound extends XrayCommonClass {
                 sni = this.stream.tls.settings[0]['serverName'];
             }
         }
-
+        if (address.startsWith('/')) {
+            address = window.location.hostname; // 使用当前域名
+        }
         let obj = {
             v: '2',
             ps: remark,
@@ -1503,6 +1505,10 @@ class Inbound extends XrayCommonClass {
             }
         }
 
+        if (address.startsWith('/')) {
+            address = window.location.hostname; // 使用当前域名
+        }
+
         const link = `vless://${uuid}@${address}:${port}`;
         const url = new URL(link);
         for (const [key, value] of params) {
@@ -1603,8 +1609,9 @@ class Inbound extends XrayCommonClass {
                 }
             }
         }
-
-
+        if (!address || address.startsWith('/')) {
+            address = window.location.hostname; // 使用当前域名
+        }
         if (settings.method == SSMethods.BLAKE3_AES_128_GCM || settings.method == SSMethods.BLAKE3_AES_256_GCM || settings.method == SSMethods.BLAKE3_CHACHA20_POLY1305) {
             const link = `ss://${settings.method}:${settings.password}@${address}:${this.port}#${encodeURIComponent(remark)}`;
 
@@ -1740,6 +1747,9 @@ class Inbound extends XrayCommonClass {
             if (this.stream.reality.fingerprint != "") {
                 params.set("fp", this.stream.reality.fingerprint);
             }
+        }
+        if (address.startsWith('/')) {
+            address = window.location.hostname; // 使用当前域名
         }
         const link = `trojan://${settings.clients[0].password}@${address}:${port}`;
         const url = new URL(link);
