@@ -2,8 +2,6 @@ module xray-ui
 
 go 1.24
 
-toolchain go1.24.1
-
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/Workiva/go-datastructures v1.1.5
@@ -18,7 +16,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.36.0
 	golang.org/x/text v0.23.0
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )
