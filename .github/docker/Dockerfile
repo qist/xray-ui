@@ -1,7 +1,7 @@
 # ========================================================
 # Stage: build
 # ========================================================
-FROM  golang:latest AS build
+FROM  --platform=$BUILDPLATFORM golang:latest AS build
 WORKDIR /app
 ARG TARGETARCH
 
