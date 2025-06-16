@@ -1,7 +1,7 @@
 # ========================================================
 # Stage: build
 # ========================================================
-FROM  golang:1.24.0-alpine AS build
+FROM  golang:latest AS build
 WORKDIR /app
 ARG TARGETARCH
 
@@ -22,7 +22,7 @@ RUN chmod +x  ./DockerInit.sh && \
 # ========================================================
 # Stage: Final Image of xray-ui
 # ========================================================
-FROM alpine
+FROM alpine:latest 
 ENV TZ=Asia/Shanghai
 WORKDIR /app
 
