@@ -48,6 +48,9 @@ var xuiBeginRunTime string
 
 var isTelegramEnable bool
 
+// 预定义 IPv4 私网和回环网段
+var privateIPv4Nets []*net.IPNet
+
 type wrapAssetsFS struct {
 	embed.FS
 }
@@ -158,9 +161,11 @@ func (s *Server) getHtmlTemplate(funcMap template.FuncMap) (*template.Template, 
 }
 
 func (s *Server) initRouter() (*gin.Engine, error) {
+	// 设置 Gin 运行模式
 	if config.IsDebug() {
 		gin.SetMode(gin.DebugMode)
 	} else {
+		// 生产环境禁用日志输出
 		gin.DefaultWriter = io.Discard
 		gin.DefaultErrorWriter = io.Discard
 		gin.SetMode(gin.ReleaseMode)
@@ -168,6 +173,7 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 
 	engine := gin.Default()
 
+	// 读取配置 secret 和 basePath
 	secret, err := s.settingService.GetSecret()
 	if err != nil {
 		return nil, err
@@ -179,24 +185,39 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	}
 	assetsBasePath := basePath + "assets/"
 
+	// 创建 Cookie Store 并设置 Options
 	store := cookie.NewStore(secret)
+	store.Options(sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7,   // 7 天
+		HttpOnly: true,
+		Secure:   false,       // 根据实际是否使用 HTTPS 设为 true 或 false
+		Domain:   "",          // 关键：留空，不设置 Domain，避免 IPv6 地址带 [] 导致浏览器拒绝 Cookie
+	})
 	engine.Use(sessions.Sessions("session", store))
+
+	// 设置 base_path 到 Context，供模板或接口调用
 	engine.Use(func(c *gin.Context) {
 		c.Set("base_path", basePath)
 	})
+
+	// 静态资源缓存头设置
 	engine.Use(func(c *gin.Context) {
 		uri := c.Request.RequestURI
 		if strings.HasPrefix(uri, assetsBasePath) {
-			c.Header("Cache-Control", "max-age=31536000")
+			c.Header("Cache-Control", "max-age=31536000") // 1 年缓存
 		}
 	})
+
+	// 国际化支持初始化
 	err = s.initI18n(engine)
 	if err != nil {
 		return nil, err
 	}
 
+	// 加载页面模板和静态文件
 	if config.IsDebug() {
-		// for develop
+		// 开发环境 - 直接加载文件系统
 		files, err := s.getHtmlFiles()
 		if err != nil {
 			return nil, err
@@ -204,7 +225,7 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		engine.LoadHTMLFiles(files...)
 		engine.StaticFS(basePath+"assets", http.FS(os.DirFS("web/assets")))
 	} else {
-		// for prod
+		// 生产环境 - 加载内嵌模板和静态资源
 		t, err := s.getHtmlTemplate(engine.FuncMap)
 		if err != nil {
 			return nil, err
@@ -213,14 +234,17 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 		engine.StaticFS(basePath+"assets", http.FS(&wrapAssetsFS{FS: assetsFS}))
 	}
 
+	// 分组路由
 	g := engine.Group(basePath)
 
+	// 初始化各控制器
 	s.index = controller.NewIndexController(g)
 	s.server = controller.NewServerController(g)
 	s.xui = controller.NewXUIController(g)
 
 	return engine, nil
 }
+
 
 func (s *Server) initI18n(engine *gin.Engine) error {
 	bundle := i18n.NewBundle(language.SimplifiedChinese)
@@ -373,7 +397,7 @@ func (s *Server) Start() (err error) {
 		// If any of the files are empty, override `listen` to use "127.0.0.1"
 		if !isInternalIP(listen) {
 			// If not internal, fallback to "127.0.0.1"
-			listen = "127.0.0.1"
+			listen = fallbackToLocalhost(listen)
 		}
 	}
 	
@@ -494,13 +518,64 @@ func (s *Server) GetCron() *cron.Cron {
 	return s.cron
 }
 
-func isInternalIP(ip string) bool {
-	if strings.HasPrefix(ip, "127.") || // Loopback
-		strings.HasPrefix(ip, "10.") || // Class A
-		strings.HasPrefix(ip, "192.168.") || // Class C
-		(ip >= "172.16.0.0" && ip <= "172.31.255.255") || // Class B
-		(ip >= "100.64.0.0" && ip <= "100.127.255.255") { // Shared Address Space
+
+
+func init() {
+	for _, cidr := range []string{
+		"10.0.0.0/8",     // A类私网
+		"172.16.0.0/12",  // B类私网
+		"192.168.0.0/16", // C类私网
+		"100.64.0.0/10",  // CGNAT地址段
+		"127.0.0.0/8",    // 回环
+	} {
+		_, netw, err := net.ParseCIDR(cidr)
+		if err == nil {
+			privateIPv4Nets = append(privateIPv4Nets, netw)
+		}
+	}
+}
+
+// isInternalIP 判断是否为私网或回环IP（支持IPv4和IPv6）
+func isInternalIP(ipStr string) bool {
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return false
+	}
+
+	if ip4 := ip.To4(); ip4 != nil {
+		// IPv4 判断是否在私网/回环网段内
+		for _, privateNet := range privateIPv4Nets {
+			if privateNet.Contains(ip4) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// IPv6 判断回环或链路本地地址
+	if ip.IsLoopback() || ip.IsLinkLocalUnicast() {
 		return true
 	}
+
+	// 判断 IPv6 fc00::/7 私网地址段
+	if ip[0]&0xfe == 0xfc {
+		return true
+	}
+
 	return false
+}
+
+// fallbackToLocalhost 根据传入地址返回对应的本地回环地址
+func fallbackToLocalhost(listen string) string {
+	ip := net.ParseIP(listen)
+	if ip == nil {
+		// 无法解析则默认回退 IPv4 回环
+		return "127.0.0.1"
+	}
+	if ip.To4() != nil {
+		// IPv4 回退 IPv4 回环
+		return "127.0.0.1"
+	}
+	// IPv6 回退 IPv6 回环
+	return "::1"
 }

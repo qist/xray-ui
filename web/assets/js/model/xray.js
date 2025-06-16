@@ -1356,7 +1356,19 @@ class Inbound extends XrayCommonClass {
             }
         }
         if (address.startsWith('/')) {
-            address = window.location.hostname; // 使用当前域名
+            let host = window.location.hostname; // hostname 一般不带 []
+
+            // 确保去除方括号（万一）
+            if (host.startsWith('[') && host.endsWith(']')) {
+                host = host.slice(1, -1);
+            }
+
+            address = host;
+        }
+
+        // 这里再做一次清理（保险）
+        if (address.startsWith('[') && address.endsWith(']')) {
+            address = address.slice(1, -1);
         }
         let obj = {
             v: '2',
