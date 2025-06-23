@@ -56,7 +56,7 @@
 
     <a-form-item v-if="!inbound.stream.xhttp.xmux.maxConcurrency">
         <span slot="label">
-            Max Connections 
+            Max Connections
             <a-tooltip>
                 <template slot="title">
                     maxConnections: 默认值为空 为0(即无限) 要打开的最大连接数，连接达到此值前核心会积极打开连接，对每一条流都新建一个连接，直到达到该值。
@@ -71,7 +71,7 @@
 
     <a-form-item v-if="!inbound.stream.xhttp.xmux.maxConnections">
         <span slot="label">
-            Max Concurrency  
+            Max Concurrency
             <a-tooltip>
                 <template slot="title">
                     maxConcurrency: 默认值为空 为0(即无限) 每个连接中复用的流的最大数量，连接中流的数量达到该值后核心会新建更多连接以容纳更多的流，
@@ -82,6 +82,20 @@
             </a-tooltip>
         </span>
         <a-input v-model.trim="inbound.stream.xhttp.xmux.maxConcurrency" style="width: 100px"></a-input>
+    </a-form-item>
+
+    <a-form-item>
+        <span slot="label">
+            Stream Up Server (秒)
+            <a-tooltip>
+                <template slot="title">
+                    默认值 "20-80" 取随机，服务端每隔这段时间就会发 xPaddingBytes 个字节以保活
+                    设置为 -1 以关闭该机制，此时服务端甚至不会及时发 response header，和以前版本的行为相同
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input v-model.trim="inbound.stream.xhttp.scStreamUpServerSecs" style="width: 100px"></a-input>
     </a-form-item>
 
     <a-form-item label="Max Reuse Times">

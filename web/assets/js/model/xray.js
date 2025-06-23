@@ -499,6 +499,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
         scMinPostsIntervalMs = 30,
         noSSEHeader = false,
         xPaddingBytes = "100-1000",
+        scStreamUpServerSecs = "20-80",
         xmux = {
             maxConnections: '16-32',
             maxConcurrency: 0,
@@ -519,6 +520,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
         this.scMinPostsIntervalMs = scMinPostsIntervalMs;
         this.noSSEHeader = noSSEHeader;
         this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);
+        this.scStreamUpServerSecs = RandomUtil.convertXPaddingBytes(scStreamUpServerSecs);
         this.xmux = xmux;
         this.mode = mode;
         this.noGRPCHeader = noGRPCHeader;
@@ -549,6 +551,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
             json.scMinPostsIntervalMs,
             json.noSSEHeader,
             json.xPaddingBytes,
+            json.scStreamUpServerSecs,
             json.xmux,
             json.mode,
             json.noGRPCHeader,      
@@ -576,6 +579,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
             scMinPostsIntervalMs: this.scMinPostsIntervalMs,
             noSSEHeader: this.noSSEHeader,
             xPaddingBytes: RandomUtil.convertXPaddingBytes(this.xPaddingBytes),
+            scStreamUpServerSecs: RandomUtil.convertXPaddingBytes(this.scStreamUpServerSecs),
             xmux: xmuxData,
             mode: this.mode,
             noGRPCHeader: this.noGRPCHeader,
