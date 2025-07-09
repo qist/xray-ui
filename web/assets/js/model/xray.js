@@ -554,7 +554,7 @@ class xHTTPStreamSettings extends XrayCommonClass {
             json.scStreamUpServerSecs,
             json.xmux,
             json.mode,
-            json.noGRPCHeader,      
+            json.noGRPCHeader,
         );
     }
 
@@ -970,25 +970,59 @@ class StreamSettings extends XrayCommonClass {
 }
 
 class Sniffing extends XrayCommonClass {
-    constructor(enabled = true, destOverride = ['http', 'tls', 'quic']) {
+    constructor(
+        enabled = false,
+        destOverride = ['http', 'tls', 'quic', 'fakedns'],
+        metadataOnly = false,
+        domainsExcluded = [],
+        routeOnly = false
+    ) {
         super();
         this.enabled = enabled;
         this.destOverride = destOverride;
+        this.metadataOnly = metadataOnly;
+        this.domainsExcluded = Array.isArray(domainsExcluded)
+            ? domainsExcluded.join('\n')
+            : (typeof domainsExcluded === 'string' ? domainsExcluded : '');
+        this.routeOnly = routeOnly;
     }
 
     static fromJson(json = {}) {
         let destOverride = ObjectUtil.clone(json.destOverride);
         if (!ObjectUtil.isEmpty(destOverride) && !ObjectUtil.isArrEmpty(destOverride)) {
             if (ObjectUtil.isEmpty(destOverride[0])) {
-                destOverride = ['http', 'tls', 'quic'];
+                destOverride = ['http', 'tls', 'quic', 'fakedns'];
             }
         }
+
+        let domainsExcluded = json.domainsExcluded;
+        if (typeof domainsExcluded === 'string') {
+            domainsExcluded = domainsExcluded.split('\n').map(s => s.trim()).filter(Boolean);
+        }
+
         return new Sniffing(
             !!json.enabled,
             destOverride,
+            json.metadataOnly,
+            domainsExcluded,
+            json.routeOnly
         );
     }
+
+    toJson() {
+        return {
+            enabled: this.enabled,
+            destOverride: this.destOverride,
+            metadataOnly: this.metadataOnly,
+            domainsExcluded: typeof this.domainsExcluded === 'string'
+                ? this.domainsExcluded.split('\n').map(s => s.trim()).filter(Boolean)
+                : [],
+            routeOnly: this.routeOnly,
+        };
+    }
 }
+
+
 
 class Inbound extends XrayCommonClass {
     constructor(port = RandomUtil.randomIntRange(10000, 60000),
@@ -1674,18 +1708,18 @@ class Inbound extends XrayCommonClass {
                     }
                 }
                 break;
-                case "raw":
-                    const raw = this.stream.raw;
-                    if (raw.type === 'http') {
-                        const request = raw.request;
-                        params.set("path", request.path.join(','));
-                        const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                        if (index >= 0) {
-                            const host = request.headers[index].value;
-                            params.set("host", host);
-                        }
+            case "raw":
+                const raw = this.stream.raw;
+                if (raw.type === 'http') {
+                    const request = raw.request;
+                    params.set("path", request.path.join(','));
+                    const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
+                    if (index >= 0) {
+                        const host = request.headers[index].value;
+                        params.set("host", host);
                     }
-                    break;
+                }
+                break;
             case "kcp":
                 const kcp = this.stream.kcp;
                 params.set("headerType", kcp.type);

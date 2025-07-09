@@ -1,21 +1,30 @@
 {{define "form/sniffing"}}
 <a-form layout="inline">
   <a-form-item>
-            <span slot="label">
-                sniffing
-                <a-tooltip>
-                    <template slot="title">
-                        没有特殊需求保持默认即可
-                    </template>
-                    <a-icon type="question-circle" theme="filled"></a-icon>
-                </a-tooltip>
-            </span>
+    <span slot="label">
+      sniffing
+      <a-tooltip>
+        <template slot="title">
+          没有特殊需求保持默认即可
+        </template>
+        <a-icon type="question-circle" theme="filled"></a-icon>
+      </a-tooltip>
+    </span>
     <a-switch v-model="inbound.sniffing.enabled"></a-switch>
   </a-form-item>
   <a-form-item>
     <a-checkbox-group v-model="inbound.sniffing.destOverride" v-if="inbound.sniffing.enabled">
       <a-checkbox v-for="key,value in SNIFFING_OPTION" :value="key">[[ value ]]</a-checkbox>
     </a-checkbox-group>
+  </a-form-item>
+  <a-form-item label='Metadata Only'>
+    <a-switch v-model="inbound.sniffing.metadataOnly"></a-switch>
+  </a-form-item>
+  <a-form-item label="Domains Excluded">
+    <a-input type="textarea" :rows="2" v-model="inbound.sniffing.domainsExcluded" style="width: 250px"></a-input>
+  </a-form-item>
+  <a-form-item label='Route Only'>
+    <a-switch v-model="inbound.sniffing.routeOnly"></a-switch>
   </a-form-item>
 </a-form>
 {{end}}
