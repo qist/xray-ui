@@ -23,12 +23,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: juestnow/xray-ui
+          images: docker.io/juestnow/xray-ui
           flavor: latest=true
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
+            type=raw,value=latest 
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
