@@ -725,7 +725,7 @@ TlsStreamSettings.Settings = class extends XrayCommonClass {
 class ReaLITyStreamSettings extends XrayCommonClass {
     constructor(show = false,
         fingerprint = UTLS_FINGERPRINT.UTLS_CHROME,
-        dest = 'www.lovelive-anime.jp:443',
+        target = 'www.lovelive-anime.jp:443',
         xver = 0,
         serverNames = 'lovelive-anime.jp\nwww.lovelive-anime.jp',
         privateKey = '',
@@ -738,7 +738,7 @@ class ReaLITyStreamSettings extends XrayCommonClass {
         super();
         this.show = show;
         this.fingerprint = fingerprint;
-        this.dest = dest;
+        this.target = target;
         this.xver = xver;
         this.serverNames = serverNames instanceof Array ? serverNames.join('\n') : serverNames;
         this.privateKey = privateKey
@@ -754,7 +754,7 @@ class ReaLITyStreamSettings extends XrayCommonClass {
         return new ReaLITyStreamSettings(
             json.show,
             json.fingerprint,
-            json.dest,
+            json.target,
             json.xver,
             json.serverNames,
             json.privateKey,
@@ -770,7 +770,7 @@ class ReaLITyStreamSettings extends XrayCommonClass {
         return {
             show: this.show,
             fingerprint: this.fingerprint,
-            dest: this.dest,
+            target: this.target,
             xver: this.xver,
             serverNames: this.serverNames.split('\n'),
             privateKey: this.privateKey,
