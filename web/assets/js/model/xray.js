@@ -730,6 +730,8 @@ class ReaLITyStreamSettings extends XrayCommonClass {
         serverNames = 'lovelive-anime.jp\nwww.lovelive-anime.jp',
         privateKey = '',
         publicKey = '',
+        mldsa65Seed = '',
+        mldsa65Verify = '',
         minClientVer = '',
         maxClientVer = '',
         maxTimeDiff = 0,
@@ -743,6 +745,8 @@ class ReaLITyStreamSettings extends XrayCommonClass {
         this.serverNames = serverNames instanceof Array ? serverNames.join('\n') : serverNames;
         this.privateKey = privateKey
         this.publicKey = publicKey
+        this.mldsa65Seed = mldsa65Seed;
+        this.mldsa65Verify = mldsa65Verify;
         this.minClientVer = minClientVer;
         this.maxClientVer = maxClientVer;
         this.maxTimeDiff = maxTimeDiff;
@@ -759,6 +763,8 @@ class ReaLITyStreamSettings extends XrayCommonClass {
             json.serverNames,
             json.privateKey,
             json.publicKey,
+            json.mldsa65Seed,
+            json.mldsa65Verify,
             json.minClientVer,
             json.maxClientVer,
             json.maxTimeDiff,
@@ -775,6 +781,8 @@ class ReaLITyStreamSettings extends XrayCommonClass {
             serverNames: this.serverNames.split('\n'),
             privateKey: this.privateKey,
             publicKey: this.publicKey,
+            mldsa65Seed: this.mldsa65Seed,
+            mldsa65Verify: this.mldsa65Verify,
             minClientVer: this.minClientVer,
             maxClientVer: this.maxClientVer,
             maxTimeDiff: this.maxTimeDiff,
@@ -1532,6 +1540,10 @@ class Inbound extends XrayCommonClass {
                 params.set("pbk", this.stream.reality.publicKey);
 
             }
+            if (this.stream.reality.mldsa65Verify != "") {
+                params.set("pqv", this.stream.reality.mldsa65Verify);
+
+            }
             if (this.stream.network === 'tcp') {
                 params.set("flow", this.settings.vlesses[0].flow);
             }
@@ -1781,7 +1793,10 @@ class Inbound extends XrayCommonClass {
             if (this.stream.reality.publicKey != "") {
                 params.set("pbk", this.stream.reality.publicKey);
             }
+            if (this.stream.reality.mldsa65Verify != "") {
+                params.set("pqv", this.stream.reality.mldsa65Verify);
 
+            }
             // var shortIds1 = this.stream.reality.shortIds.split(/,|，|\s+/);
             // var index1 = Math.floor(Math.random() * shortIds1.length);
             // var value1 = shortIds1[index1];

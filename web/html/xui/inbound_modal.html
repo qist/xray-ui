@@ -102,8 +102,8 @@
                         }
                         // 存储在 inbound.signature，可按你实际字段结构调整
 
-                        inModal.inbound.stream.reality.privateKey = res.data.obj.key;
-                        inModal.inbound.stream.reality.publicKey = res.data.obj.value;
+                        inModal.inbound.stream.reality.mldsa65Seed = res.data.obj.key;
+                        inModal.inbound.stream.reality.mldsa65Verify = res.data.obj.value;
                     })
                     .catch((error) => {
                         inModal.loading(false);
