@@ -164,9 +164,9 @@ class RandomUtil {
         return str;
     }
 
-    static async xraysecretkey() {
-        return await axios.post('server/xraysecretkey')
-     }
+    // static async xraysecretkey() {
+    //     return await axios.post('server/xraysecretkey')
+    //  }
 
      static convertXPaddingBytes(value) {
         if (Array.isArray(value)) {

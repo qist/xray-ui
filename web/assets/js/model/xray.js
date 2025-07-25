@@ -736,20 +736,13 @@ class ReaLITyStreamSettings extends XrayCommonClass {
         shortIds = RandomUtil.randowShortId(),
     ) {
         super();
-        if (privateKey === '') {
-            RandomUtil.xraysecretkey().then((res) => {
-                this.privateKey = res.data.obj.key
-                this.publicKey = res.data.obj.value
-            })
-        } else {
-            this.privateKey = privateKey
-            this.publicKey = publicKey
-        }
         this.show = show;
         this.fingerprint = fingerprint;
         this.dest = dest;
         this.xver = xver;
         this.serverNames = serverNames instanceof Array ? serverNames.join('\n') : serverNames;
+        this.privateKey = privateKey
+        this.publicKey = publicKey
         this.minClientVer = minClientVer;
         this.maxClientVer = maxClientVer;
         this.maxTimeDiff = maxTimeDiff;

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/curve25519"
+	"github.com/cloudflare/circl/sign/mldsa/mldsa65"
 	"time"
 	"regexp"
 	"net/http"
@@ -38,6 +39,7 @@ type ServerController struct {
 	lastGeositeVersions        []string
 	lastGeositeGetVersionsTime time.Time
 	xraysecretkey        map[string]string
+	mldsa65secretkey  map[string]string
 	version string
 }
 
@@ -63,6 +65,7 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/installGeoip/:version", a.installGeoip)
 	g.POST("/installGeosite/:version", a.installGeosite)
 	g.POST("/xraysecretkey", a.XraySecretKey)
+	g.POST("/mldsa65secretkey", a.Mldsa65SecretKey)
 	g.POST("/getConfigJson", a.getConfigJson)
 	g.GET("/getVersion", a.getVersion)
 	g.POST("/getVersion/:version", a.UpdateVersion)
@@ -205,6 +208,31 @@ func SecretKey() map[string]string  {
 	secretkey["value"] = publicKeyBase64
 	return secretkey
 }
+
+// 控制器方法：ML-DSA-65 密钥生成
+func (a *ServerController) Mldsa65SecretKey(c *gin.Context) {
+	key := MLDSA65SecretKey()
+	a.mldsa65secretkey = key
+	jsonObj(c, a.mldsa65secretkey, nil)
+}
+
+// 核心：生成 ML-DSA-65 密钥对（随机 seed）
+func MLDSA65SecretKey() map[string]string {
+    var seed [32]byte
+    if _, err := rand.Read(seed[:]); err != nil {
+        fmt.Println("Failed to generate seed:", err)
+        return nil
+    }
+
+     pub, _ := mldsa65.NewKeyFromSeed(&seed)
+    // priv 是私钥，pub 是公钥
+
+    return map[string]string{
+        "key":   base64.RawURLEncoding.EncodeToString(seed[:]),
+        "value": base64.RawURLEncoding.EncodeToString(pub.Bytes()),
+    }
+}
+
 
 func (a *ServerController) stopXrayService(c *gin.Context) {
 	a.lastGetStatusTime = time.Now()

@@ -8,7 +8,7 @@
      <a-form-item v-if="inbound.canEnableReaLITy()" label="reality">
         <a-switch v-model="inbound.reality"></a-switch>
     </a-form-item> -->
-<!-- </a-form> --> 
+<!-- </a-form> -->
 
 <!-- reality settings -->
 <a-form v-if="inbound.reality" layout="inline">
@@ -19,27 +19,35 @@
         </a-switch>
     </a-form-item>
     <a-form-item label="dest">
-        <a-input v-model.trim="inbound.stream.reality.dest"  style="width: 250px"></a-input>
+        <a-input v-model.trim="inbound.stream.reality.dest" style="width: 250px"></a-input>
     </a-form-item>
     <a-form-item label="xver">
         <a-input v-model.number="inbound.stream.reality.xver"></a-input>
     </a-form-item>
-    <a-form-item label="uTLS" >
+    <a-form-item label="uTLS">
         <a-select v-model="inbound.stream.reality.fingerprint" style="width: 135px">
             <a-select-option v-for="key in UTLS_FINGERPRINT" :value="key">[[ key ]]</a-select-option>
         </a-select>
     </a-form-item>
     <a-form-item label="serverNames">
-        <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.serverNames"  style="width: 250px"></a-input>
+        <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.serverNames" style="width: 250px"></a-input>
     </a-form-item>
     <a-form-item label="REALITY密钥对生成">
-        <a-button type="primary" icon="import" @click="getNewX25519Cert">Get New Cert</a-button>
+        <a-space>
+            <a-button type="primary" icon="import" @click="getNewX25519Cert" :loading="inModal.confirmLoading">
+                Get New X25519 Cert
+            </a-button>
+            <a-button type="primary" icon="key" @click="getNewMLDSA65Cert" :loading="inModal.confirmLoading">
+                Get New MLDSA65 Cert
+            </a-button>
+        </a-space>
     </a-form-item>
+
     <a-form-item label="privateKey">
-        <a-input v-model.trim="inbound.stream.reality.privateKey"  style="width: 350px"></a-input>
+        <a-input v-model.trim="inbound.stream.reality.privateKey" style="width: 350px"></a-input>
     </a-form-item>
     <a-form-item label="publicKey">
-        <a-input v-model.trim="inbound.stream.reality.publicKey"  style="width: 350px"></a-input>
+        <a-input v-model.trim="inbound.stream.reality.publicKey" style="width: 350px"></a-input>
     </a-form-item>
     <a-form-item label="minClientVer">
         <a-input v-model.trim="inbound.stream.reality.minClientVer"></a-input>
@@ -51,7 +59,7 @@
         <a-input v-model.number="inbound.stream.reality.maxTimeDiff"></a-input>
     </a-form-item>
     <a-form-item label="shortIds">
-        <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.shortIds"  style="width: 165px"></a-input>
+        <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.shortIds" style="width: 165px"></a-input>
     </a-form-item>
 </a-form>
 {{end}}

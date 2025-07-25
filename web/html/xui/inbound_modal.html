@@ -1,7 +1,7 @@
 {{define "inboundModal"}}
 <a-modal id="inbound-modal" v-model="inModal.visible" :title="inModal.title" @ok="inModal.ok"
-         :confirm-loading="inModal.confirmLoading" :closable="true" :mask-closable="false"
-         :ok-text="inModal.okText" cancel-text='{{ i18n "close" }}'>
+    :confirm-loading="inModal.confirmLoading" :closable="true" :mask-closable="false" :ok-text="inModal.okText"
+    cancel-text='{{ i18n "close" }}'>
     {{template "form/inbound"}}
 </a-modal>
 <script>
@@ -17,7 +17,7 @@
         ok() {
             ObjectUtil.execute(inModal.confirm, inModal.inbound, inModal.dbInbound);
         },
-        show({ title='', okText='确定', inbound=null, dbInbound=null, confirm=(inbound, dbInbound)=>{} }) {
+        show({ title = '', okText = '确定', inbound = null, dbInbound = null, confirm = (inbound, dbInbound) => { } }) {
             this.title = title;
             this.okText = okText;
             if (inbound) {
@@ -72,24 +72,47 @@
                     this.inModal.inbound.tls = false;
                 }
             },
+
             async getNewX25519Cert() {
-                 inModal.loading(true);
-                 axios.post('server/xraysecretkey')
-                     .then((res) => {
-                         inModal.loading(false);
-            
-                         if (!res.data.success) {
-                             return;
-                         }
-                         inModal.inbound.stream.reality.privateKey = res.data.obj.key;
-                         inModal.inbound.stream.reality.publicKey = res.data.obj.value;
-                     })
-                     .catch((error) => {
-                         inModal.loading(false);
-                         console.error("Error fetching the X25519 cert:", error);
-                     });
-             }
-            //  async getNewX25519Cert() {
+                inModal.loading(true);
+                axios.post('server/xraysecretkey')
+                    .then((res) => {
+                        inModal.loading(false);
+
+                        if (!res.data.success) {
+                            return;
+                        }
+                        inModal.inbound.stream.reality.privateKey = res.data.obj.key;
+                        inModal.inbound.stream.reality.publicKey = res.data.obj.value;
+                    })
+                    .catch((error) => {
+                        inModal.loading(false);
+                        console.error("Error fetching the X25519 cert:", error);
+                    });
+            },
+
+            async getNewMLDSA65Cert() {
+                inModal.loading(true);
+                axios.post('server/mldsa65secretkey')
+                    .then((res) => {
+                        inModal.loading(false);
+
+                        if (!res.data.success) {
+                            return;
+                        }
+                        // 存储在 inbound.signature，可按你实际字段结构调整
+
+                        inModal.inbound.stream.reality.privateKey = res.data.obj.key;
+                        inModal.inbound.stream.reality.publicKey = res.data.obj.value;
+                    })
+                    .catch((error) => {
+                        inModal.loading(false);
+                        console.error("Error fetching the ML-DSA-65 cert:", error);
+                    });
+            },
+
+            // 原注释保留不变
+            // async getNewX25519Cert() {
             //     inModal.loading(true);
             //     const msg = await HttpUtil.post('/server/xraysecretkey');
             //     inModal.loading(false);
@@ -100,6 +123,7 @@
             //     inModal.inbound.stream.reality.publicKey = msg.obj.value;
             // }
         }
+
     });
 
 </script>
