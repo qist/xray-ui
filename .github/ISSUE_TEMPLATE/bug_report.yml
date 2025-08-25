@@ -1,39 +1,54 @@
-name: Issue Report
-description: "Create a report to help us improve."
+name: 问题报告
+description: "请创建一个问题报告以帮助我们改进。"
 body:
-  - type:  checkboxes
+  - type: checkboxes
     id: terms
     attributes:
-      label: Welcome
+      label: 欢迎
       options:
-        - label: Yes, I'm using the latest major release. Only such installations are supported.
+        - label: 是的，我正在使用最新的主要版本。只有这种安装才受支持。
           required: true
-        - label: Yes, I'm using the supported system. Only such systems are supported.
+        - label: 是的，我正在使用受支持的系统。只有这种系统才受支持。
           required: true
-        - label: Yes, I have read all WIKI document,nothing can help me in my problem.
+        - label: 是的，我已经阅读了所有 WIKI 文档，但仍然无法解决我的问题。
           required: true
-        - label: Yes, I've searched similar issues on GitHub and didn't find any.
+        - label: 是的，我已经在 GitHub 上搜索过类似问题，但没有找到。
           required: true
-        - label: Yes, I've included all information below (version, config, log, etc).
+        - label: 是的，我已经在下面提供了所有信息（版本、配置、日志等）。
           required: true
 
   - type: textarea
     id: problem
     attributes:
-      label: Description of the problem,screencshot would be good 
-      placeholder: Your problem description
+      label: 问题描述（最好附上截图）
+      placeholder: 请在此描述你的问题
+    validations:
+      required: true
+
+  - type: textarea
+    id: os
+    attributes:
+      label: 操作系统版本
+      value: |-
+        <details>
+
+        ```console
+        # 例如: Ubuntu 22.04 / Debian 12 / CentOS 7
+        ```
+
+        </details>
     validations:
       required: true
 
   - type: textarea
     id: version
     attributes:
-      label: Version of xray-ui
+      label: xray-ui 的版本
       value: |-
         <details>
 
         ```console
-        # Paste here
+        # 请在此粘贴
         ```
 
         </details>
@@ -43,12 +58,12 @@ body:
   - type: textarea
     id: log
     attributes:
-      label: xray-ui log reports or xray log
+      label: xray-ui 或 xray 的日志
       value: |-
         <details>
 
         ```console
-        # paste log here
+        # 请在此粘贴日志
         ```
 
         </details>
