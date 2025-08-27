@@ -1,4 +1,11 @@
 {
+  "log": {
+    "access": "none",
+    "dnsLog": false,
+    "error": "",
+    "loglevel": "warning",
+    "maskAddress": ""
+  },
   "api": {
     "services": [
       "HandlerService",
@@ -32,15 +39,15 @@
     "system": {
       "statsInboundDownlink": true,
       "statsInboundUplink": true,
-      "statsOutboundDownlink": true,
-      "statsOutboundUplink": true
+      "statsOutboundDownlink": false,
+      "statsOutboundUplink": false
     },
     "levels": {
       "0": {
+        "statsUserDownlink": true,
+        "statsUserUplink": true,
         "handshake": 2,
-        "connIdle": 120,
-        "uplinkOnly": 1,
-        "downlinkOnly": 1
+        "connIdle": 120
       }
     }
   },
@@ -79,5 +86,9 @@
       }
     ]
   },
-  "stats": {}
+  "stats": {},
+  "metrics": {
+    "tag": "metrics_out",
+    "listen": "127.0.0.1:11111"
+  }
 }
