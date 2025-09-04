@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/BurntSushi/toml v1.5.0
-	github.com/Workiva/go-datastructures v1.1.5
+	github.com/Workiva/go-datastructures v1.1.6
 	github.com/cloudflare/circl v1.6.1
 	github.com/gin-contrib/sessions v1.0.4
 	github.com/gin-gonic/gin v1.10.1
