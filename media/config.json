@@ -44,8 +44,8 @@
     },
     "levels": {
       "0": {
-        "statsUserDownlink": true,
-        "statsUserUplink": true,
+        "uplinkOnly": 1,
+        "downlinkOnly": 1,
         "handshake": 2,
         "connIdle": 120
       }
