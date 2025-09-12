@@ -20,6 +20,7 @@
 <a-form-item v-if="!inbound.TLS || !inbound.Reality" label="getNewVlessEnc">
     <a-form-item label="Authentication">
       <a-select v-model="inbound.settings.selectedAuth"  @change="getNewVlessEnc" style="width: 250px">
+        <a-select-option value="">无</a-select-option>
         <a-select-option value="X25519, not Post-Quantum">X25519 (not Post-Quantum)</a-select-option>
         <a-select-option value="ML-KEM-768, Post-Quantum">ML-KEM-768 (Post-Quantum)</a-select-option>
       </a-select>
