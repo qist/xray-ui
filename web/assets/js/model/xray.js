@@ -1433,8 +1433,10 @@ class Inbound extends XrayCommonClass {
         const uuid = settings.vlesses[0].id;
         const port = this.port;
         const type = this.stream.network;
+        // const encryption = this.encryption;
         const params = new Map();
         params.set("type", this.stream.network);
+        params.set("encryption", this.settings.encryption);
         if (this.reality) {
             params.set("security", "reality");
         } else {
@@ -1559,11 +1561,9 @@ class Inbound extends XrayCommonClass {
                 params.set("fp", this.stream.reality.fingerprint);
             }
         }
-
         if (address.startsWith('/')) {
             address = window.location.hostname; // 使用当前域名
         }
-
         const link = `vless://${uuid}@${address}:${port}`;
         const url = new URL(link);
         for (const [key, value] of params) {
@@ -1953,11 +1953,16 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
     constructor(protocol,
         vlesses = [new Inbound.VLESSSettings.VLESS()],
         decryption = 'none',
-        fallbacks = [],) {
+        encryption = "none",
+        fallbacks = [],
+        selectedAuth = undefined,
+    ) {
         super(protocol);
         this.vlesses = vlesses;
         this.decryption = decryption;
+        this.encryption = encryption;
         this.fallbacks = fallbacks;
+        this.selectedAuth = selectedAuth;
     }
 
     addFallback() {
@@ -1973,16 +1978,33 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
             Protocols.VLESS,
             json.clients.map(client => Inbound.VLESSSettings.VLESS.fromJson(client)),
             json.decryption,
+            json.encryption,
             Inbound.VLESSSettings.Fallback.fromJson(json.fallbacks),
+            json.selectedAuth,
         );
     }
 
     toJson() {
-        return {
+        const json = {
             clients: Inbound.VLESSSettings.toJsonArray(this.vlesses),
-            decryption: this.decryption,
-            fallbacks: Inbound.VLESSSettings.toJsonArray(this.fallbacks),
         };
+
+        if (this.decryption) {
+            json.decryption = this.decryption;
+        }
+
+        if (this.encryption) {
+            json.encryption = this.encryption;
+        }
+
+        if (this.fallbacks && this.fallbacks.length > 0) {
+            json.fallbacks = Inbound.VLESSSettings.toJsonArray(this.fallbacks);
+        }
+        if (this.selectedAuth) {
+            json.selectedAuth = this.selectedAuth;
+        }
+
+        return json;
     }
 };
 

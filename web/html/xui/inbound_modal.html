@@ -110,7 +110,27 @@
                         console.error("Error fetching the ML-DSA-65 cert:", error);
                     });
             },
+            async getNewVlessEnc() {
+                inModal.loading(true);
+                const msg = await HttpUtil.get('server/getNewVlessEnc');
+                inModal.loading(false);
 
+                if (!msg.success) {
+                    return;
+                }
+
+                const auths = msg.obj.auths || [];
+                const selected = inModal.inbound.settings.selectedAuth;
+                const block = auths.find(a => a.label === selected);
+
+                if (!block) {
+                    console.error("No auth block for", selected);
+                    return;
+                }
+
+                inModal.inbound.settings.decryption = block.decryption;
+                inModal.inbound.settings.encryption = block.encryption;
+            },
             // 原注释保留不变
             // async getNewX25519Cert() {
             //     inModal.loading(true);

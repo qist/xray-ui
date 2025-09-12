@@ -66,6 +66,9 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/installGeosite/:version", a.installGeosite)
 	g.POST("/xraysecretkey", a.XraySecretKey)
 	g.POST("/mldsa65secretkey", a.Mldsa65SecretKey)
+	g.GET("/getNewUUID", a.getNewUUID)
+	g.GET("/getNewmlkem768", a.getNewmlkem768)
+	g.GET("/getNewVlessEnc", a.getNewVlessEnc)
 	g.POST("/getConfigJson", a.getConfigJson)
 	g.GET("/getVersion", a.getVersion)
 	g.POST("/getVersion/:version", a.UpdateVersion)
@@ -310,4 +313,32 @@ func (a *ServerController) importDB(c *gin.Context) {
 		return
 	}
 	jsonObj(c, "Import DB", nil)
+}
+
+func (a *ServerController) getNewVlessEnc(c *gin.Context) {
+	out, err := a.serverService.GetNewVlessEnc()
+	if err != nil {
+		jsonMsg(c, "pages.inbounds.toasts.getNewVlessEncError", err)
+		return
+	}
+	jsonObj(c, out, nil)
+}
+
+func (a *ServerController) getNewUUID(c *gin.Context) {
+	uuidResp, err := a.serverService.GetNewUUID()
+	if err != nil {
+		jsonMsg(c, "Failed to generate UUID", err)
+		return
+	}
+
+	jsonObj(c, uuidResp, nil)
+}
+
+func (a *ServerController) getNewmlkem768(c *gin.Context) {
+	out, err := a.serverService.GetNewmlkem768()
+	if err != nil {
+		jsonMsg(c, "Failed to generate mlkem768 keys", err)
+		return
+	}
+	jsonObj(c, out, nil)
 }

@@ -12,6 +12,9 @@ import (
 	"os"
 	"runtime"
 	"time"
+	"strings"
+	"os/exec"
+	"github.com/google/uuid"
 	"xray-ui/logger"
 	"xray-ui/config"
 	"xray-ui/database"
@@ -625,4 +628,81 @@ func (s *ServerService) ImportDB(file multipart.File) error {
 	}
 
 	return nil
+}
+
+func (s *ServerService) GetNewVlessEnc() (any, error) {
+	cmd := exec.Command(xray.GetBinaryPath(), "vlessenc")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(out.String(), "\n")
+	var auths []map[string]string
+	var current map[string]string
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "Authentication:") {
+			if current != nil {
+				auths = append(auths, current)
+			}
+			current = map[string]string{
+				"label": strings.TrimSpace(strings.TrimPrefix(line, "Authentication:")),
+			}
+		} else if strings.HasPrefix(line, `"decryption"`) || strings.HasPrefix(line, `"encryption"`) {
+			parts := strings.SplitN(line, ":", 2)
+			if len(parts) == 2 && current != nil {
+				key := strings.Trim(parts[0], `" `)
+				val := strings.Trim(parts[1], `" `)
+				current[key] = val
+			}
+		}
+	}
+
+	if current != nil {
+		auths = append(auths, current)
+	}
+
+	return map[string]any{
+		"auths": auths,
+	}, nil
+}
+
+func (s *ServerService) GetNewUUID() (map[string]string, error) {
+	newUUID, err := uuid.NewRandom()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate UUID: %w", err)
+	}
+
+	return map[string]string{
+		"uuid": newUUID.String(),
+	}, nil
+}
+
+func (s *ServerService) GetNewmlkem768() (any, error) {
+	// Run the command
+	cmd := exec.Command(xray.GetBinaryPath(), "mlkem768")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(out.String(), "\n")
+
+	SeedLine := strings.Split(lines[0], ":")
+	ClientLine := strings.Split(lines[1], ":")
+
+	seed := strings.TrimSpace(SeedLine[1])
+	client := strings.TrimSpace(ClientLine[1])
+
+	keyPair := map[string]any{
+		"seed":   seed,
+		"client": client,
+	}
+
+	return keyPair, nil
 }
