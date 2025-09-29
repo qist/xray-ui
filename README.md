@@ -557,3 +557,7 @@ Tg机器人ChatId
 /help 获取帮助信息
 
 </details>
+
+### Star
+
+[![Star History Chart](https://api.star-history.com/svg?repos=qist/xray-ui&type=Date)](https://www.star-history.com/#qist/xray-ui&Date)
