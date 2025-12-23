@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/Workiva/go-datastructures v1.1.7
-	github.com/cloudflare/circl v1.6.1
+	github.com/cloudflare/circl v1.6.2
 	github.com/gin-contrib/sessions v1.0.4
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
