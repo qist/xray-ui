@@ -270,7 +270,7 @@ EOF
     }
 ssh_forwarding() {
 
-    # ========== 获取公网 IP ==========
+  # ========== 获取公网 IP ==========
     local v4=""
     local v6=""
     local Ip=""
@@ -286,59 +286,58 @@ ssh_forwarding() {
         Ip="${v6}"
         ip_type="ipv6"
     else
-        red "无法获取公网 IP"
-        return 1
+        Ip="127.0.0.1"
+        ip_type="local"
+        yellow "无法获取公网 IP，将使用本地回环地址: ${Ip}"
     fi
 
-    echo -e ""
-    yellow "检测到公网 IP: ${Ip}"
+    # 询问是否申请 SSL 证书
+    read -p "$(yellow "是否申请 SSL 证书？输入1申请，输入0跳过（HTTP回环地址访问）: ")" ssl_choice
+    if [[ "$ssl_choice" == "1" ]]; then
+        # ========== 调用 xray-ui ip_ssl_main ==========
+        if ! command -v xray-ui &>/dev/null; then
+            red "未检测到 xray-ui，请先安装面板"
+            return 1
+        fi
 
-    # ========== 调用 xray-ui ip_ssl_main ==========
-    if ! command -v xray-ui &>/dev/null; then
-        red "未检测到 xray-ui，请先安装面板"
-        return 1
-    fi
-
-    yellow "正在为 IP 申请 SSL 证书..."
-    xray-ui ip_ssl_main
-    if [[ $? -ne 0 ]]; then
-        red "IP SSL 证书申请失败"
-        return 1
-    fi
-    ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep "tcp" | awk '{print $5}' | cut -d':' -f2)
-    if [[ -n $ports ]]; then
-    # ========== 输出 HTTPS 访问地址 ==========
-    echo -e ""
-    yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
-    xuilogin
-    green "SSL 证书已配置完成，可通过以下地址访问 xray-ui 面板："
-    if [[ "${ip_type}" == "ipv6" ]]; then
-        echo -e "${bblue}https://[${Ip}]:${ports}/${path}${plain}"
+        yellow "正在为 IP 申请 SSL 证书..."
+        xray-ui ip_ssl_main
+        if [[ $? -ne 0 ]]; then
+            red "IP SSL 证书申请失败"
+            return 1
+        fi
+        protocol="https"
     else
-        echo -e "${bblue}https://${Ip}:${ports}/${path}${plain}"
+        yellow "跳过 SSL 证书申请，使用 HTTP 协议访问（本地回环地址）"
+        protocol="http"
+        Ip="127.0.0.1"
     fi
 
-    echo -e ""
-    green "当前 xray-ui 登录信息："
-    echo -e "用户名：${bblue}${username}${plain}"
-    echo -e "密码：${bblue}${password}${plain}"
-    yellow "请确保防火墙 / 云安全组已放行端口 ${ports}（HTTPS）"
+    ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep "tcp" | awk '{print $5}' | cut -d':' -f2)
 
-    # ========== 提示 mTLS / Windows 客户端 ==========
-    yellow "证书管理：xray-ui ssl_main  或  Cloudflare 证书 xray-ui ssl_CF"
-    yellow "TLS 配置：/usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem 重启 xray-ui restart 生效"
-    yellow "mTLS 配置：/usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem -webCa /root/cert/ca.cer 重启 xray-ui restart 生效"
-    yellow "Windows 客户端证书生成："
-    yellow "openssl pkcs12 -export -out client.p12 -inkey /root/cert/你的域名/privkey.pem -in /root/cert/你的域名/fullchain.pem -certfile /root/cert/ca.cer"
-    yellow "client.p12: 导入 Windows 系统需要密码"
+    if [[ -n $ports ]]; then
+        # ========== 输出访问地址 ==========
+        echo -e ""
+        yellow "xray-ui $remoteV 安装成功，请稍等3秒，输出面板登录信息……"
+        xuilogin
+        green "面板已配置完成，可通过以下地址访问 xray-ui："
+
+        echo -e "${bblue}${protocol}://${Ip}:${ports}/${path}${plain}"
+
+        echo -e ""
+        green "当前 xray-ui 登录信息："
+        echo -e "用户名：${bblue}${username}${plain}"
+        echo -e "密码：${bblue}${password}${plain}"
+        yellow "如果使用 HTTP，请自行通过 Nginx 或防火墙做端口转发，将 ${Ip}:${ports} 暴露给外网"
     else
         red "xray-ui安装失败，请查看日志，运行 xray-ui log"
     fi
+
     sleep 1
     echo -e ""
     echo -e "$int"
     echo -e ""
-
+    
     green "xray-ui 管理脚本使用方法:"
     echo -e "----------------------------------------------"
     echo -e "xray-ui              - 显示管理菜单"
