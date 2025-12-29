@@ -1574,121 +1574,153 @@ class Inbound extends XrayCommonClass {
     }
 
     genSSLink(address = '', forceTls, remark = '') {
-        let settings = this.settings;
+        const settings = this.settings;
         const type = this.stream.network;
-        const security = forceTls == 'same' ? this.stream.security : forceTls;
+        const security = forceTls === 'same' ? this.stream.security : forceTls;
+
         const params = new Map();
-        params.set("type", this.stream.network);
+
+        // ⚠️ 不要给 tcp 强行加 type
+        if (type && type !== 'tcp') {
+            params.set('type', type);
+        }
+
+        const safe = v => {
+            if (v === undefined || v === null) return '';
+            return String(v).trim();
+        };
+
+        const safePath = p => {
+            p = safe(p);
+            if (!p) return '';
+            return p.startsWith('/') ? p : '/' + p;
+        };
+
         switch (type) {
-            case "tcp":
+            case 'tcp': {
                 const tcp = this.stream.tcp;
-                if (tcp.type === 'http') {
-                    const request = tcp.request;
-                    params.set("path", request.path.join(','));
-                    const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                    if (index >= 0) {
-                        const host = request.headers[index].value;
-                        params.set("host", host);
-                    }
-                    params.set("headerType", 'http');
+                if (tcp?.type === 'http') {
+                    const req = tcp.request;
+                    params.set('path', safe(req.path.join(',')));
+                    const h = req.headers.find(v => v.name.toLowerCase() === 'host');
+                    if (h) params.set('host', safe(h.value));
+                    params.set('headerType', 'http');
                 }
                 break;
-            case "raw":
+            }
+
+            case 'raw': {
                 const raw = this.stream.raw;
-                if (raw.type === 'http') {
-                    const request = raw.request;
-                    params.set("path", request.path.join(','));
-                    const index = request.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                    if (index >= 0) {
-                        const host = request.headers[index].value;
-                        params.set("host", host);
-                    }
-                    params.set("headerType", 'http');
+                if (raw?.type === 'http') {
+                    const req = raw.request;
+                    params.set('path', safe(req.path.join(',')));
+                    const h = req.headers.find(v => v.name.toLowerCase() === 'host');
+                    if (h) params.set('host', safe(h.value));
+                    params.set('headerType', 'http');
                 }
                 break;
-            case "kcp":
+            }
+
+            case 'kcp': {
                 const kcp = this.stream.kcp;
-                params.set("headerType", kcp.type);
-                params.set("seed", kcp.seed);
+                params.set('headerType', safe(kcp.type));
+                if (kcp.seed) params.set('seed', safe(kcp.seed));
                 break;
-            case "ws":
+            }
+
+            case 'ws': {
                 const ws = this.stream.ws;
-                params.set("path", ws.path);
-                const index = ws.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (index >= 0) {
-                    const host = ws.headers[index].value;
-                    params.set("host", host);
-                }
+                params.set('path', safePath(ws.path));
+                const h = ws.headers.find(v => v.name.toLowerCase() === 'host');
+                if (h) params.set('host', safe(h.value));
                 break;
-            case "grpc":
+            }
+
+            case 'grpc': {
                 const grpc = this.stream.grpc;
-                params.set("serviceName", grpc.serviceName);
-                params.set("authority", grpc.authority);
-                if (grpc.multiMode) {
-                    params.set("mode", "multi");
-                }
+                if (grpc.serviceName)
+                    params.set('serviceName', safe(grpc.serviceName));
+                if (grpc.authority)
+                    params.set('authority', safe(grpc.authority));
+                if (grpc.multiMode)
+                    params.set('mode', 'multi');
                 break;
-            case "httpupgrade":
-                const httpupgrade = this.stream.httpupgrade;
-                params.set("path", httpupgrade.path);
-                params.set("host", httpupgrade.host);
-                const httpupgradeIndex = httpupgrade.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (httpupgradeIndex >= 0) {
-                    const host = httpupgrade.headers[httpupgradeIndex].value;
-                    params.set("host", host);
-                }
+            }
+
+            case 'httpupgrade': {
+                const h = this.stream.httpupgrade;
+                params.set('path', safePath(h.path));
+                if (h.host) params.set('host', safe(h.host));
+                const hh = h.headers.find(v => v.name.toLowerCase() === 'host');
+                if (hh) params.set('host', safe(hh.value));
                 break;
-            case "xhttp":
-                const xhttp = this.stream.xhttp;
-                params.set("path", xhttp.path);
-                params.set("host", xhttp.host);
-                const xhttpIndex = xhttp.headers.findIndex(header => header.name.toLowerCase() === 'host');
-                if (xhttpIndex >= 0) {
-                    const host = xhttp.headers[xhttpIndex].value;
-                    params.set("host", host);
-                };
-                params.set("mode", xhttp.mode);
+            }
+
+            case 'xhttp': {
+                const x = this.stream.xhttp;
+                params.set('path', safePath(x.path));
+                if (x.host) params.set('host', safe(x.host));
+                if (x.mode) params.set('mode', safe(x.mode));
                 break;
+            }
         }
 
+        // TLS
         if (security === 'tls') {
-            params.set("security", "tls");
+            params.set('security', 'tls');
             if (this.stream.isTls) {
-                params.set("fp", this.stream.tls.settings.fingerprint);
-                params.set("alpn", this.stream.tls.alpn);
-                if (this.stream.tls.settings.allowInsecure) {
-                    params.set("allowInsecure", "1");
-                }
-                if (!ObjectUtil.isEmpty(this.stream.tls.sni)) {
-                    params.set("sni", this.stream.tls.sni);
-                }
+                const tls = this.stream.tls;
+                if (tls.settings?.fingerprint)
+                    params.set('fp', safe(tls.settings.fingerprint));
+                if (tls.alpn)
+                    params.set('alpn', safe(tls.alpn));
+                if (tls.settings?.allowInsecure)
+                    params.set('allowInsecure', '1');
+                if (tls.sni)
+                    params.set('sni', safe(tls.sni));
             }
         }
+
+        // address fallback
         if (!address || address.startsWith('/')) {
-            address = window.location.hostname; // 使用当前域名
+            address = window.location.hostname;
         }
-        if (settings.method == SSMethods.BLAKE3_AES_128_GCM || settings.method == SSMethods.BLAKE3_AES_256_GCM || settings.method == SSMethods.BLAKE3_CHACHA20_POLY1305) {
-            const link = `ss://${settings.method}:${settings.password}@${address}:${this.port}#${encodeURIComponent(remark)}`;
 
-            const url = new URL(link);
-            for (const [key, value] of params) {
-                url.searchParams.set(key, value)
-            }
-            url.hash = encodeURIComponent(remark);
-            return url.toString();
+        const isBlake3 =
+            settings.method === SSMethods.BLAKE3_AES_128_GCM ||
+            settings.method === SSMethods.BLAKE3_AES_256_GCM ||
+            settings.method === SSMethods.BLAKE3_CHACHA20_POLY1305;
+
+        let link;
+
+        if (isBlake3) {
+            // ✅ BLAKE3：password 必须 encode
+            link =
+                `ss://${settings.method}:` +
+                `${encodeURIComponent(settings.password)}` +
+                `@${address}:${this.port}`;
         } else {
-            const link = 'ss://' + safeBase64(settings.method + ':' + settings.password + '@' + address + ':' + this.port)
-                + '#' + encodeURIComponent(remark);
-
-            const url = new URL(link);
-            for (const [key, value] of params) {
-                url.searchParams.set(key, value)
-            }
-            url.hash = encodeURIComponent(remark);
-            return url.toString();
+            const userinfo =
+                `${settings.method}:${settings.password}@${address}:${this.port}`;
+            link = `ss://${safeBase64(userinfo)}`;
         }
 
+        // 拼 query
+        const query = [...params.entries()]
+            .filter(([_, v]) => v !== '')
+            .map(([k, v]) =>
+                `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+            )
+            .join('&');
+
+        if (query) link += `?${query}`;
+
+        if (remark) link += `#${encodeURIComponent(remark)}`;
+
+        return link;
     }
+
+
     genTrojanLink(address = '', remark = '') {
         let settings = this.settings;
         const port = this.port;
