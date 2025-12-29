@@ -256,6 +256,7 @@ EOF
     green "xray-ui web 路径：${path}"
     sleep 1
     xray-ui restart
+   }
     xuilogin() {
         v4=$(curl -s4m8 http://ip.sb -k)
         v6=$(curl -s6m8 http://ip.sb -k)
@@ -268,70 +269,68 @@ EOF
         fi
     }
 ssh_forwarding() {
-    # 获取 IPv4 和 IPv6 地址
+
+    # ========== 获取公网 IP ==========
+    local v4=""
+    local v6=""
+    local Ip=""
+    local ip_type=""
+    
     v4=$(curl -s4m8 http://ip.sb -k)
     v6=$(curl -s6m8 http://ip.sb -k)
 
-    echo -e ""
-    read -p "设置 xray-ui ssh 转发端口 [1-65535]（回车跳过为 2000-65535 之间的随机端口）：" ssh_port
-
-    # 如果未输入端口，则随机生成一个2000-65535之间的端口
-    if [[ -z $ssh_port ]]; then
-        ssh_port=$(shuf -i 2000-65535 -n 1)
-    fi
-
-    # 检查端口是否被占用，直到找到未占用的端口
-    while [[ -n $(ss -ntlp | awk '{print $4}' | grep -w ":$ssh_port") ]]; do
-        echo -e "\n端口 $ssh_port 被占用，请重新输入端口"
-        read -p "自定义 xray-ui ssh 转发端口:" ssh_port
-        if [[ -z $ssh_port ]]; then
-            ssh_port=$(shuf -i 2000-65535 -n 1)
-        fi
-    done
-
-    # 检查 IP 并输出相应的 SSH 和浏览器访问信息
-    if [[ -z $v4 ]]; then
-        # echo -e "${green}请在 xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发 不建议使用"
-        # echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
-        echo -e "${green}客户端转发 安全性高${plain} ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@[$v6]${plain} 输入 root 密码进行转发"
-        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}[::1]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
-        echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
-        echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
-        yellow "不使用ssh 转发请配置nginx https代理或者xray-ui 配置证书"
-    elif [[ -n $v4 && -n $v6 ]]; then
-        # echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} ${yellow}或者 ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发 不建议使用"
-        # echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[$v6]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
-        echo -e "${green}客户端转发 安全性高 ${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@$v4${plain} ${yellow}或者 ${bblue}ssh  -f -N -L [::]:$ssh_port:127.0.0.1:$ports root@[$v6]${plain} 输入 root 密码进行转发"
-        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}127.0.0.1:$ssh_port/$path${plain} ${yellow}或者${plain} ${bblue}[::1]:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
-        echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
-        echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
-        yellow "不使用ssh 转发请配置nginx https代理或者xray-ui 配置证书"
+    if [[ -n "${v4}" ]]; then
+        Ip="${v4}"
+        ip_type="ipv4"
+    elif [[ -n "${v6}" ]]; then
+        Ip="${v6}"
+        ip_type="ipv6"
     else
-        # echo -e "${green}请在  xray-ui 服务器系统输入${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@127.0.0.1${plain} 输入 root 密码进行转发 "
-        # echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}$v4:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
-        echo -e "${green}客户端转发 安全性高${plain} ${bblue}ssh  -f -N -L 0.0.0.0:$ssh_port:127.0.0.1:$ports root@$v4${plain} 输入 root 密码进行转发"
-        echo -e "${green}请在浏览器地址栏复制${plain} ${bblue}127.0.0.1:$ssh_port/$path${plain} ${green}进入 xray-ui 登录界面"
-        echo -e "${green}当前 xray-ui 登录用户名：${plain}${bblue}${username}${plain}"
-        echo -e "${green}当前 xray-ui 登录密码：${plain}${bblue}${password}${plain}"
-        yellow "不使用ssh 转发请配置nginx https代理或者xray-ui 配置证书"
+        red "无法获取公网 IP"
+        return 1
     fi
-    }
+
+    echo -e ""
+    yellow "检测到公网 IP: ${Ip}"
+
+    # ========== 调用 xray-ui ip_ssl_main ==========
+    if ! command -v xray-ui &>/dev/null; then
+        red "未检测到 xray-ui，请先安装面板"
+        return 1
+    fi
+
+    yellow "正在为 IP 申请 SSL 证书..."
+    xray-ui ip_ssl_main
+    if [[ $? -ne 0 ]]; then
+        red "IP SSL 证书申请失败"
+        return 1
+    fi
     ports=$(/usr/local/xray-ui/xray-ui 2>&1 | grep "tcp" | awk '{print $5}' | cut -d':' -f2)
     if [[ -n $ports ]]; then
-        echo -e ""
-        yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
-        ssh_forwarding
-        yellow "下面是xray-ui tls mTLS 配置信息"
-        yellow "证书管理 xray-ui ssl_main  cf 证书申请 xray-ui ssl_CF"
-        yellow "TLS 配置 /usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem 重启 xray-ui restart 生效"
-        yellow "mTLS 配置 /usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem -webCa /root/cert/ca.cer 重启 xray-ui restart 生效"
-        yellow "访问：https://你的域名:$ports/$path"
-        yellow "mTLS windows 使用....."
-        yellow "生成windows客户端证书 client.p12..."
-        yellow "openssl pkcs12 -export -out client.p12 -inkey /root/cert/你的域名/privkey.pem -in  /root/cert/${domain}.cer -certfile /root/cert/ca.cer"
-        yellow "client.p12: windows客户端证书 记得设置密码 导入证书需要密码"
-        yellow "client.p12 文件导入windows系统 桌面双击打开->导入->下一步->将所有证书都放入下列存储->个人->完成 如果导入失败开始菜单搜证书 打开管理用户证书管理->个人->所有任务->导入->输入密码"
-    
+    # ========== 输出 HTTPS 访问地址 ==========
+    echo -e ""
+    yellow "xray-ui $remoteV 安装成功，请稍等3秒，检测IP环境，输出xray-ui登录信息……"
+    xuilogin
+    green "SSL 证书已配置完成，可通过以下地址访问 xray-ui 面板："
+    if [[ "${ip_type}" == "ipv6" ]]; then
+        echo -e "${bblue}https://[${Ip}]:${ports}/${path}${plain}"
+    else
+        echo -e "${bblue}https://${Ip}:${ports}/${path}${plain}"
+    fi
+
+    echo -e ""
+    green "当前 xray-ui 登录信息："
+    echo -e "用户名：${bblue}${username}${plain}"
+    echo -e "密码：${bblue}${password}${plain}"
+    yellow "请确保防火墙 / 云安全组已放行端口 ${ports}（HTTPS）"
+
+    # ========== 提示 mTLS / Windows 客户端 ==========
+    yellow "证书管理：xray-ui ssl_main  或  Cloudflare 证书 xray-ui ssl_CF"
+    yellow "TLS 配置：/usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem 重启 xray-ui restart 生效"
+    yellow "mTLS 配置：/usr/local/xray-ui/xray-ui cert -webCert /root/cert/你的域名/fullchain.pem -webCertKey /root/cert/你的域名/privkey.pem -webCa /root/cert/ca.cer 重启 xray-ui restart 生效"
+    yellow "Windows 客户端证书生成："
+    yellow "openssl pkcs12 -export -out client.p12 -inkey /root/cert/你的域名/privkey.pem -in /root/cert/你的域名/fullchain.pem -certfile /root/cert/ca.cer"
+    yellow "client.p12: 导入 Windows 系统需要密码"
     else
         red "xray-ui安装失败，请查看日志，运行 xray-ui log"
     fi
@@ -339,7 +338,8 @@ ssh_forwarding() {
     echo -e ""
     echo -e "$int"
     echo -e ""
-    echo -e "xray-ui 管理脚本使用方法: "
+
+    green "xray-ui 管理脚本使用方法:"
     echo -e "----------------------------------------------"
     echo -e "xray-ui              - 显示管理菜单"
     echo -e "xray-ui start        - 启动 xray-ui 面板"
@@ -356,15 +356,19 @@ ssh_forwarding() {
     echo -e "xray-ui install      - 安装 xray-ui 面板"
     echo -e "xray-ui x25519       - REALITY  key 生成"
     echo -e "xray-ui ssl_main     - SSL 证书管理"
-    echo -e "xray-ui ip_ssl_main  - ip SSL 证书安装"
+    echo -e "xray-ui ip_ssl_main  - IP SSL 证书安装"
     echo -e "xray-ui ssl_CF       - Cloudflare SSL 证书"
-    echo -e "xray-ui crontab      - 添加geoip到任务计划每天凌晨1.30执行"    
+    echo -e "xray-ui crontab      - 添加 geoip 到任务计划每天凌晨1:30执行"
     echo -e "xray-ui uninstall    - 卸载 xray-ui 面板"
     echo -e "----------------------------------------------"
+
     rm -f install.sh
 }
+
 
 echo -e "${green}开始安装xray-ui必要依赖${plain}"
 install_base
 echo -e "${green}开始安装xray-ui核心组件${plain}"
 install_xray-ui $1
+echo -e "${green}ip 证书申请 等下信息查询${plain}"
+ssh_forwarding
