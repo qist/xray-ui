@@ -328,7 +328,9 @@ ssh_forwarding() {
         green "当前 xray-ui 登录信息："
         echo -e "用户名：${bblue}${username}${plain}"
         echo -e "密码：${bblue}${password}${plain}"
-        yellow "如果使用 HTTP，请自行通过 Nginx 或防火墙做端口转发，将 ${Ip}:${ports} 暴露给外网"
+        if [[ "$ssl_choice" == "0" ]]; then
+        yellow "使用 HTTP，请自行通过 Nginx 或防火墙做端口转发，将 ${Ip}:${ports} 暴露给外网"
+        fi
     else
         red "xray-ui安装失败，请查看日志，运行 xray-ui log"
     fi
