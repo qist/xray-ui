@@ -319,7 +319,7 @@ ssh_forwarding() {
         # ========== 输出访问地址 ==========
         echo -e ""
         yellow "xray-ui $remoteV 安装成功，请稍等3秒，输出面板登录信息……"
-        xuilogin
+        # xuilogin
         green "面板已配置完成，可通过以下地址访问 xray-ui："
 
         echo -e "${bblue}${protocol}://${Ip}:${ports}/${path}${plain}"
@@ -337,7 +337,7 @@ ssh_forwarding() {
     echo -e ""
     echo -e "$int"
     echo -e ""
-    
+
     green "xray-ui 管理脚本使用方法:"
     echo -e "----------------------------------------------"
     echo -e "xray-ui              - 显示管理菜单"
