@@ -859,7 +859,6 @@ ssl_cert_issue_ip() {
         --server letsencrypt \
         -d "${Ip}" \
         --certificate-profile shortlived \
-        --days 90 \
         --standalone \
         --httpport "${WebPort}" \
         --force || {
