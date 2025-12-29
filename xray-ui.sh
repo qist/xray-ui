@@ -613,8 +613,9 @@ install_acme() {
 
 ssl_cert_issue_main() {
     echo -e "${green}\t1.${plain} 获取 SSL"
-    echo -e "${green}\t2.${plain} 撤销证书"
-    echo -e "${green}\t3.${plain} 强制续期"
+    echo -e "${green}\t2.${plain} 获取 IP SSL"
+    echo -e "${green}\t3.${plain} 撤销证书"
+    echo -e "${green}\t4.${plain} 强制续期"
     echo -e "${green}\t0.${plain} 返回主菜单"
     read -p "请选择一个选项: " choice
     case "$choice" in
@@ -625,12 +626,16 @@ ssl_cert_issue_main() {
         ssl_cert_issue
         ;;
     2)
+        ssl_cert_issue_ip
+        ;;
+
+    3)
         local domain=""
         read -p "请输入要撤销证书的域名: " domain
         ~/.acme.sh/acme.sh --revoke -d ${domain}
         LOGI "证书已撤销"
         ;;
-    3)
+    4)
         local domain=""
         read -p "请输入要强制续期的域名: " domain
         ~/.acme.sh/acme.sh --renew -d ${domain} --force
@@ -753,6 +758,151 @@ ssl_cert_issue() {
     fi
 }
  
+ssl_cert_issue_ip() {
+
+    # ========== acme.sh ==========
+    if ! command -v ~/.acme.sh/acme.sh &>/dev/null; then
+        LOGI "未检测到 acme.sh，开始安装..."
+        install_acme || { LOGE "acme.sh 安装失败"; exit 1; }
+    fi
+
+    # ========== socat ==========
+    case "${release}" in
+        ubuntu|debian|armbian)
+            apt update && apt install -y socat
+            ;;
+        centos|almalinux|rocky|oracle)
+            yum -y install socat
+            ;;
+        fedora)
+            dnf -y install socat
+            ;;
+        arch|manjaro|parch)
+            pacman -Sy --noconfirm socat
+            ;;
+        *)
+            LOGE "不支持的系统，请手动安装 socat"
+            exit 1
+            ;;
+    esac || { LOGE "socat 安装失败"; exit 1; }
+
+    LOGI "socat 已就绪"
+
+    # ========== 获取 IP ==========
+    local Ip=""
+    local v4=""
+    local v6=""
+
+    read -p "请输入 IP（直接回车自动获取）: " Ip
+
+    if [[ -z "${Ip}" ]]; then
+        LOGI "自动获取公网 IP..."
+
+        v4=$(curl -s4m8 http://ip.sb -k)
+        v6=$(curl -s6m8 http://ip.sb -k)
+
+        if [[ -n "${v4}" ]]; then
+            Ip="${v4}"
+            LOGI "使用 IPv4：${Ip}"
+        elif [[ -n "${v6}" ]]; then
+            Ip="${v6}"
+            LOGI "未检测到 IPv4，使用 IPv6：${Ip}"
+        else
+            LOGE "无法获取公网 IP"
+            exit 1
+        fi
+    else
+        LOGI "使用用户输入 IP：${Ip}"
+    fi
+
+    # ========== IP 校验 ==========
+    if ! [[ "${Ip}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ || "${Ip}" =~ : ]]; then
+        LOGE "IP 格式不合法：${Ip}"
+        exit 1
+    fi
+
+    # ========== 检查是否已有证书 ==========
+    if ~/.acme.sh/acme.sh --list | awk '{print $1}' | grep -qw "${Ip}"; then
+        LOGE "该 IP 已存在证书，无法重复签发"
+        ~/.acme.sh/acme.sh --list | grep "${Ip}"
+        exit 1
+    fi
+
+    # ========== 证书目录 ==========
+    local certPath="/root/cert/${Ip}"
+    rm -rf "${certPath}"
+    mkdir -p "${certPath}"
+
+    # ========== 端口选择 ==========
+    local WebPort=80
+
+    if [[ "${Ip}" =~ : ]]; then
+        WebPort=80
+        LOGI "IPv6 校验强制使用 80 端口"
+    else
+        read -p "请选择端口（默认 80）: " WebPort
+        [[ -z "${WebPort}" ]] && WebPort=80
+
+        if [[ "${WebPort}" -lt 1 || "${WebPort}" -gt 65535 ]]; then
+            LOGE "端口无效，使用 80"
+            WebPort=80
+        fi
+    fi
+
+    LOGI "使用端口 ${WebPort} 进行 HTTP-01 校验"
+
+    # ========== 签发 ==========
+    ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+
+    ~/.acme.sh/acme.sh \
+        --issue \
+        --server letsencrypt \
+        -d "${Ip}" \
+        --certificate-profile shortlived \
+        --days 90 \
+        --standalone \
+        --httpport "${WebPort}" \
+        --force || {
+            LOGE "证书签发失败"
+            rm -rf ~/.acme.sh/"${Ip}"
+            exit 1
+        }
+
+    LOGI "证书签发成功"
+
+    # ========== 安装 ==========
+    ~/.acme.sh/acme.sh --installcert -d "${Ip}" \
+        --ecc \
+        --ca-file /root/cert/ca.cer \
+        --cert-file /root/cert/"${Ip}".cer \
+        --key-file "${certPath}/privkey.pem" \
+        --fullchain-file "${certPath}/fullchain.pem" || {
+            LOGE "证书安装失败"
+            exit 1
+        }
+
+    LOGI "证书安装完成"
+
+    # ========== 应用到 xray-ui ==========
+    confirm "是否自动应用 SSL 到 xray-ui？[y/n]" "y"
+    if [ $? -eq 0 ]; then
+        /usr/local/xray-ui/xray-ui cert \
+            -webCert "${certPath}/fullchain.pem" \
+            -webCertKey "${certPath}/privkey.pem"
+        confirm_restart
+    else
+        LOGI "请在 xray-ui 中手动重置 SSL（选项 22）"
+    fi
+
+    # ========== 自动续期 ==========
+    ~/.acme.sh/acme.sh --upgrade --auto-upgrade
+
+    LOGI "证书文件："
+    ls -lah "${certPath}"
+    chmod 755 "${certPath}"/*
+}
+
+
 ssl_cert_issue_CF() {
     echo -E ""
     LOGD "******使用说明******"
@@ -856,6 +1006,7 @@ show_usage() {
     echo "xray-ui install      - 安装 xray-ui 面板"
     echo "xray-ui x25519       - REALITY  key 生成"
     echo "xray-ui ssl_main     - SSL 证书管理"
+    echo "xray-ui ip_ssl_main  - ip SSL 证书安装"
     echo "xray-ui ssl_CF       - Cloudflare SSL 证书"
     echo "xray-ui crontab      - 添加geoip到任务计划每天凌晨1.30执行"
     echo "xray-ui uninstall    - 卸载 xray-ui 面板"
@@ -901,9 +1052,7 @@ show_menu() {
     green "$acp"
     tlsx=$(/usr/local/xray-ui/xray-ui setting -show 2>&1 | grep 证书文件)
     if [ -z "${tlsx}" ]; then
-    yellow "当前面板http只支持127.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书"
-    yellow "ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)"
-    yellow "浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)"
+    yellow "当前面板http只支持127.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书 xray-ui ip_ssl_main"
     fi
     echo "------------------------------------------"
     uiV=$(/usr/local/xray-ui/xray-ui -v)
@@ -1044,7 +1193,10 @@ if [[ $# > 0 ]]; then
         crontab 0
         ;;
     "ssl_main")
-        ssl_cert_issue_main 0
+        ssl_cert_issue_main
+        ;;
+    "ip_ssl_main")
+        ssl_cert_issue_ip 0
         ;;
     "ssl_CF")
         ssl_cert_issue_CF 0
