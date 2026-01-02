@@ -3,13 +3,13 @@ package web
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
+	// "crypto/x509"
 	"embed"
-	"fmt"
+	// "fmt"
 	"html/template"
-	"io/ioutil"
 	"io"
 	"io/fs"
+	// "io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -23,6 +23,7 @@ import (
 	"xray-ui/web/job"
 	"xray-ui/web/network"
 	"xray-ui/web/service"
+	"xray-ui/web/tlsmanager"
 
 	"github.com/BurntSushi/toml"
 	"github.com/gin-contrib/sessions"
@@ -108,6 +109,9 @@ type Server struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
+	
+	// 证书管理器
+	tlsMgr *tlsmanager.Manager
 }
 
 func NewServer() *Server {
@@ -189,10 +193,10 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	store := cookie.NewStore(secret)
 	store.Options(sessions.Options{
 		Path:     "/",
-		MaxAge:   86400 * 7,   // 7 天
+		MaxAge:   86400 * 7, // 7 天
 		HttpOnly: true,
-		Secure:   false,       // 根据实际是否使用 HTTPS 设为 true 或 false
-		Domain:   "",          // 关键：留空，不设置 Domain，避免 IPv6 地址带 [] 导致浏览器拒绝 Cookie
+		Secure:   false, // 根据实际是否使用 HTTPS 设为 true 或 false
+		Domain:   "",    // 关键：留空，不设置 Domain，避免 IPv6 地址带 [] 导致浏览器拒绝 Cookie
 	})
 	engine.Use(sessions.Sessions("session", store))
 
@@ -244,7 +248,6 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 
 	return engine, nil
 }
-
 
 func (s *Server) initI18n(engine *gin.Engine) error {
 	bundle := i18n.NewBundle(language.SimplifiedChinese)
@@ -407,59 +410,29 @@ func (s *Server) Start() (err error) {
 		return err
 	}
 
-	if certFile != "" && keyFile != "" && caFile != "" {
-		// Load server certificate and key
-		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-		if err != nil {
-			listener.Close()
-			return err
+	// 创建 TLS 管理器
+	if certFile != "" && keyFile != "" {
+		s.tlsMgr = tlsmanager.New(certFile, keyFile, caFile)
+		// 可以通过以下方式设置是否禁用会话票证
+		s.tlsMgr.DisableSessionTicket = true
+		
+		tlsConfig := s.tlsMgr.TLSConfig()
+		
+		if caFile != "" {
+			// mTLS 模式
+			listener = network.NewAutoHttpsListener(listener)
+			listener = tls.NewListener(listener, tlsConfig)
+			logger.Info("web server run mTLS on", listener.Addr())
+		} else {
+			// TLS 模式
+			listener = network.NewAutoHttpsListener(listener)
+			listener = tls.NewListener(listener, tlsConfig)
+			logger.Info("web server run https on", listener.Addr())
 		}
-	
-		// Load the CA certificate that will be used to verify client certificates
-		caCert, err := ioutil.ReadFile(caFile)
-		if err != nil {
-			listener.Close()
-			return fmt.Errorf("failed to read CA certificate: %v", err)
-		}
-	
-		// Create a CertPool and add the CA certificate to it
-		caCertPool := x509.NewCertPool()
-		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
-			listener.Close()
-			return fmt.Errorf("failed to append CA certificate")
-		}
-	
-		// Configure TLS with the server cert and require client cert verification (mTLS)
-		c := &tls.Config{
-			Certificates: []tls.Certificate{cert},    // Server certificate
-			ClientCAs:    caCertPool,                // CA pool for verifying client certs
-			ClientAuth:   tls.RequireAndVerifyClientCert, // Require and verify client certificates
-		}
-		// Wrap the listener with AutoHTTPS and TLS support
-		listener = network.NewAutoHttpsListener(listener)
-		listener = tls.NewListener(listener, c) // Apply TLS config to listener
-	}	
-
-	if certFile != "" && keyFile != "" && caFile == ""{
-		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-		if err != nil {
-			listener.Close()
-			return err
-		}
-		c := &tls.Config{
-			Certificates: []tls.Certificate{cert},
-		}
-		listener = network.NewAutoHttpsListener(listener)
-		listener = tls.NewListener(listener, c)
-	}
-
-	if certFile != "" && keyFile != "" && caFile != "" {
-		logger.Info("web server run mTLS on", listener.Addr())
-	} else if certFile != "" && keyFile != "" && caFile == "" {
-		logger.Info("web server run https on", listener.Addr())
 	} else {
 		logger.Info("web server run http on", listener.Addr())
 	}
+	
 	s.listener = listener
 
 	xuiBeginRunTime = time.Now().Format("2006-01-02 15:04:05")
@@ -517,8 +490,6 @@ func (s *Server) GetCtx() context.Context {
 func (s *Server) GetCron() *cron.Cron {
 	return s.cron
 }
-
-
 
 func init() {
 	for _, cidr := range []string{
@@ -579,3 +550,4 @@ func fallbackToLocalhost(listen string) string {
 	// IPv6 回退 IPv6 回环
 	return "::1"
 }
+
