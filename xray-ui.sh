@@ -789,67 +789,36 @@ ssl_cert_issue_ip() {
     LOGI "socat 已就绪"
 
     # ========== 获取 IP ==========
-    local Ip=""
-    local v4=""
-    local v6=""
+    local ip4=""
+    local ip6=""
+    local domains=()
+    local listen_v6=""
 
-    read -p "请输入 IP（直接回车自动获取）: " Ip
+    LOGI "自动获取公网 IP..."
 
-    if [[ -z "${Ip}" ]]; then
-        LOGI "自动获取公网 IP..."
+    ip4=$(curl -s4m8 http://ip.sb -k)
+    ip6=$(curl -s6m8 http://ip.sb -k)
 
-        v4=$(curl -s4m8 http://ip.sb -k)
-        v6=$(curl -s6m8 http://ip.sb -k)
+    [[ -n "${ip4}" ]] && domains+=("${ip4}")
+    [[ -n "${ip6}" ]] && {
+        domains+=("${ip6}")
+        listen_v6="--listen-v6"
+    }
 
-        if [[ -n "${v4}" ]]; then
-            Ip="${v4}"
-            LOGI "使用 IPv4：${Ip}"
-        elif [[ -n "${v6}" ]]; then
-            Ip="${v6}"
-            LOGI "未检测到 IPv4，使用 IPv6：${Ip}"
-        else
-            LOGE "无法获取公网 IP"
-            exit 1
-        fi
-    else
-        LOGI "使用用户输入 IP：${Ip}"
-    fi
-
-    # ========== IP 校验 ==========
-    if ! [[ "${Ip}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ || "${Ip}" =~ : ]]; then
-        LOGE "IP 格式不合法：${Ip}"
+    if [[ ${#domains[@]} -eq 0 ]]; then
+        LOGE "未获取到 IPv4 / IPv6"
         exit 1
     fi
 
-    # ========== 检查是否已有证书 ==========
-    if ~/.acme.sh/acme.sh --list | awk '{print $1}' | grep -qw "${Ip}"; then
-        LOGE "该 IP 已存在证书，无法重复签发"
-        ~/.acme.sh/acme.sh --list | grep "${Ip}"
-        exit 1
-    fi
+    LOGI "将签发以下 IP 证书：${domains[*]}"
+
+    # ========== 80 端口检测 ==========
+    check_port_80
 
     # ========== 证书目录 ==========
-    local certPath="/root/cert/${Ip}"
+    local certPath="/root/cert/${domains[0]}"
     rm -rf "${certPath}"
     mkdir -p "${certPath}"
-
-    # ========== 端口选择 ==========
-    local WebPort=80
-
-    if [[ "${Ip}" =~ : ]]; then
-        WebPort=80
-        LOGI "IPv6 校验强制使用 80 端口"
-    else
-        read -p "请选择端口（默认 80）: " WebPort
-        [[ -z "${WebPort}" ]] && WebPort=80
-
-        if [[ "${WebPort}" -lt 1 || "${WebPort}" -gt 65535 ]]; then
-            LOGE "端口无效，使用 80"
-            WebPort=80
-        fi
-    fi
-
-    LOGI "使用端口 ${WebPort} 进行 HTTP-01 校验"
 
     # ========== 签发 ==========
     ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
@@ -857,48 +826,50 @@ ssl_cert_issue_ip() {
     ~/.acme.sh/acme.sh \
         --issue \
         --server letsencrypt \
-        -d "${Ip}" \
+        $(printf -- "-d %s " "${domains[@]}") \
+        ${listen_v6} \
         --certificate-profile shortlived \
         --standalone \
-        --httpport "${WebPort}" \
+        --httpport 80 \
         --force || {
             LOGE "证书签发失败"
-            rm -rf ~/.acme.sh/"${Ip}"
             exit 1
         }
 
     LOGI "证书签发成功"
 
     # ========== 安装 ==========
-    ~/.acme.sh/acme.sh --installcert -d "${Ip}" \
+    ~/.acme.sh/acme.sh --installcert -d "${domains[0]}" \
         --ecc \
-        --ca-file /root/cert/ca.cer \
-        --cert-file /root/cert/"${Ip}".cer \
+        --cert-file "${certPath}/cert.pem" \
         --key-file "${certPath}/privkey.pem" \
-        --fullchain-file "${certPath}/fullchain.pem" || {
-            LOGE "证书安装失败"
-            exit 1
-        }
+        --fullchain-file "${certPath}/fullchain.pem" || exit 1
 
     LOGI "证书安装完成"
 
-    # ========== 应用到 xray-ui ==========
+    # ========== xray-ui ==========
     confirm "是否自动应用 SSL 到 xray-ui？[y/n]" "y"
     if [ $? -eq 0 ]; then
         /usr/local/xray-ui/xray-ui cert \
             -webCert "${certPath}/fullchain.pem" \
             -webCertKey "${certPath}/privkey.pem"
         confirm_restart
-    else
-        LOGI "请在 xray-ui 中手动重置 SSL（选项 22）"
     fi
 
-    # ========== 自动续期 ==========
     ~/.acme.sh/acme.sh --upgrade --auto-upgrade
 
-    LOGI "证书文件："
     ls -lah "${certPath}"
     chmod 755 "${certPath}"/*
+}
+
+
+check_port_80() {
+    if ss -lntp | awk '{print $4}' | grep -qE '(^|:)80$'; then
+        LOGE "检测到 80 端口已被占用"
+        ss -lntp | grep ':80'
+        LOGE "请先停止占用 80 端口的服务（如 nginx / apache / xray-ui）"
+        exit 1
+    fi
 }
 
 
