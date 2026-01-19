@@ -1,6 +1,6 @@
 module xray-ui
 
-go 1.25.5
+go 1.25.6
 
 require (
 	github.com/BurntSushi/toml v1.6.0
@@ -14,7 +14,7 @@ require (
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/shirou/gopsutil/v3 v3.24.5
-	github.com/xtls/xray-core v1.260113.0
+	github.com/xtls/xray-core v1.260118.0
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.47.0
 	golang.org/x/text v0.33.0

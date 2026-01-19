@@ -3,31 +3,103 @@ package service
 import (
 	"archive/zip"
 	"bytes"
+	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"mime/multipart"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
-	"runtime"
-	"time"
-	"strings"
 	"os/exec"
-	"github.com/google/uuid"
-	"xray-ui/logger"
+	"runtime"
+	"strings"
+	"time"
 	"xray-ui/config"
 	"xray-ui/database"
+	"xray-ui/logger"
 	"xray-ui/util/common"
 	"xray-ui/util/sys"
 	"xray-ui/xray"
+
+	"github.com/google/uuid"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/shirou/gopsutil/v3/net"
+	gopsutilnet "github.com/shirou/gopsutil/v3/net"
 )
+
+// 通用HTTP请求函数，处理DNS解析失败的情况
+func httpGetWithDNSFallback(urlStr string) (*http.Response, error) {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+	host := parsedURL.Hostname()
+	port := parsedURL.Port()
+	if port == "" {
+		if parsedURL.Scheme == "https" {
+			port = "443"
+		} else {
+			port = "80"
+		}
+	}
+
+	// 尝试解析 DNS: Google DNS -> Cloudflare DNS
+	var ips []net.IPAddr
+	resolver := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{Timeout: 5 * time.Second}
+			return d.DialContext(ctx, network, "8.8.8.8:53")
+		},
+	}
+	ips, err = resolver.LookupIPAddr(context.Background(), host)
+	if err != nil {
+		resolver.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{Timeout: 5 * time.Second}
+			return d.DialContext(ctx, network, "1.1.1.1:53")
+		}
+		ips, err = resolver.LookupIPAddr(context.Background(), host)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 使用第一个解析到的 IP
+	ip := ips[0].IP.String()
+
+	// 自定义 Transport，通过 IP 建立连接，但保留原 Host 做 TLS SNI
+	dialer := &net.Dialer{Timeout: 10 * time.Second}
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			_, portAddr, _ := net.SplitHostPort(addr)
+			return dialer.DialContext(ctx, network, net.JoinHostPort(ip, portAddr))
+		},
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 60 * time.Second, // 大文件读取头超时
+		TLSClientConfig:       &tls.Config{},   // 默认验证证书
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   0, // 不限制总超时，由 Transport 控制各阶段
+	}
+
+	// 发起请求
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Host = host // 保持 Host 用于 TLS/SNI
+
+	return client.Do(req)
+}
 
 type ProcessState string
 
@@ -76,10 +148,9 @@ type Release struct {
 }
 
 type ServerService struct {
-	xrayService XrayService
+	xrayService    XrayService
 	inboundService InboundService
 }
-
 
 func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 	now := time.Now()
@@ -132,7 +203,7 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 		status.Loads = []float64{avgState.Load1, avgState.Load5, avgState.Load15}
 	}
 
-	ioStats, err := net.IOCounters(false)
+	ioStats, err := gopsutilnet.IOCounters(false)
 	if err != nil {
 		logger.Warning("get io counters failed:", err)
 	} else if len(ioStats) > 0 {
@@ -181,7 +252,7 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 
 func (s *ServerService) GetXrayVersions() ([]string, error) {
 	url := "https://api.github.com/repos/XTLS/Xray-core/releases"
-	resp, err := http.Get(url)
+	resp, err := httpGetWithDNSFallback(url)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +318,7 @@ func (s *ServerService) downloadXRay(version string) (string, error) {
 
 	fileName := fmt.Sprintf("Xray-%s-%s.zip", osName, arch)
 	url := fmt.Sprintf("https://github.com/XTLS/Xray-core/releases/download/%s/%s", version, fileName)
-	resp, err := http.Get(url)
+	resp, err := httpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -332,10 +403,9 @@ func (s *ServerService) UpdateXray(version string) error {
 
 }
 
-
 func (s *ServerService) GetLatestVersion() (string, error) {
 	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest"
-	resp, err := http.Get(url)
+	resp, err := httpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -360,10 +430,9 @@ func (s *ServerService) GetLatestVersion() (string, error) {
 	return release.TagName, nil
 }
 
-
 func (s *ServerService) GetGeoipVersions() ([]string, error) {
 	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases"
-	resp, err := http.Get(url)
+	resp, err := httpGetWithDNSFallback(url)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +461,7 @@ func (s *ServerService) downloadGeoip(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geoip.dat")
 	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
-	resp, err := http.Get(url)
+	resp, err := httpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -443,7 +512,7 @@ func (s *ServerService) downloadGeosite(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geosite.dat")
 	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
-	resp, err := http.Get(url)
+	resp, err := httpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -489,7 +558,6 @@ func (s *ServerService) UpdateGeositeip(version string) error {
 	}
 	return nil
 }
-
 
 func (s *ServerService) GetConfigJson() (interface{}, error) {
 	// Open the file for reading
