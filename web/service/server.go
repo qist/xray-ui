@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -35,70 +36,124 @@ import (
 )
 
 // 通用HTTP请求函数，处理DNS解析失败的情况
-func httpGetWithDNSFallback(urlStr string) (*http.Response, error) {
+// resolveHost 解析域名，先用系统 DNS，失败再用 Google DNS → Cloudflare DNS
+// resolveHost 解析域名，系统DNS失败后尝试Google→Cloudflare
+func resolveHost(host string) (string, error) {
+	// 系统 DNS
+	if ips, err := net.LookupIP(host); err == nil && len(ips) > 0 {
+		return ips[0].String(), nil
+	}
+
+	// Google DNS
+	resolver := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			return (&net.Dialer{Timeout: 5 * time.Second}).DialContext(ctx, network, "8.8.8.8:53")
+		},
+	}
+	if ips, err := resolver.LookupIPAddr(context.Background(), host); err == nil && len(ips) > 0 {
+		return ips[0].IP.String(), nil
+	}
+
+	// Cloudflare DNS
+	resolver.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
+		return (&net.Dialer{Timeout: 5 * time.Second}).DialContext(ctx, network, "1.1.1.1:53")
+	}
+	if ips, err := resolver.LookupIPAddr(context.Background(), host); err == nil && len(ips) > 0 {
+		return ips[0].IP.String(), nil
+	}
+
+	return "", fmt.Errorf("无法解析域名: %s", host)
+}
+
+// newHttpClient 创建支持 DNS fallback + HTTPS SNI + 跨域重定向 的 HTTP 客户端
+func newHttpClient(urlStr string) (*http.Client, error) {
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
+
+	scheme := parsedURL.Scheme
 	host := parsedURL.Hostname()
 	port := parsedURL.Port()
 	if port == "" {
-		if parsedURL.Scheme == "https" {
+		if scheme == "https" {
 			port = "443"
 		} else {
 			port = "80"
 		}
 	}
 
-	// 尝试解析 DNS: Google DNS -> Cloudflare DNS
-	var ips []net.IPAddr
-	resolver := &net.Resolver{
-		PreferGo: true,
-		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-			d := net.Dialer{Timeout: 5 * time.Second}
-			return d.DialContext(ctx, network, "8.8.8.8:53")
-		},
-	}
-	ips, err = resolver.LookupIPAddr(context.Background(), host)
-	if err != nil {
-		resolver.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
-			d := net.Dialer{Timeout: 5 * time.Second}
-			return d.DialContext(ctx, network, "1.1.1.1:53")
-		}
-		ips, err = resolver.LookupIPAddr(context.Background(), host)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// 使用第一个解析到的 IP
-	ip := ips[0].IP.String()
-
-	// 自定义 Transport，通过 IP 建立连接，但保留原 Host 做 TLS SNI
-	dialer := &net.Dialer{Timeout: 10 * time.Second}
-	transport := &http.Transport{
-		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			_, portAddr, _ := net.SplitHostPort(addr)
-			return dialer.DialContext(ctx, network, net.JoinHostPort(ip, portAddr))
-		},
-		TLSHandshakeTimeout:   10 * time.Second,
-		ResponseHeaderTimeout: 60 * time.Second, // 大文件读取头超时
-		TLSClientConfig:       &tls.Config{},   // 默认验证证书
-	}
-
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   0, // 不限制总超时，由 Transport 控制各阶段
-	}
-
-	// 发起请求
-	req, err := http.NewRequest("GET", urlStr, nil)
+	ip, err := resolveHost(host)
 	if err != nil {
 		return nil, err
 	}
-	req.Host = host // 保持 Host 用于 TLS/SNI
 
-	return client.Do(req)
+	dialer := &net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}
+
+	transport := &http.Transport{
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 180 * time.Second,
+		DisableKeepAlives:     false,
+		TLSClientConfig:       &tls.Config{ServerName: host},
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return dialer.DialContext(ctx, network, net.JoinHostPort(ip, port))
+		},
+	}
+
+	client := &http.Client{
+		Timeout:   0,
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			// 每次重定向都重新解析新的域名
+			newURL := req.URL
+			newScheme := newURL.Scheme
+			newHost := newURL.Hostname()
+			newPort := newURL.Port()
+			if newPort == "" {
+				if newScheme == "https" {
+					newPort = "443"
+				} else {
+					newPort = "80"
+				}
+			}
+
+			newIP, err := resolveHost(newHost)
+			if err != nil {
+				return err
+			}
+
+			req.Host = newHost
+			req.URL.Host = net.JoinHostPort(newIP, newPort)
+
+			// 更新 Transport 的 DialContext 和 ServerName
+			transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return dialer.DialContext(ctx, network, net.JoinHostPort(newIP, newPort))
+			}
+			transport.TLSClientConfig = &tls.Config{ServerName: newHost}
+
+			return nil
+		},
+	}
+
+	return client, nil
+}
+
+// HttpGetWithDNSFallback 发起 GET 请求
+func HttpGetWithDNSFallback(urlStr string) (*http.Response, error) {
+	client, err := newHttpClient(urlStr)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Get(urlStr)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		resp.Body.Close()
+		return nil, fmt.Errorf("HTTP请求失败，状态码: %d", resp.StatusCode)
+	}
+	return resp, nil
 }
 
 type ProcessState string
@@ -252,7 +307,7 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 
 func (s *ServerService) GetXrayVersions() ([]string, error) {
 	url := "https://api.github.com/repos/XTLS/Xray-core/releases"
-	resp, err := httpGetWithDNSFallback(url)
+	resp, err := HttpGetWithDNSFallback(url)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +373,7 @@ func (s *ServerService) downloadXRay(version string) (string, error) {
 
 	fileName := fmt.Sprintf("Xray-%s-%s.zip", osName, arch)
 	url := fmt.Sprintf("https://github.com/XTLS/Xray-core/releases/download/%s/%s", version, fileName)
-	resp, err := httpGetWithDNSFallback(url)
+	resp, err := HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -405,7 +460,7 @@ func (s *ServerService) UpdateXray(version string) error {
 
 func (s *ServerService) GetLatestVersion() (string, error) {
 	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest"
-	resp, err := httpGetWithDNSFallback(url)
+	resp, err := HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -432,7 +487,7 @@ func (s *ServerService) GetLatestVersion() (string, error) {
 
 func (s *ServerService) GetGeoipVersions() ([]string, error) {
 	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases"
-	resp, err := httpGetWithDNSFallback(url)
+	resp, err := HttpGetWithDNSFallback(url)
 	if err != nil {
 		return nil, err
 	}
@@ -461,7 +516,7 @@ func (s *ServerService) downloadGeoip(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geoip.dat")
 	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
-	resp, err := httpGetWithDNSFallback(url)
+	resp, err := HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -512,7 +567,7 @@ func (s *ServerService) downloadGeosite(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geosite.dat")
 	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
-	resp, err := httpGetWithDNSFallback(url)
+	resp, err := HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
