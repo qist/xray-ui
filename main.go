@@ -279,11 +279,11 @@ func UpdateAllip() {
 		return
 	}
 
-	err = serverService.UpdateGeositeip(version)
-	if err != nil {
-		fmt.Printf("Error updating Geosite file for version %s: %v\n", version, err)
-		return
-	}
+	// err = serverService.UpdateGeositeip(version)
+	// if err != nil {
+	// 	fmt.Printf("Error updating Geosite file for version %s: %v\n", version, err)
+	// 	return
+	// }
 
 	fmt.Printf("GeoIP and Geosite files for version %s downloaded and updated successfully!\n", version)
 	

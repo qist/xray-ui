@@ -425,7 +425,7 @@
                 onOk: async () => {
                     versionModal.hide();
                     this.loading(true, '安装中，请不要刷新此页面');
-                    const urls = [`/server/installGeosite/${version}`, `/server/installGeoip/${version}`];
+                    const urls = [`/server/installGeoip/${version}`];
                     await Promise.all(urls.map(url => HttpUtil.post(url)));
                     const msg = await HttpUtil.post(`/server/getVersion/${version}`)
                     this.Version = msg.obj

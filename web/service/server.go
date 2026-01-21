@@ -410,32 +410,6 @@ func (s *ServerService) downloadGeoip(version string) (string, error) {
 	return fileName, nil
 }
 
-func (s *ServerService) UpdateGeoip(version string) error {
-	_, err := s.downloadGeoip(version)
-	if err != nil {
-		return err
-	}
-
-	s.xrayService.StopXray()
-	defer func() {
-		err := s.xrayService.RestartXray(true)
-		if err != nil {
-			logger.Error("start xray failed:", err)
-		}
-	}()
-
-	return nil
-
-}
-
-func (s *ServerService) UpdateGeoipip(version string) error {
-	_, err := s.downloadGeoip(version)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *ServerService) downloadGeosite(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geosite.dat")
@@ -461,31 +435,72 @@ func (s *ServerService) downloadGeosite(version string) (string, error) {
 	return fileName, nil
 }
 
-func (s *ServerService) UpdateGeosite(version string) error {
-	_, err := s.downloadGeosite(version)
-	if err != nil {
+func (s *ServerService) updateGeoData(version string) error {
+	if _, err := s.downloadGeoip(version); err != nil {
+		return err
+	}
+	if _, err := s.downloadGeosite(version); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *ServerService) UpdateGeoip(version string, restart bool) error {
+	if err := s.updateGeoData(version); err != nil {
 		return err
 	}
 
-	s.xrayService.StopXray()
+	if !restart {
+		return nil
+	}
+
+	if err := s.xrayService.StopXray(); err != nil {
+		return err
+	}
+
 	defer func() {
-		err := s.xrayService.RestartXray(true)
-		if err != nil {
-			logger.Error("start xray failed:", err)
+		if err := s.xrayService.RestartXray(true); err != nil {
+			logger.Error("restart xray failed:", err)
 		}
 	}()
 
 	return nil
-
 }
 
-func (s *ServerService) UpdateGeositeip(version string) error {
-	_, err := s.downloadGeosite(version)
+
+func (s *ServerService) UpdateGeoipip(version string) error {
+	 err := s.updateGeoData(version)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// func (s *ServerService) UpdateGeosite(version string) error {
+// 	_, err := s.downloadGeosite(version)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	s.xrayService.StopXray()
+// 	defer func() {
+// 		err := s.xrayService.RestartXray(true)
+// 		if err != nil {
+// 			logger.Error("start xray failed:", err)
+// 		}
+// 	}()
+
+// 	return nil
+
+// }
+
+// func (s *ServerService) UpdateGeositeip(version string) error {
+// 	_, err := s.downloadGeosite(version)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (s *ServerService) GetConfigJson() (interface{}, error) {
 	// Open the file for reading

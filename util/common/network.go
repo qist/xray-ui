@@ -60,7 +60,7 @@ func resolveHost(host string) (string, error) {
 // NewHTTPClient 创建安全的 HTTP Client（DNS fallback + SNI + Redirect）
 func NewHTTPClient() *http.Client {
 	dialer := &net.Dialer{
-		Timeout:   10 * time.Second,
+		Timeout:   180 * time.Second,
 		KeepAlive: 30 * time.Second,
 	}
 
@@ -88,7 +88,7 @@ func NewHTTPClient() *http.Client {
 	}
 
 	return &http.Client{
-		Timeout:   60 * time.Second,
+		Timeout:   0 * time.Second,
 		Transport: transport,
 
 		// Redirect 只修 Host，绝不改 Transport
