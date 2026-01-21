@@ -3,18 +3,21 @@ package common
 import (
 	"context"
 	"crypto/tls"
-	"io/ioutil"
 	"fmt"
-	"net/url"
-
+	"io"
 	"net"
 	"net/http"
-	// "strings"
+	"net/url"
+	"strings"
 	"time"
 )
 
-// resolveHost 解析域名，系统DNS失败后尝试Google→Cloudflare
+// resolveHost 解析域名，系统 DNS 失败后尝试 Google → Cloudflare
 func resolveHost(host string) (string, error) {
+	if host == "" {
+		return "", fmt.Errorf("域名不能为空")
+	}
+
 	// 系统 DNS
 	if ips, err := net.LookupIP(host); err == nil && len(ips) > 0 {
 		return ips[0].String(), nil
@@ -42,9 +45,9 @@ func resolveHost(host string) (string, error) {
 	return "", fmt.Errorf("无法解析域名: %s", host)
 }
 
-// newHttpClient 创建支持 DNS fallback + HTTPS SNI + 跨域重定向 的 HTTP 客户端
-func newHttpClient(urlStr string) (*http.Client, error) {
-	parsedURL, err := url.Parse(urlStr)
+// newHttpClient 创建 HTTP Client，支持 DNS fallback + HTTPS SNI + 跨域重定向
+func newHttpClient(rawURL string) (*http.Client, error) {
+	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
 	}
@@ -78,16 +81,14 @@ func newHttpClient(urlStr string) (*http.Client, error) {
 	}
 
 	client := &http.Client{
-		Timeout:   0,
+		Timeout:   60 * time.Second,
 		Transport: transport,
+		// 处理重定向
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			// 每次重定向都重新解析新的域名
-			newURL := req.URL
-			newScheme := newURL.Scheme
-			newHost := newURL.Hostname()
-			newPort := newURL.Port()
+			newHost := req.URL.Hostname()
+			newPort := req.URL.Port()
 			if newPort == "" {
-				if newScheme == "https" {
+				if req.URL.Scheme == "https" {
 					newPort = "443"
 				} else {
 					newPort = "80"
@@ -101,12 +102,17 @@ func newHttpClient(urlStr string) (*http.Client, error) {
 
 			req.Host = newHost
 			req.URL.Host = net.JoinHostPort(newIP, newPort)
+			req.RequestURI = "" // 必须清空 RequestURI
 
-			// 更新 Transport 的 DialContext 和 ServerName
+			// 更新 TLS SNI
+			if req.URL.Scheme == "https" {
+				transport.TLSClientConfig = &tls.Config{ServerName: newHost}
+			}
+
+			// DialContext 使用新的 IP
 			transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 				return dialer.DialContext(ctx, network, net.JoinHostPort(newIP, newPort))
 			}
-			transport.TLSClientConfig = &tls.Config{ServerName: newHost}
 
 			return nil
 		},
@@ -121,22 +127,39 @@ func HttpGetWithDNSFallback(urlStr string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := client.Get(urlStr)
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
-		return nil, fmt.Errorf("HTTP请求失败，状态码: %d", resp.StatusCode)
+		return nil, fmt.Errorf("HTTP请求失败，状态码: %d, 响应: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
+
 	return resp, nil
 }
+
+// GetMyIpAddr 获取本机公网 IP
 func GetMyIpAddr() string {
-	resp, err := HttpGetWithDNSFallback("https://api64.ipify.org")
-	if err != nil {
-		resp, _ = HttpGetWithDNSFallback("http://ip.sb")
+	urls := []string{
+		"https://api64.ipify.org",
+		"http://ip.sb",
 	}
-	defer resp.Body.Close()
-	s, _ := ioutil.ReadAll(resp.Body)
-	return string(s)
+
+	for _, u := range urls {
+		resp, err := HttpGetWithDNSFallback(u)
+		if err != nil {
+			continue
+		}
+		if resp != nil {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			return strings.TrimSpace(string(body))
+		}
+	}
+
+	return ""
 }
