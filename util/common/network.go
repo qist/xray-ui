@@ -146,7 +146,7 @@ func HttpGetWithDNSFallback(urlStr string) (*http.Response, error) {
 func GetMyIpAddr() string {
 	urls := []string{
 		"https://api64.ipify.org",
-		"http://ip.sb",
+		"https://ip.sb",
 	}
 
 	for _, u := range urls {
