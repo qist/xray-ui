@@ -8,25 +8,25 @@ import (
 	"io"
 	"io/fs"
 	"mime/multipart"
-	"net/http"
 	"os"
-	"runtime"
-	"time"
-	"strings"
 	"os/exec"
-	"github.com/google/uuid"
-	"xray-ui/logger"
+	"runtime"
+	"strings"
+	"time"
 	"xray-ui/config"
 	"xray-ui/database"
+	"xray-ui/logger"
 	"xray-ui/util/common"
 	"xray-ui/util/sys"
 	"xray-ui/xray"
+
+	"github.com/google/uuid"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/shirou/gopsutil/v3/net"
+	gopsutilnet "github.com/shirou/gopsutil/v3/net"
 )
 
 type ProcessState string
@@ -76,10 +76,9 @@ type Release struct {
 }
 
 type ServerService struct {
-	xrayService XrayService
+	xrayService    XrayService
 	inboundService InboundService
 }
-
 
 func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 	now := time.Now()
@@ -132,7 +131,7 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 		status.Loads = []float64{avgState.Load1, avgState.Load5, avgState.Load15}
 	}
 
-	ioStats, err := net.IOCounters(false)
+	ioStats, err := gopsutilnet.IOCounters(false)
 	if err != nil {
 		logger.Warning("get io counters failed:", err)
 	} else if len(ioStats) > 0 {
@@ -181,7 +180,7 @@ func (s *ServerService) GetStatus(lastStatus *Status) *Status {
 
 func (s *ServerService) GetXrayVersions() ([]string, error) {
 	url := "https://api.github.com/repos/XTLS/Xray-core/releases"
-	resp, err := http.Get(url)
+	resp, err := common.HttpGetWithDNSFallback(url)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +246,7 @@ func (s *ServerService) downloadXRay(version string) (string, error) {
 
 	fileName := fmt.Sprintf("Xray-%s-%s.zip", osName, arch)
 	url := fmt.Sprintf("https://github.com/XTLS/Xray-core/releases/download/%s/%s", version, fileName)
-	resp, err := http.Get(url)
+	resp, err := common.HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -332,10 +331,9 @@ func (s *ServerService) UpdateXray(version string) error {
 
 }
 
-
 func (s *ServerService) GetLatestVersion() (string, error) {
 	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest"
-	resp, err := http.Get(url)
+	resp, err := common.HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -360,10 +358,9 @@ func (s *ServerService) GetLatestVersion() (string, error) {
 	return release.TagName, nil
 }
 
-
 func (s *ServerService) GetGeoipVersions() ([]string, error) {
 	url := "https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases"
-	resp, err := http.Get(url)
+	resp, err := common.HttpGetWithDNSFallback(url)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +389,7 @@ func (s *ServerService) downloadGeoip(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geoip.dat")
 	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
-	resp, err := http.Get(url)
+	resp, err := common.HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -413,37 +410,11 @@ func (s *ServerService) downloadGeoip(version string) (string, error) {
 	return fileName, nil
 }
 
-func (s *ServerService) UpdateGeoip(version string) error {
-	_, err := s.downloadGeoip(version)
-	if err != nil {
-		return err
-	}
-
-	s.xrayService.StopXray()
-	defer func() {
-		err := s.xrayService.RestartXray(true)
-		if err != nil {
-			logger.Error("start xray failed:", err)
-		}
-	}()
-
-	return nil
-
-}
-
-func (s *ServerService) UpdateGeoipip(version string) error {
-	_, err := s.downloadGeoip(version)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *ServerService) downloadGeosite(version string) (string, error) {
 
 	fileName := fmt.Sprintf("geosite.dat")
 	url := fmt.Sprintf("https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/%s/%s", version, fileName)
-	resp, err := http.Get(url)
+	resp, err := common.HttpGetWithDNSFallback(url)
 	if err != nil {
 		return "", err
 	}
@@ -464,32 +435,72 @@ func (s *ServerService) downloadGeosite(version string) (string, error) {
 	return fileName, nil
 }
 
-func (s *ServerService) UpdateGeosite(version string) error {
-	_, err := s.downloadGeosite(version)
-	if err != nil {
+func (s *ServerService) updateGeoData(version string) error {
+	if _, err := s.downloadGeoip(version); err != nil {
+		return err
+	}
+	if _, err := s.downloadGeosite(version); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *ServerService) UpdateGeoip(version string, restart bool) error {
+	if err := s.updateGeoData(version); err != nil {
 		return err
 	}
 
-	s.xrayService.StopXray()
+	if !restart {
+		return nil
+	}
+
+	if err := s.xrayService.StopXray(); err != nil {
+		return err
+	}
+
 	defer func() {
-		err := s.xrayService.RestartXray(true)
-		if err != nil {
-			logger.Error("start xray failed:", err)
+		if err := s.xrayService.RestartXray(true); err != nil {
+			logger.Error("restart xray failed:", err)
 		}
 	}()
 
 	return nil
-
 }
 
-func (s *ServerService) UpdateGeositeip(version string) error {
-	_, err := s.downloadGeosite(version)
+
+func (s *ServerService) UpdateGeoipip(version string) error {
+	 err := s.updateGeoData(version)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// func (s *ServerService) UpdateGeosite(version string) error {
+// 	_, err := s.downloadGeosite(version)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	s.xrayService.StopXray()
+// 	defer func() {
+// 		err := s.xrayService.RestartXray(true)
+// 		if err != nil {
+// 			logger.Error("start xray failed:", err)
+// 		}
+// 	}()
+
+// 	return nil
+
+// }
+
+// func (s *ServerService) UpdateGeositeip(version string) error {
+// 	_, err := s.downloadGeosite(version)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (s *ServerService) GetConfigJson() (interface{}, error) {
 	// Open the file for reading

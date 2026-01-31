@@ -63,7 +63,7 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/installXray/:version", a.installXray)
 	g.POST("/getGeoipVersion", a.getGeoipVersion)
 	g.POST("/installGeoip/:version", a.installGeoip)
-	g.POST("/installGeosite/:version", a.installGeosite)
+	// g.POST("/installGeosite/:version", a.installGeosite)
 	g.POST("/xraysecretkey", a.XraySecretKey)
 	g.POST("/mldsa65secretkey", a.Mldsa65SecretKey)
 	g.GET("/getNewUUID", a.getNewUUID)
@@ -164,15 +164,15 @@ func (a *ServerController) getGeoipVersion(c *gin.Context) {
 
 func (a *ServerController) installGeoip(c *gin.Context) {
 	version := c.Param("version")
-	err := a.serverService.UpdateGeoip(version)
-	jsonMsg(c, "安装 geoip", err)
+	err := a.serverService.UpdateGeoip(version, true)
+	jsonMsg(c, "安装 geoip geosite", err)
 }
 
-func (a *ServerController) installGeosite(c *gin.Context) {
-	version := c.Param("version")
-	err := a.serverService.UpdateGeosite(version)
-	jsonMsg(c, "安装 geosite", err)
-}
+// func (a *ServerController) installGeosite(c *gin.Context) {
+// 	version := c.Param("version")
+// 	err := a.serverService.UpdateGeosite(version)
+// 	jsonMsg(c, "安装 geosite", err)
+// }
 
 func (a *ServerController) XraySecretKey(c *gin.Context) {
 	key := SecretKey()

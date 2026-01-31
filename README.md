@@ -218,18 +218,8 @@ ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使�
   <summary>点击查看 手动安装</summary>
 
 ```bash
-当前面板http只支持127.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 配置证书 选择22配置证书
-ssh 转发 客户机操作 ssh  -f -N -L 127.0.0.1:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@8.8.8.8(xray-ui 服务器ip)
-例子：ssh  -f -N -L 127.0.0.1:22222:127.0.0.1:54321 root@8.8.8.8
-浏览器访问 http://127.0.0.1:22222(ssh代理端口未使用端口)/path(web访问路径)
-或者服务器执行 ssh -f -N -L 0.0.0.0:22222(ssh代理端口未使用端口):127.0.0.1:54321(xray-ui 端口) root@127.0.0.1 
-例子：ssh -f -N -L 0.0.0.0:22222:127.0.0.1:54321 root@127.0.0.1
-然后用你服务器地址+ssh转发端口访问
-
-xshell 配置：https://netsarang.atlassian.net/wiki/spaces/ENSUP/pages/27295927/XDMCP+connection+through+SSH+tunneling
-putty 配置：https://knowledge.exlibrisgroup.com/Voyager/Knowledge_Articles/Set_Up_SSH_Port_Forwarding_in_Putty
-SecureCRT  配置：https://www.vandyke.com/support/tips/socksproxy.html
-windows openssh 配置： https://www.cnblogs.com/managechina/p/18189889
+当前面板http只支持127.0.0.1访问如果外面访问请用ssh转发或者nginx代理或者xray-ui 
+证书申请： xray-ui  选择19 或者 xray-ui ip_ssl_main 申请IP 证书
 ```
 </details>
 
