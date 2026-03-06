@@ -25,7 +25,7 @@ jobs:
 
       - name: Docker metadata
         id: meta_dockerhub
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.DOCKER_HUB_REGISTRY }}/juestnow/xray-ui
           flavor: latest=true
@@ -38,7 +38,7 @@ jobs:
 
       - name: Docker metadata for GHCR
         id: meta_ghcr
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.GHCR_REGISTRY }}/${{ github.repository_owner }}/xray-ui
           flavor: latest=true
