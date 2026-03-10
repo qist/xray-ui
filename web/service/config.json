@@ -62,7 +62,8 @@
       {
         "type": "field",
         "domain": [
-          "www.gstatic.com"
+          "gstatic.com",
+          "googleapis.com"
         ],
         "outboundTag": "direct"
       },
