@@ -2735,7 +2735,7 @@ class Inbound extends XrayCommonClass {
         }
 
         this.settings.selectedAuth = undefined;
-        this.settings.decryption = '';
+        this.settings.decryption = 'none';
         this.settings.encryption = '';
     }
 
@@ -3495,18 +3495,16 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
     toJson() {
         const json = {
             clients: Inbound.VLESSSettings.toJsonArray(this.vlesses),
+            decryption: ObjectUtil.isEmpty(this.decryption) ? 'none' : this.decryption,
         };
 
         if (this.fallbacks && this.fallbacks.length > 0) {
-            json.fallbacks = Inbound.VLESSSettings.toJsonArray(this.fallbacks);
+            json['fallbacks'] = Inbound.VLESSSettings.toJsonArray(this.fallbacks);
         }
         if (this.selectedAuth) {
-            json.selectedAuth = this.selectedAuth;
-            if (this.decryption) {
-                json.decryption = this.decryption;
-            }
+            json['selectedAuth'] = this.selectedAuth;
             if (this.encryption) {
-                json.encryption = this.encryption;
+                json['encryption'] = this.encryption;
             }
         }
 
