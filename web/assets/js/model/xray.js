@@ -2857,16 +2857,8 @@ class Inbound extends XrayCommonClass {
             mode = xhttp.mode;
         }
 
-        if (tls === 'tls') {
-            if (!ObjectUtil.isEmpty(this.stream.tls.sni)) {
-                obj.sni = this.stream.tls.sni;
-            }
-            if (!ObjectUtil.isEmpty(this.stream.tls.settings.fingerprint)) {
-                obj.fp = this.stream.tls.settings.fingerprint;
-            }
-            if (this.stream.tls.alpn.length > 0) {
-                obj.alpn = this.stream.tls.alpn.join(',');
-            }
+        if (this.stream.security === 'tls' && !ObjectUtil.isEmpty(this.stream.tls.sni)) {
+            sni = this.stream.tls.sni;
         }
         if (address.startsWith('/')) {
             let host = window.location.hostname; // hostname 一般不带 []
@@ -2897,8 +2889,15 @@ class Inbound extends XrayCommonClass {
             authority: authority,
             tls: this.stream.security,
             sni: sni,
-            fp: this.stream.tls.settings[0]['fingerprint'],
         };
+        if (this.stream.security === 'tls') {
+            if (!ObjectUtil.isEmpty(this.stream.tls.settings.fingerprint)) {
+                obj.fp = this.stream.tls.settings.fingerprint;
+            }
+            if (this.stream.tls.alpn.length > 0) {
+                obj.alpn = this.stream.tls.alpn.join(',');
+            }
+        }
         return 'vmess://' + base64(JSON.stringify(obj, null, 2));
     }
 
@@ -2986,7 +2985,7 @@ class Inbound extends XrayCommonClass {
                 break;
         }
 
-        if (security === 'tls') {
+        if (this.tls) {
             params.set("security", "tls");
             if (this.stream.isTls) {
                 params.set("fp", this.stream.tls.settings.fingerprint);
@@ -2997,8 +2996,11 @@ class Inbound extends XrayCommonClass {
                 if (this.stream.tls.settings.echConfigList?.length > 0) {
                     params.set("ech", this.stream.tls.settings.echConfigList);
                 }
-                if (type == "tcp" && !ObjectUtil.isEmpty(flow)) {
-                    params.set("flow", flow);
+                if (type === "tcp" && this.settings.vlesses[0].flow.length > 0) {
+                    params.set("flow", this.settings.vlesses[0].flow);
+                }
+                if (type === "raw" && this.settings.vlesses[0].flow.length > 0) {
+                    params.set("flow", this.settings.vlesses[0].flow);
                 }
             }
         }
@@ -3271,7 +3273,7 @@ class Inbound extends XrayCommonClass {
                 break;
         }
 
-        if (security === 'tls') {
+        if (this.tls) {
             params.set("security", "tls");
             if (this.stream.isTls) {
                 params.set("fp", this.stream.tls.settings.fingerprint);
