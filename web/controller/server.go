@@ -66,6 +66,7 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	// g.POST("/installGeosite/:version", a.installGeosite)
 	g.POST("/xraysecretkey", a.XraySecretKey)
 	g.POST("/mldsa65secretkey", a.Mldsa65SecretKey)
+	g.POST("/getNewEchCert", a.getNewEchCert)
 	g.GET("/getNewUUID", a.getNewUUID)
 	g.GET("/getNewmlkem768", a.getNewmlkem768)
 	g.GET("/getNewVlessEnc", a.getNewVlessEnc)
@@ -322,6 +323,16 @@ func (a *ServerController) getNewVlessEnc(c *gin.Context) {
 		return
 	}
 	jsonObj(c, out, nil)
+}
+
+func (a *ServerController) getNewEchCert(c *gin.Context) {
+	sni := c.PostForm("sni")
+	cert, err := a.serverService.GetNewEchCert(sni)
+	if err != nil {
+		jsonMsg(c, "get ech certificate", err)
+		return
+	}
+	jsonObj(c, cert, nil)
 }
 
 func (a *ServerController) getNewUUID(c *gin.Context) {

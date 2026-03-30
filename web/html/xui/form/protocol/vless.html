@@ -1,7 +1,12 @@
 {{define "form/vless"}}
 <a-form layout="inline">
     <a-form-item label="id">
-        <a-input v-model.trim="inbound.settings.vlesses[0].id"></a-input>
+        <a-input-group compact style="display: flex; width: 420px;">
+            <a-input v-model.trim="inbound.settings.vlesses[0].id" style="width: 75%"></a-input>
+            <a-button size="small" style="width: 25%" @click="inbound.settings.vlesses[0].refreshId()">
+                更换
+            </a-button>
+        </a-input-group>
     </a-form-item>
 
     <a-form-item v-if="inbound.tls && inbound.isTcp || inbound.tls && inbound.isRaw " label="flow">
@@ -17,26 +22,25 @@
         </a-select>
     </a-form-item>
 </a-form>
-<a-form-item v-if="!inbound.tls || !inbound.reality">
+<a-form v-if="inbound.canEnableAuthentication() && inbound.authentication" layout="inline">
     <a-form-item label="Authentication">
-      <a-select v-model="inbound.settings.selectedAuth"  @change="getNewVlessEnc" style="width: 250px">
-        <a-select-option value="X25519, not Post-Quantum">X25519 (not Post-Quantum)</a-select-option>
-        <a-select-option value="ML-KEM-768, Post-Quantum">ML-KEM-768 (Post-Quantum)</a-select-option>
-      </a-select>
+        <a-select v-model="inbound.settings.selectedAuth" @change="getNewVlessEnc" style="width: 250px">
+            <a-select-option value="X25519, not Post-Quantum">X25519 (not Post-Quantum)</a-select-option>
+            <a-select-option value="ML-KEM-768, Post-Quantum">ML-KEM-768 (Post-Quantum)</a-select-option>
+        </a-select>
     </a-form-item>
     <a-form-item label="decryption">
-      <a-input v-model.trim="inbound.settings.decryption"></a-input>
+        <a-input v-model.trim="inbound.settings.decryption"></a-input>
     </a-form-item>
     <a-form-item label="encryption">
-      <a-input v-model="inbound.settings.encryption"></a-input>
+        <a-input v-model="inbound.settings.encryption"></a-input>
     </a-form-item>
     <a-form-item label=" ">
-      <a-space>
-        <a-button type="primary" icon="import" @click="getNewVlessEnc">Get New keys</a-button>
-      </a-space>
+        <a-space>
+            <a-button type="primary" icon="import" @click="getNewVlessEnc">Get New keys</a-button>
+        </a-space>
     </a-form-item>
-  </a-form>
-</a-form-item>
+</a-form>
 <a-form layout="inline">
     <a-form-item label="fallbacks">
         <a-row>

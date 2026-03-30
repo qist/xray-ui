@@ -1,7 +1,12 @@
 {{define "form/trojan"}}
 <a-form layout="inline">
     <a-form-item label="密码">
-        <a-input v-model.trim="inbound.settings.clients[0].password"></a-input>
+        <a-input-group compact style="display: flex; width: 320px;">
+            <a-input v-model.trim="inbound.settings.clients[0].password" style="width: 75%"></a-input>
+            <a-button size="small" style="width: 25%" @click="inbound.settings.clients[0].refreshPassword()">
+                更换
+            </a-button>
+        </a-input-group>
     </a-form-item>
 
 <a-form layout="inline">

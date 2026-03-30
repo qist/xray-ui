@@ -6,7 +6,12 @@
         </a-select>
     </a-form-item>
     <a-form-item label="密码">
-        <a-input v-model.trim="inbound.settings.password"></a-input>
+        <a-input-group compact style="display: flex; width: 360px;">
+            <a-input v-model.trim="inbound.settings.password" style="width: 75%"></a-input>
+            <a-button size="small" style="width: 25%" @click="inbound.settings.refreshPassword()">
+                更换
+            </a-button>
+        </a-input-group>
     </a-form-item>
     <a-form-item label="网络">
         <a-select v-model="inbound.settings.network" style="width: 100px;">

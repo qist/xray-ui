@@ -10,10 +10,11 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
-	"syscall"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 	"xray-ui/util/common"
 
@@ -157,6 +158,11 @@ func (p *process) Start() (err error) {
 		return common.NewErrorf("生成 xray 配置文件失败: %v", err)
 	}
 	configPath := GetConfigPath()
+	configDir := filepath.Dir(configPath)
+	err = os.MkdirAll(configDir, fs.ModePerm)
+	if err != nil {
+		return common.NewErrorf("创建配置目录失败: %v", err)
+	}
 	err = os.WriteFile(configPath, data, fs.ModePerm)
 	if err != nil {
 		return common.NewErrorf("写入配置文件失败: %v", err)

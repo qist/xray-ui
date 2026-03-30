@@ -6,6 +6,7 @@ const Protocols = {
     DOKODEMO: 'dokodemo-door',
     SOCKS: 'socks',
     HTTP: 'http',
+    HYSTERIA: 'hysteria',
 };
 
 const VmessMethods = {
@@ -106,6 +107,12 @@ const UTLS_FINGERPRINT = {
     UTLS_RANDOMIZED: "randomized",
 };
 
+const USAGE_OPTION = {
+    ENCIPHERMENT: "encipherment",
+    VERIFY: "verify",
+    ISSUE: "issue",
+};
+
 const SNIFFING_OPTION = {
     HTTP: "http",
     TLS: "tls",
@@ -129,6 +136,7 @@ Object.freeze(FLOW_VISION);
 Object.freeze(TLS_VERSION_OPTION);
 Object.freeze(TLS_CIPHER_OPTION);
 Object.freeze(ALPN_OPTION);
+Object.freeze(USAGE_OPTION);
 Object.freeze(TCP_CONGESTION);
 Object.freeze(DOMAIN_STRATEGY);
 Object.freeze(SNIFFING_OPTION);
@@ -587,26 +595,1250 @@ class xHTTPStreamSettings extends XrayCommonClass {
     }
 }
 
+class HysteriaStreamSettings extends XrayCommonClass {
+    constructor(
+        version = 2,
+        auth = RandomUtil.randomSeq(16),
+        udpIdleTimeout = 60,
+        masquerade = new HysteriaStreamSettings.Masquerade(),
+        portHopping = new HysteriaStreamSettings.PortHopping(),
+    ) {
+        super();
+        this.version = version;
+        this.auth = ObjectUtil.isEmpty(auth) ? RandomUtil.randomSeq(16) : auth;
+        this.udpIdleTimeout = udpIdleTimeout;
+        this.masquerade = masquerade;
+        this.portHopping = portHopping;
+    }
+
+    refreshAuth() {
+        this.auth = RandomUtil.randomSeq(16);
+    }
+
+    static fromJson(json = {}) {
+        return new HysteriaStreamSettings(
+            json.version,
+            json.auth,
+            json.udpIdleTimeout,
+            HysteriaStreamSettings.Masquerade.fromJson(json.masquerade),
+            HysteriaStreamSettings.PortHopping.fromJson(json.portHopping),
+        );
+    }
+
+    toJson() {
+        return {
+            version: this.version,
+            auth: this.auth,
+            udpIdleTimeout: this.udpIdleTimeout,
+            masquerade: this.masquerade.toJson(),
+            portHopping: this.portHopping.toJson(),
+        };
+    }
+}
+
+HysteriaStreamSettings.PortHopping = class extends XrayCommonClass {
+    constructor(
+        enabled = false,
+        mode = 'preset',
+        preset = '20000-50000',
+        ports = '20000-50000',
+    ) {
+        super();
+        this.enabled = enabled;
+        this.mode = mode;
+        this.preset = ObjectUtil.isEmpty(preset) ? '20000-50000' : preset;
+        this.ports = ObjectUtil.isEmpty(ports) ? this.preset : ports;
+    }
+
+    syncPorts() {
+        if (this.mode === 'preset') {
+            this.ports = this.preset;
+        }
+    }
+
+    setPreset(preset) {
+        this.preset = preset;
+        this.syncPorts();
+    }
+
+    static fromJson(json = {}) {
+        return new HysteriaStreamSettings.PortHopping(
+            ObjectUtil.isEmpty(json.enabled) ? false : json.enabled,
+            ObjectUtil.isEmpty(json.mode) ? 'preset' : json.mode,
+            ObjectUtil.isEmpty(json.preset) ? '20000-50000' : json.preset,
+            ObjectUtil.isEmpty(json.ports) ? '20000-50000' : json.ports,
+        );
+    }
+
+    toJson() {
+        if (!this.enabled) {
+            return undefined;
+        }
+        this.syncPorts();
+        return {
+            enabled: this.enabled,
+            mode: this.mode,
+            preset: this.preset,
+            ports: this.ports,
+        };
+    }
+};
+
+HysteriaStreamSettings.Masquerade = class extends XrayCommonClass {
+    constructor(
+        type = '',
+        dir = '',
+        url = '',
+        rewriteHost = false,
+        insecure = false,
+        content = '',
+        headers = [],
+        statusCode = 0,
+    ) {
+        super();
+        this.type = type;
+        this.dir = dir;
+        this.url = url;
+        this.rewriteHost = rewriteHost;
+        this.insecure = insecure;
+        this.content = content;
+        this.headers = headers;
+        this.statusCode = statusCode;
+    }
+
+    addHeader(name, value) {
+        this.headers.push({ name: name, value: value });
+    }
+
+    removeHeader(index) {
+        this.headers.splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        return new HysteriaStreamSettings.Masquerade(
+            json.type,
+            json.dir,
+            json.url,
+            json.rewriteHost,
+            json.insecure,
+            json.content,
+            XrayCommonClass.toHeaders(json.headers),
+            json.statusCode,
+        );
+    }
+
+    toJson() {
+        return {
+            type: this.type,
+            dir: this.dir,
+            url: this.url,
+            rewriteHost: this.rewriteHost,
+            insecure: this.insecure,
+            content: this.content,
+            headers: XrayCommonClass.toV2Headers(this.headers, false),
+            statusCode: this.statusCode,
+        };
+    }
+};
+
+class FinalMaskSettings extends XrayCommonClass {
+    constructor(
+        tcp = [],
+        udp = [],
+        quicParams = new FinalMaskSettings.QuicParams(),
+    ) {
+        super();
+        this.tcp = tcp;
+        this.udp = udp;
+        this.quicParams = quicParams;
+    }
+
+    addTcpMask(type = '', settings = new FinalMaskSettings.Mask.Settings()) {
+        this.tcp.push(new FinalMaskSettings.Mask(type, settings));
+    }
+
+    removeTcpMask(index) {
+        this.tcp.splice(index, 1);
+    }
+
+    addUdpMask(type = '', settings = new FinalMaskSettings.Mask.Settings()) {
+        this.udp.push(new FinalMaskSettings.Mask(type, settings));
+    }
+
+    removeUdpMask(index) {
+        this.udp.splice(index, 1);
+    }
+
+    get isEmpty() {
+        return this.tcp.filter(mask => !ObjectUtil.isEmpty(mask.type)).length === 0
+            && this.udp.filter(mask => !ObjectUtil.isEmpty(mask.type)).length === 0
+            && (this.quicParams == undefined || this.quicParams.isEmpty);
+    }
+
+    static fromJson(json = {}) {
+        const tcp = ObjectUtil.isEmpty(json.tcp) ? [] : json.tcp.map(mask => FinalMaskSettings.Mask.fromJson(mask, 'tcp'));
+        const udp = ObjectUtil.isEmpty(json.udp) ? [] : json.udp.map(mask => FinalMaskSettings.Mask.fromJson(mask, 'udp'));
+        return new FinalMaskSettings(
+            tcp,
+            udp,
+            FinalMaskSettings.QuicParams.fromJson(json.quicParams),
+        );
+    }
+
+    toJson() {
+        const tcp = this.tcp.filter(mask => !ObjectUtil.isEmpty(mask.type)).map(mask => mask.toJson('tcp'));
+        const udp = this.udp.filter(mask => !ObjectUtil.isEmpty(mask.type)).map(mask => mask.toJson('udp'));
+        return {
+            tcp: tcp,
+            udp: udp,
+            quicParams: this.quicParams.toJson(),
+        };
+    }
+}
+
+FinalMaskSettings.Mask = class extends XrayCommonClass {
+    constructor(
+        type = '',
+        settings = new FinalMaskSettings.Mask.Settings(),
+    ) {
+        super();
+        this.type = type;
+        this.settings = settings;
+    }
+
+    setType(type) {
+        this.type = type;
+        if (ObjectUtil.isEmpty(this.settings)) {
+            this.settings = new FinalMaskSettings.Mask.Settings();
+        }
+        this.settings.ensureType(type);
+    }
+
+    static fromJson(json = {}, protocol = '') {
+        return new FinalMaskSettings.Mask(
+            json.type,
+            FinalMaskSettings.Mask.Settings.fromJson(json.settings, json.type, protocol),
+        );
+    }
+
+    toJson(protocol = '') {
+        return {
+            type: this.type,
+            settings: this.settings.toJson(this.type, protocol),
+        };
+    }
+
+    summary(protocol = '') {
+        if (ObjectUtil.isEmpty(this.type)) {
+            return '';
+        }
+        const settings = this.settings;
+        switch (this.type) {
+            case 'header-custom':
+                if (protocol === 'udp') {
+                    return `header-custom(client:${settings.udpHeaderCustom.client.length}, server:${settings.udpHeaderCustom.server.length})`;
+                }
+                return `header-custom(clients:${settings.tcpHeaderCustom.clients.length}, servers:${settings.tcpHeaderCustom.servers.length}, errors:${settings.tcpHeaderCustom.errors.length})`;
+            case 'fragment':
+                return `fragment(${settings.fragment.packets}, len:${settings.fragment.length}, delay:${settings.fragment.delay}, maxSplit:${settings.fragment.maxSplit})`;
+            case 'sudoku': {
+                const customTables = settings.sudoku.customTables.filter(value => !ObjectUtil.isEmpty(value)).length;
+                const hasPassword = !ObjectUtil.isEmpty(settings.sudoku.password) ? 'yes' : 'no';
+                return `sudoku(password:${hasPassword}, table:${settings.sudoku.customTable ? 'yes' : 'no'}, tables:${customTables}, padding:${settings.sudoku.paddingMin}-${settings.sudoku.paddingMax})`;
+            }
+            case 'header-dns':
+                return `header-dns(${settings.headerDns.domain})`;
+            case 'mkcp-aes128gcm':
+                return `mkcp-aes128gcm(password:${ObjectUtil.isEmpty(settings.mkcpAes128Gcm.password) ? 'no' : 'yes'})`;
+            case 'noise':
+                return `noise(reset:${settings.noise.reset}, items:${settings.noise.noise.length})`;
+            case 'salamander':
+                return `salamander(password:${ObjectUtil.isEmpty(settings.salamander.password) ? 'no' : 'yes'})`;
+            case 'xdns':
+                return `xdns(${settings.xdns.domain})`;
+            case 'xicmp':
+                return `xicmp(${settings.xicmp.listenIp}, id:${settings.xicmp.id})`;
+            case 'header-dtls':
+            case 'header-srtp':
+            case 'header-utp':
+            case 'header-wechat':
+            case 'header-wireguard':
+            case 'mkcp-original':
+                return `${this.type}(default)`;
+            default:
+                return this.type;
+        }
+    }
+};
+
+FinalMaskSettings.Mask.Settings = class extends XrayCommonClass {
+    constructor(
+        entries = [],
+        tcpHeaderCustom = new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+        udpHeaderCustom = new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+        fragment = new FinalMaskSettings.Mask.Settings.Fragment(),
+        sudoku = new FinalMaskSettings.Mask.Settings.Sudoku(),
+        headerDns = new FinalMaskSettings.Mask.Settings.DomainSetting(),
+        mkcpAes128Gcm = new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+        noise = new FinalMaskSettings.Mask.Settings.Noise(),
+        salamander = new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+        xdns = new FinalMaskSettings.Mask.Settings.DomainSetting(),
+        xicmp = new FinalMaskSettings.Mask.Settings.Xicmp(),
+    ) {
+        super();
+        this.entries = entries;
+        this.tcpHeaderCustom = tcpHeaderCustom;
+        this.udpHeaderCustom = udpHeaderCustom;
+        this.fragment = fragment;
+        this.sudoku = sudoku;
+        this.headerDns = headerDns;
+        this.mkcpAes128Gcm = mkcpAes128Gcm;
+        this.noise = noise;
+        this.salamander = salamander;
+        this.xdns = xdns;
+        this.xicmp = xicmp;
+    }
+
+    ensureType(type) {
+        switch (type) {
+            case 'header-custom':
+                if (ObjectUtil.isEmpty(this.tcpHeaderCustom)) {
+                    this.tcpHeaderCustom = new FinalMaskSettings.Mask.Settings.HeaderCustom();
+                }
+                if (ObjectUtil.isEmpty(this.udpHeaderCustom)) {
+                    this.udpHeaderCustom = new FinalMaskSettings.Mask.Settings.UdpHeaderCustom();
+                }
+                break;
+            case 'fragment':
+                if (ObjectUtil.isEmpty(this.fragment)) {
+                    this.fragment = new FinalMaskSettings.Mask.Settings.Fragment();
+                }
+                break;
+            case 'sudoku':
+                if (ObjectUtil.isEmpty(this.sudoku)) {
+                    this.sudoku = new FinalMaskSettings.Mask.Settings.Sudoku();
+                }
+                break;
+            case 'header-dns':
+                if (ObjectUtil.isEmpty(this.headerDns)) {
+                    this.headerDns = new FinalMaskSettings.Mask.Settings.DomainSetting();
+                }
+                break;
+            case 'mkcp-aes128gcm':
+                if (ObjectUtil.isEmpty(this.mkcpAes128Gcm)) {
+                    this.mkcpAes128Gcm = new FinalMaskSettings.Mask.Settings.PasswordSetting();
+                }
+                break;
+            case 'noise':
+                if (ObjectUtil.isEmpty(this.noise)) {
+                    this.noise = new FinalMaskSettings.Mask.Settings.Noise();
+                }
+                break;
+            case 'salamander':
+                if (ObjectUtil.isEmpty(this.salamander)) {
+                    this.salamander = new FinalMaskSettings.Mask.Settings.PasswordSetting();
+                }
+                break;
+            case 'xdns':
+                if (ObjectUtil.isEmpty(this.xdns)) {
+                    this.xdns = new FinalMaskSettings.Mask.Settings.DomainSetting();
+                }
+                break;
+            case 'xicmp':
+                if (ObjectUtil.isEmpty(this.xicmp)) {
+                    this.xicmp = new FinalMaskSettings.Mask.Settings.Xicmp();
+                }
+                break;
+        }
+    }
+
+    addEntry(name = '', value = '') {
+        this.entries.push({ name: name, value: value });
+    }
+
+    removeEntry(index) {
+        this.entries.splice(index, 1);
+    }
+
+    static parseValue(value) {
+        if (ObjectUtil.isEmpty(value)) {
+            return '';
+        }
+        const trimValue = value.trim();
+        const canUseJson = trimValue === 'true'
+            || trimValue === 'false'
+            || trimValue === 'null'
+            || /^-?\d+(\.\d+)?$/.test(trimValue)
+            || ((trimValue.startsWith('{') && trimValue.endsWith('}'))
+                || (trimValue.startsWith('[') && trimValue.endsWith(']')));
+        if (canUseJson) {
+            try {
+                return JSON.parse(trimValue);
+            } catch (e) {
+            }
+        }
+        return value;
+    }
+
+    static fromJson(json = {}, type = '', protocol = '') {
+        if (type === 'header-custom') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                protocol === 'tcp' ? FinalMaskSettings.Mask.Settings.HeaderCustom.fromJson(json) : new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                protocol === 'udp' ? FinalMaskSettings.Mask.Settings.UdpHeaderCustom.fromJson(json) : new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+            );
+        }
+        if (type === 'fragment') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                FinalMaskSettings.Mask.Settings.Fragment.fromJson(json),
+            );
+        }
+        if (type === 'sudoku') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.Fragment(),
+                FinalMaskSettings.Mask.Settings.Sudoku.fromJson(json),
+            );
+        }
+        if (type === 'header-dns') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.Fragment(),
+                new FinalMaskSettings.Mask.Settings.Sudoku(),
+                FinalMaskSettings.Mask.Settings.DomainSetting.fromJson(json),
+            );
+        }
+        if (type === 'mkcp-aes128gcm') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.Fragment(),
+                new FinalMaskSettings.Mask.Settings.Sudoku(),
+                new FinalMaskSettings.Mask.Settings.DomainSetting(),
+                FinalMaskSettings.Mask.Settings.PasswordSetting.fromJson(json),
+            );
+        }
+        if (type === 'noise') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.Fragment(),
+                new FinalMaskSettings.Mask.Settings.Sudoku(),
+                new FinalMaskSettings.Mask.Settings.DomainSetting(),
+                new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+                FinalMaskSettings.Mask.Settings.Noise.fromJson(json),
+            );
+        }
+        if (type === 'salamander') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.Fragment(),
+                new FinalMaskSettings.Mask.Settings.Sudoku(),
+                new FinalMaskSettings.Mask.Settings.DomainSetting(),
+                new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+                new FinalMaskSettings.Mask.Settings.Noise(),
+                FinalMaskSettings.Mask.Settings.PasswordSetting.fromJson(json),
+            );
+        }
+        if (type === 'xdns') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.Fragment(),
+                new FinalMaskSettings.Mask.Settings.Sudoku(),
+                new FinalMaskSettings.Mask.Settings.DomainSetting(),
+                new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+                new FinalMaskSettings.Mask.Settings.Noise(),
+                new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+                FinalMaskSettings.Mask.Settings.DomainSetting.fromJson(json),
+            );
+        }
+        if (type === 'xicmp') {
+            return new FinalMaskSettings.Mask.Settings(
+                [],
+                new FinalMaskSettings.Mask.Settings.HeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(),
+                new FinalMaskSettings.Mask.Settings.Fragment(),
+                new FinalMaskSettings.Mask.Settings.Sudoku(),
+                new FinalMaskSettings.Mask.Settings.DomainSetting(),
+                new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+                new FinalMaskSettings.Mask.Settings.Noise(),
+                new FinalMaskSettings.Mask.Settings.PasswordSetting(),
+                new FinalMaskSettings.Mask.Settings.DomainSetting(),
+                FinalMaskSettings.Mask.Settings.Xicmp.fromJson(json),
+            );
+        }
+        if (FinalMaskSettings.Mask.Settings.noSettingsTypes().includes(type)) {
+            return new FinalMaskSettings.Mask.Settings();
+        }
+        const entries = [];
+        Object.keys(ObjectUtil.isEmpty(json) ? {} : json).forEach(key => {
+            const value = json[key];
+            entries.push({
+                name: key,
+                value: typeof value === 'object' && value !== null ? JSON.stringify(value) : `${value}`,
+            });
+        });
+        return new FinalMaskSettings.Mask.Settings(entries);
+    }
+
+    static noSettingsTypes() {
+        return ['header-dtls', 'header-srtp', 'header-utp', 'header-wechat', 'header-wireguard', 'mkcp-original'];
+    }
+
+    toJson(type = '', protocol = '') {
+        if (type === 'header-custom') {
+            return protocol === 'udp' ? this.udpHeaderCustom.toJson() : this.tcpHeaderCustom.toJson();
+        }
+        if (type === 'fragment') {
+            return this.fragment.toJson();
+        }
+        if (type === 'sudoku') {
+            return this.sudoku.toJson();
+        }
+        if (type === 'header-dns') {
+            return this.headerDns.toJson();
+        }
+        if (type === 'mkcp-aes128gcm') {
+            return this.mkcpAes128Gcm.toJson();
+        }
+        if (type === 'noise') {
+            return this.noise.toJson();
+        }
+        if (type === 'salamander') {
+            return this.salamander.toJson();
+        }
+        if (type === 'xdns') {
+            return this.xdns.toJson();
+        }
+        if (type === 'xicmp') {
+            return this.xicmp.toJson();
+        }
+        if (FinalMaskSettings.Mask.Settings.noSettingsTypes().includes(type)) {
+            return {};
+        }
+        const json = {};
+        this.entries.forEach(entry => {
+            if (ObjectUtil.isEmpty(entry.name)) {
+                return;
+            }
+            json[entry.name] = FinalMaskSettings.Mask.Settings.parseValue(entry.value);
+        });
+        return json;
+    }
+};
+
+FinalMaskSettings.Mask.Settings.HeaderCustom = class extends XrayCommonClass {
+    constructor(
+        clients = [[new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting()]],
+        servers = [[new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting()]],
+        errors = [[new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting()]],
+    ) {
+        super();
+        this.clients = clients;
+        this.servers = servers;
+        this.errors = errors;
+    }
+
+    static defaultGroup() {
+        return [new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting()];
+    }
+
+    addClientsGroup() {
+        this.clients.push(FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup());
+    }
+
+    removeClientsGroup(index) {
+        if (this.clients.length <= 1) {
+            this.clients.splice(0, 1, FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup());
+            return;
+        }
+        this.clients.splice(index, 1);
+    }
+
+    addClient(index) {
+        this.clients[index].push(new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting());
+    }
+
+    removeClient(groupIndex, index) {
+        if (this.clients[groupIndex].length <= 1) {
+            this.clients[groupIndex].splice(0, 1, new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting());
+            return;
+        }
+        this.clients[groupIndex].splice(index, 1);
+    }
+
+    addServersGroup() {
+        this.servers.push(FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup());
+    }
+
+    removeServersGroup(index) {
+        if (this.servers.length <= 1) {
+            this.servers.splice(0, 1, FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup());
+            return;
+        }
+        this.servers.splice(index, 1);
+    }
+
+    addServer(index) {
+        this.servers[index].push(new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting());
+    }
+
+    removeServer(groupIndex, index) {
+        if (this.servers[groupIndex].length <= 1) {
+            this.servers[groupIndex].splice(0, 1, new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting());
+            return;
+        }
+        this.servers[groupIndex].splice(index, 1);
+    }
+
+    addErrorsGroup() {
+        this.errors.push(FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup());
+    }
+
+    removeErrorsGroup(index) {
+        if (this.errors.length <= 1) {
+            this.errors.splice(0, 1, FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup());
+            return;
+        }
+        this.errors.splice(index, 1);
+    }
+
+    addError(index) {
+        this.errors[index].push(new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting());
+    }
+
+    removeError(groupIndex, index) {
+        if (this.errors[groupIndex].length <= 1) {
+            this.errors[groupIndex].splice(0, 1, new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting());
+            return;
+        }
+        this.errors[groupIndex].splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        const toGroups = groups => {
+            if (ObjectUtil.isEmpty(groups) || groups.length === 0) {
+                return [FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup()];
+            }
+            return groups.map(group => {
+                if (ObjectUtil.isEmpty(group) || group.length === 0) {
+                    return FinalMaskSettings.Mask.Settings.HeaderCustom.defaultGroup();
+                }
+                return group.map(setting => FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting.fromJson(setting));
+            });
+        };
+        return new FinalMaskSettings.Mask.Settings.HeaderCustom(
+            toGroups(json.clients),
+            toGroups(json.servers),
+            toGroups(json.errors),
+        );
+    }
+
+    toJson() {
+        return {
+            clients: this.clients.map(group => group.map(setting => setting.toJson())),
+            servers: this.servers.map(group => group.map(setting => setting.toJson())),
+            errors: this.errors.map(group => group.map(setting => setting.toJson())),
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting = class extends XrayCommonClass {
+    constructor(
+        delay = 0,
+        rand = 0,
+        randRange = '0-255',
+        type = 'array',
+        packet = [],
+    ) {
+        super();
+        this.delay = delay;
+        this.rand = rand;
+        this.randRange = randRange;
+        this.type = type;
+        this.packet = packet;
+    }
+
+    setRand(value = 0) {
+        this.rand = ObjectUtil.isEmpty(value) ? 0 : value;
+        if (this.rand > 0) {
+            this.packet = [];
+        }
+    }
+
+    addPacket(value = '') {
+        this.rand = 0;
+        this.packet.push(value);
+    }
+
+    removePacket(index) {
+        this.packet.splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.HeaderCustom.PacketSetting(
+            ObjectUtil.isEmpty(json.delay) ? 0 : json.delay,
+            ObjectUtil.isEmpty(json.rand) ? 0 : json.rand,
+            ObjectUtil.isEmpty(json.randRange) ? '0-255' : json.randRange,
+            ObjectUtil.isEmpty(json.type) ? 'array' : json.type,
+            ObjectUtil.isEmpty(json.packet) ? [] : json.packet,
+        );
+    }
+
+    toJson() {
+        return {
+            delay: this.delay,
+            rand: this.rand,
+            randRange: this.randRange,
+            type: this.type,
+            packet: ObjectUtil.clone(this.packet),
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.UdpHeaderCustom = class extends XrayCommonClass {
+    constructor(
+        client = [new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting()],
+        server = [new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting()],
+    ) {
+        super();
+        this.client = client;
+        this.server = server;
+    }
+
+    addClient() {
+        this.client.push(new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting());
+    }
+
+    removeClient(index) {
+        if (this.client.length <= 1) {
+            this.client.splice(0, 1, new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting());
+            return;
+        }
+        this.client.splice(index, 1);
+    }
+
+    addServer() {
+        this.server.push(new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting());
+    }
+
+    removeServer(index) {
+        if (this.server.length <= 1) {
+            this.server.splice(0, 1, new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting());
+            return;
+        }
+        this.server.splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        const toSettings = settings => {
+            if (ObjectUtil.isEmpty(settings) || settings.length === 0) {
+                return [new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting()];
+            }
+            return settings.map(setting => FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting.fromJson(setting));
+        };
+        return new FinalMaskSettings.Mask.Settings.UdpHeaderCustom(
+            toSettings(json.client),
+            toSettings(json.server),
+        );
+    }
+
+    toJson() {
+        return {
+            client: this.client.map(setting => setting.toJson()),
+            server: this.server.map(setting => setting.toJson()),
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting = class extends XrayCommonClass {
+    constructor(
+        rand = 0,
+        randRange = '0-255',
+        type = 'array',
+        packet = [],
+    ) {
+        super();
+        this.rand = rand;
+        this.randRange = randRange;
+        this.type = type;
+        this.packet = packet;
+    }
+
+    setRand(value = 0) {
+        this.rand = ObjectUtil.isEmpty(value) ? 0 : value;
+        if (this.rand > 0) {
+            this.packet = [];
+        }
+    }
+
+    addPacket(value = '') {
+        this.rand = 0;
+        this.packet.push(value);
+    }
+
+    removePacket(index) {
+        this.packet.splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.UdpHeaderCustom.PacketSetting(
+            ObjectUtil.isEmpty(json.rand) ? 0 : json.rand,
+            ObjectUtil.isEmpty(json.randRange) ? '0-255' : json.randRange,
+            ObjectUtil.isEmpty(json.type) ? 'array' : json.type,
+            ObjectUtil.isEmpty(json.packet) ? [] : json.packet,
+        );
+    }
+
+    toJson() {
+        return {
+            rand: this.rand,
+            randRange: this.randRange,
+            type: this.type,
+            packet: ObjectUtil.clone(this.packet),
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.Fragment = class extends XrayCommonClass {
+    constructor(
+        packets = 'tlshello',
+        length = '100-200',
+        delay = '10-20',
+        maxSplit = '3-6',
+    ) {
+        super();
+        this.packets = packets;
+        this.length = length;
+        this.delay = delay;
+        this.maxSplit = maxSplit;
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.Fragment(
+            ObjectUtil.isEmpty(json.packets) ? 'tlshello' : json.packets,
+            ObjectUtil.isEmpty(json.length) ? '100-200' : json.length,
+            ObjectUtil.isEmpty(json.delay) ? '10-20' : json.delay,
+            ObjectUtil.isEmpty(json.maxSplit) ? '3-6' : json.maxSplit,
+        );
+    }
+
+    toJson() {
+        return {
+            packets: this.packets,
+            length: this.length,
+            delay: this.delay,
+            maxSplit: this.maxSplit,
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.Sudoku = class extends XrayCommonClass {
+    constructor(
+        password = RandomUtil.randomSeq(16),
+        ascii = '',
+        customTable = '',
+        customTables = [''],
+        paddingMin = 0,
+        paddingMax = 0,
+    ) {
+        super();
+        this.password = password;
+        this.ascii = ascii;
+        this.customTable = customTable;
+        this.customTables = customTables;
+        this.paddingMin = paddingMin;
+        this.paddingMax = paddingMax;
+    }
+
+    refreshPassword() {
+        this.password = RandomUtil.randomSeq(16);
+    }
+
+    addCustomTable(value = '') {
+        this.customTables.push(value);
+    }
+
+    removeCustomTable(index) {
+        if (this.customTables.length <= 1) {
+            this.customTables.splice(0, 1, '');
+            return;
+        }
+        this.customTables.splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.Sudoku(
+            ObjectUtil.isEmpty(json.password) ? RandomUtil.randomSeq(16) : json.password,
+            json.ascii,
+            json.customTable,
+            ObjectUtil.isEmpty(json.customTables) || json.customTables.length === 0 ? [''] : json.customTables,
+            ObjectUtil.isEmpty(json.paddingMin) ? 0 : json.paddingMin,
+            ObjectUtil.isEmpty(json.paddingMax) ? 0 : json.paddingMax,
+        );
+    }
+
+    toJson() {
+        return {
+            password: this.password,
+            ascii: this.ascii,
+            customTable: this.customTable,
+            customTables: ObjectUtil.clone(this.customTables),
+            paddingMin: this.paddingMin,
+            paddingMax: this.paddingMax,
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.DomainSetting = class extends XrayCommonClass {
+    constructor(domain = 'www.example.com') {
+        super();
+        this.domain = domain;
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.DomainSetting(
+            ObjectUtil.isEmpty(json.domain) ? 'www.example.com' : json.domain,
+        );
+    }
+
+    toJson() {
+        return {
+            domain: this.domain,
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.PasswordSetting = class extends XrayCommonClass {
+    constructor(password = RandomUtil.randomSeq(16)) {
+        super();
+        this.password = password;
+    }
+
+    refreshPassword() {
+        this.password = RandomUtil.randomSeq(16);
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.PasswordSetting(
+            ObjectUtil.isEmpty(json.password) ? RandomUtil.randomSeq(16) : json.password,
+        );
+    }
+
+    toJson() {
+        return {
+            password: this.password,
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.Noise = class extends XrayCommonClass {
+    constructor(
+        reset = 0,
+        noise = [new FinalMaskSettings.Mask.Settings.Noise.PacketSetting()],
+    ) {
+        super();
+        this.reset = reset;
+        this.noise = noise;
+    }
+
+    addNoise() {
+        this.noise.push(new FinalMaskSettings.Mask.Settings.Noise.PacketSetting());
+    }
+
+    removeNoise(index) {
+        if (this.noise.length <= 1) {
+            this.noise.splice(0, 1, new FinalMaskSettings.Mask.Settings.Noise.PacketSetting());
+            return;
+        }
+        this.noise.splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.Noise(
+            ObjectUtil.isEmpty(json.reset) ? 0 : json.reset,
+            ObjectUtil.isEmpty(json.noise) || json.noise.length === 0
+                ? [new FinalMaskSettings.Mask.Settings.Noise.PacketSetting()]
+                : json.noise.map(setting => FinalMaskSettings.Mask.Settings.Noise.PacketSetting.fromJson(setting)),
+        );
+    }
+
+    toJson() {
+        return {
+            reset: this.reset,
+            noise: this.noise.map(setting => setting.toJson()),
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.Noise.PacketSetting = class extends XrayCommonClass {
+    constructor(
+        rand = '1-8192',
+        randRange = '0-255',
+        type = 'array',
+        packet = [],
+        delay = '10-20',
+    ) {
+        super();
+        this.rand = rand;
+        this.randRange = randRange;
+        this.type = type;
+        this.packet = packet;
+        this.delay = delay;
+    }
+
+    setRand(value = '1-8192') {
+        this.rand = ObjectUtil.isEmpty(value) ? '1-8192' : value;
+        if (!ObjectUtil.isEmpty(this.rand)) {
+            this.packet = [];
+        }
+    }
+
+    addPacket(value = '') {
+        this.rand = '';
+        this.packet.push(value);
+    }
+
+    removePacket(index) {
+        this.packet.splice(index, 1);
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.Noise.PacketSetting(
+            ObjectUtil.isEmpty(json.rand) ? '1-8192' : json.rand,
+            ObjectUtil.isEmpty(json.randRange) ? '0-255' : json.randRange,
+            ObjectUtil.isEmpty(json.type) ? 'array' : json.type,
+            ObjectUtil.isEmpty(json.packet) ? [] : json.packet,
+            ObjectUtil.isEmpty(json.delay) ? '10-20' : json.delay,
+        );
+    }
+
+    toJson() {
+        return {
+            rand: this.rand,
+            randRange: this.randRange,
+            type: this.type,
+            packet: ObjectUtil.clone(this.packet),
+            delay: this.delay,
+        };
+    }
+};
+
+FinalMaskSettings.Mask.Settings.Xicmp = class extends XrayCommonClass {
+    constructor(
+        listenIp = '0.0.0.0',
+        id = 0,
+    ) {
+        super();
+        this.listenIp = listenIp;
+        this.id = id;
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.Mask.Settings.Xicmp(
+            ObjectUtil.isEmpty(json.listenIp) ? '0.0.0.0' : json.listenIp,
+            ObjectUtil.isEmpty(json.id) ? 0 : json.id,
+        );
+    }
+
+    toJson() {
+        return {
+            listenIp: this.listenIp,
+            id: this.id,
+        };
+    }
+};
+
+FinalMaskSettings.QuicParams = class extends XrayCommonClass {
+    constructor(
+        congestion = 'force-brutal',
+        debug = false,
+        brutalUp = '60 mbps',
+        brutalDown = '0',
+        udpHop = new FinalMaskSettings.QuicParams.UdpHop(),
+        initStreamReceiveWindow = 8388608,
+        maxStreamReceiveWindow = 8388608,
+        initConnectionReceiveWindow = 20971520,
+        maxConnectionReceiveWindow = 20971520,
+        maxIdleTimeout = 30,
+        keepAlivePeriod = 0,
+        disablePathMTUDiscovery = false,
+        maxIncomingStreams = 1024,
+    ) {
+        super();
+        this.congestion = congestion;
+        this.debug = debug;
+        this.brutalUp = brutalUp;
+        this.brutalDown = brutalDown;
+        this.udpHop = udpHop;
+        this.initStreamReceiveWindow = initStreamReceiveWindow;
+        this.maxStreamReceiveWindow = maxStreamReceiveWindow;
+        this.initConnectionReceiveWindow = initConnectionReceiveWindow;
+        this.maxConnectionReceiveWindow = maxConnectionReceiveWindow;
+        this.maxIdleTimeout = maxIdleTimeout;
+        this.keepAlivePeriod = keepAlivePeriod;
+        this.disablePathMTUDiscovery = disablePathMTUDiscovery;
+        this.maxIncomingStreams = maxIncomingStreams;
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.QuicParams(
+            ObjectUtil.isEmpty(json.congestion) ? 'force-brutal' : json.congestion,
+            ObjectUtil.isEmpty(json.debug) ? false : json.debug,
+            ObjectUtil.isEmpty(json.brutalUp) ? '60 mbps' : json.brutalUp,
+            ObjectUtil.isEmpty(json.brutalDown) ? '0' : json.brutalDown,
+            FinalMaskSettings.QuicParams.UdpHop.fromJson(json.udpHop),
+            ObjectUtil.isEmpty(json.initStreamReceiveWindow) ? 8388608 : json.initStreamReceiveWindow,
+            ObjectUtil.isEmpty(json.maxStreamReceiveWindow) ? 8388608 : json.maxStreamReceiveWindow,
+            ObjectUtil.isEmpty(json.initConnectionReceiveWindow) ? 20971520 : json.initConnectionReceiveWindow,
+            ObjectUtil.isEmpty(json.maxConnectionReceiveWindow) ? 20971520 : json.maxConnectionReceiveWindow,
+            ObjectUtil.isEmpty(json.maxIdleTimeout) ? 30 : json.maxIdleTimeout,
+            ObjectUtil.isEmpty(json.keepAlivePeriod) ? 0 : json.keepAlivePeriod,
+            ObjectUtil.isEmpty(json.disablePathMTUDiscovery) ? false : json.disablePathMTUDiscovery,
+            ObjectUtil.isEmpty(json.maxIncomingStreams) ? 1024 : json.maxIncomingStreams,
+        );
+    }
+
+    get isEmpty() {
+        const defaults = new FinalMaskSettings.QuicParams();
+        return this.congestion === defaults.congestion
+            && this.debug === defaults.debug
+            && this.brutalUp === defaults.brutalUp
+            && this.brutalDown === defaults.brutalDown
+            && this.initStreamReceiveWindow === defaults.initStreamReceiveWindow
+            && this.maxStreamReceiveWindow === defaults.maxStreamReceiveWindow
+            && this.initConnectionReceiveWindow === defaults.initConnectionReceiveWindow
+            && this.maxConnectionReceiveWindow === defaults.maxConnectionReceiveWindow
+            && this.maxIdleTimeout === defaults.maxIdleTimeout
+            && this.keepAlivePeriod === defaults.keepAlivePeriod
+            && this.disablePathMTUDiscovery === defaults.disablePathMTUDiscovery
+            && this.maxIncomingStreams === defaults.maxIncomingStreams
+            && this.udpHop != undefined
+            && this.udpHop.isEmpty;
+    }
+
+    toJson() {
+        return {
+            congestion: this.congestion,
+            debug: this.debug,
+            brutalUp: this.brutalUp,
+            brutalDown: this.brutalDown,
+            udpHop: this.udpHop.toJson(),
+            initStreamReceiveWindow: this.initStreamReceiveWindow,
+            maxStreamReceiveWindow: this.maxStreamReceiveWindow,
+            initConnectionReceiveWindow: this.initConnectionReceiveWindow,
+            maxConnectionReceiveWindow: this.maxConnectionReceiveWindow,
+            maxIdleTimeout: this.maxIdleTimeout,
+            keepAlivePeriod: this.keepAlivePeriod,
+            disablePathMTUDiscovery: this.disablePathMTUDiscovery,
+            maxIncomingStreams: this.maxIncomingStreams,
+        };
+    }
+
+    summary() {
+        return `congestion:${this.congestion}, up:${this.brutalUp}, down:${this.brutalDown}, udpHop:${this.udpHop.ports}/${this.udpHop.interval}`;
+    }
+};
+
+FinalMaskSettings.QuicParams.UdpHop = class extends XrayCommonClass {
+    constructor(
+        ports = '20000-50000',
+        interval = '5-10',
+    ) {
+        super();
+        this.ports = ports;
+        this.interval = interval;
+    }
+
+    static fromJson(json = {}) {
+        return new FinalMaskSettings.QuicParams.UdpHop(
+            ObjectUtil.isEmpty(json.ports) ? '20000-50000' : json.ports,
+            ObjectUtil.isEmpty(json.interval) ? '5-10' : json.interval,
+        );
+    }
+
+    get isEmpty() {
+        return this.ports === '20000-50000' && this.interval === '5-10';
+    }
+
+    toJson() {
+        return {
+            ports: this.ports,
+            interval: this.interval,
+        };
+    }
+};
+
 class TlsStreamSettings extends XrayCommonClass {
     constructor(serverName = '',
         rejectUnknownSni = false,
         minVersion = TLS_VERSION_OPTION.TLS10,
         maxVersion = TLS_VERSION_OPTION.TLS12,
         cipherSuites = '',
-        certificates = [new TlsStreamSettings.Cert()], alpn = [''],
+        certificates = [new TlsStreamSettings.Cert()],
+        alpn = [''],
+        echServerKeys = '',
+        echForceQuery = 'none',
         settings = [new TlsStreamSettings.Settings()]) {
         super();
-        this.server = serverName;
+        this.sni = serverName;
         this.rejectUnknownSni = rejectUnknownSni;
         this.minVersion = minVersion;
         this.maxVersion = maxVersion;
         this.cipherSuites = cipherSuites instanceof Array ? cipherSuites.join(':') : cipherSuites.split(':');
         this.certs = certificates;
         this.alpn = alpn;
-        this.settings = settings;
+        this.echServerKeys = echServerKeys;
+        this.echForceQuery = echForceQuery;
+        this.settings = TlsStreamSettings.normalizeSettings(settings);
     }
 
-    addCert(cert) {
+    static normalizeSettings(settings) {
+        let values = settings;
+        if (!(values instanceof Array)) {
+            values = ObjectUtil.isEmpty(values) ? [new TlsStreamSettings.Settings()] : [values];
+        }
+        if (values.length === 0) {
+            values.push(new TlsStreamSettings.Settings());
+        }
+        if (!(values[0] instanceof TlsStreamSettings.Settings)) {
+            values[0] = TlsStreamSettings.Settings.fromJson(values[0]);
+        }
+        Object.defineProperty(values, 'fingerprint', {
+            get() {
+                return this[0].fingerprint;
+            },
+            set(value) {
+                this[0].fingerprint = value;
+            },
+            configurable: true,
+        });
+        Object.defineProperty(values, 'echConfigList', {
+            get() {
+                return this[0].echConfigList;
+            },
+            set(value) {
+                this[0].echConfigList = value;
+            },
+            configurable: true,
+        });
+        return values;
+    }
+
+    addCert(cert = new TlsStreamSettings.Cert()) {
         this.certs.push(cert);
     }
 
@@ -616,14 +1848,14 @@ class TlsStreamSettings extends XrayCommonClass {
 
     static fromJson(json = {}) {
         let certs;
-        let settings;
+        let settings = [new TlsStreamSettings.Settings()];
         if (!ObjectUtil.isEmpty(json.certificates)) {
             certs = json.certificates.map(cert => TlsStreamSettings.Cert.fromJson(cert));
         }
 
         if (!ObjectUtil.isEmpty(json.settings)) {
-            let values = json.settings[0];
-            settings = [new TlsStreamSettings.Settings(values.allowInsecure, values.fingerprint, values.serverName)];
+            let value = json.settings[0] || json.settings;
+            settings = [TlsStreamSettings.Settings.fromJson(value)];
         }
 
         return new TlsStreamSettings(
@@ -634,26 +1866,39 @@ class TlsStreamSettings extends XrayCommonClass {
             json.cipherSuites,
             certs,
             json.alpn,
+            json.echServerKeys,
+            json.echForceQuery,
             settings,
         );
     }
 
     toJson() {
         return {
-            serverName: this.server,
+            serverName: this.sni,
             rejectUnknownSni: this.rejectUnknownSni,
             minVersion: this.minVersion,
             maxVersion: this.maxVersion,
             cipherSuites: this.cipherSuites instanceof Array ? this.cipherSuites.join(':') : this.cipherSuites.split(':'),
             certificates: TlsStreamSettings.toJsonArray(this.certs),
             alpn: this.alpn,
+            echServerKeys: this.echServerKeys,
+            echForceQuery: this.echForceQuery,
             settings: TlsStreamSettings.toJsonArray(this.settings),
         };
     }
 }
 
 TlsStreamSettings.Cert = class extends XrayCommonClass {
-    constructor(useFile = true, ocspStapling = 3600, certificateFile = '', keyFile = '', certificate = '', key = '') {
+    constructor(useFile = true,
+        ocspStapling = 3600,
+        certificateFile = '',
+        keyFile = '',
+        certificate = '',
+        key = '',
+        oneTimeLoading = false,
+        usage = USAGE_OPTION.ENCIPHERMENT,
+        buildChain = false,
+    ) {
         super();
         this.useFile = useFile;
         this.ocspStapling = ocspStapling;
@@ -661,6 +1906,10 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
         this.keyFile = keyFile;
         this.cert = certificate instanceof Array ? certificate.join('\n') : certificate;
         this.key = key instanceof Array ? key.join('\n') : key;
+        this.oneTimeLoading = oneTimeLoading;
+        this.usage = usage;
+        this.buildChain = buildChain
+
     }
 
     static fromJson(json = {}) {
@@ -670,6 +1919,11 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
                 json.ocspStapling,
                 json.certificateFile,
                 json.keyFile,
+                '',
+                '',
+                json.oneTimeLoading,
+                json.usage,
+                json.buildChain,
             );
         } else {
             return new TlsStreamSettings.Cert(
@@ -678,6 +1932,9 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
                 '', '',
                 json.certificate.join('\n'),
                 json.key.join('\n'),
+                json.oneTimeLoading,
+                json.usage,
+                json.buildChain,
             );
         }
     }
@@ -688,36 +1945,42 @@ TlsStreamSettings.Cert = class extends XrayCommonClass {
                 ocspStapling: this.ocspStapling,
                 certificateFile: this.certFile,
                 keyFile: this.keyFile,
+                oneTimeLoading: this.oneTimeLoading,
+                usage: this.usage,
+                buildChain: this.buildChain,
             };
         } else {
             return {
                 ocspStapling: this.ocspStapling,
                 certificate: this.cert.split('\n'),
                 key: this.key.split('\n'),
+                oneTimeLoading: this.oneTimeLoading,
+                usage: this.usage,
+                buildChain: this.buildChain,
             };
         }
     }
 };
 
 TlsStreamSettings.Settings = class extends XrayCommonClass {
-    constructor(allowInsecure = false, fingerprint = '', serverName = '') {
+    constructor(
+        fingerprint = UTLS_FINGERPRINT.UTLS_CHROME,
+        echConfigList = '',
+    ) {
         super();
-        this.allowInsecure = allowInsecure;
         this.fingerprint = fingerprint;
-        this.serverName = serverName;
+        this.echConfigList = echConfigList;
     }
     static fromJson(json = {}) {
         return new TlsStreamSettings.Settings(
-            json.allowInsecure,
             json.fingerprint,
-            json.servername,
+            json.echConfigList,
         );
     }
     toJson() {
         return {
-            allowInsecure: this.allowInsecure,
             fingerprint: this.fingerprint,
-            serverName: this.serverName,
+            echConfigList: this.echConfigList
         };
     }
 };
@@ -752,6 +2015,10 @@ class ReaLITyStreamSettings extends XrayCommonClass {
         this.maxTimeDiff = maxTimeDiff;
         this.shortIds = shortIds instanceof Array ? shortIds.join('\n') : shortIds;
 
+    }
+
+    refreshShortIds() {
+        this.shortIds = RandomUtil.randowShortId();
     }
 
     static fromJson(json = {}) {
@@ -885,7 +2152,10 @@ class StreamSettings extends XrayCommonClass {
         grpcSettings = new GrpcStreamSettings(),
         httpupgradeSettings = new HttpUpgradeStreamSettings(),
         xhttpSettings = new xHTTPStreamSettings(),
+        hysteriaSettings = new HysteriaStreamSettings(),
+        finalmaskSettings = new FinalMaskSettings(),
         sockopt = undefined,
+        finalmaskSwitch = false,
     ) {
         super();
         this.network = network;
@@ -899,7 +2169,10 @@ class StreamSettings extends XrayCommonClass {
         this.grpc = grpcSettings;
         this.httpupgrade = httpupgradeSettings;
         this.xhttp = xhttpSettings;
+        this.hysteria = hysteriaSettings;
+        this.finalmask = finalmaskSettings;
         this.sockopt = sockopt;
+        this._finalmaskSwitch = finalmaskSwitch || (this.finalmask != undefined && !this.finalmask.isEmpty);
     }
 
     get isTls() {
@@ -934,7 +2207,19 @@ class StreamSettings extends XrayCommonClass {
         this.sockopt = value ? new SockoptStreamSettings() : undefined;
     }
 
+    get finalmaskSwitch() {
+        return this._finalmaskSwitch;
+    }
+
+    set finalmaskSwitch(value) {
+        this._finalmaskSwitch = value;
+        if (value && this.finalmask == undefined) {
+            this.finalmask = new FinalMaskSettings();
+        }
+    }
+
     static fromJson(json = {}) {
+        const finalmask = FinalMaskSettings.fromJson(json.finalmask);
         return new StreamSettings(
             json.network,
             json.security,
@@ -947,7 +2232,10 @@ class StreamSettings extends XrayCommonClass {
             GrpcStreamSettings.fromJson(json.grpcSettings),
             HttpUpgradeStreamSettings.fromJson(json.httpupgradeSettings),
             xHTTPStreamSettings.fromJson(json.xhttpSettings),
+            HysteriaStreamSettings.fromJson(json.hysteriaSettings),
+            finalmask,
             SockoptStreamSettings.fromJson(json.sockopt),
+            !finalmask.isEmpty,
         );
     }
 
@@ -965,6 +2253,8 @@ class StreamSettings extends XrayCommonClass {
             grpcSettings: network === 'grpc' ? this.grpc.toJson() : undefined,
             httpupgradeSettings: network === 'httpupgrade' ? this.httpupgrade.toJson() : undefined,
             xhttpSettings: network === 'xhttp' ? this.xhttp.toJson() : undefined,
+            hysteriaSettings: network === 'hysteria' ? this.hysteria.toJson() : undefined,
+            finalmask: this.finalmaskSwitch && this.finalmask != undefined && !this.finalmask.isEmpty ? this.finalmask.toJson() : undefined,
             sockopt: this.sockopt != undefined ? this.sockopt.toJson() : undefined,
         };
     }
@@ -1056,6 +2346,11 @@ class Inbound extends XrayCommonClass {
                 this.tls = true;
             }
         }
+        if (protocol === Protocols.HYSTERIA) {
+            this.stream.network = 'hysteria';
+            this.reality = false;
+            this.tls = true;
+        }
     }
 
     get tls() {
@@ -1065,6 +2360,9 @@ class Inbound extends XrayCommonClass {
     set tls(isTls) {
         if (isTls) {
             this.stream.security = 'tls';
+            if (this.protocol === Protocols.VLESS) {
+                this.authentication = false;
+            }
         } else {
             this.stream.security = 'none';
         }
@@ -1078,6 +2376,9 @@ class Inbound extends XrayCommonClass {
     set reality(isReaLITy) {
         if (isReaLITy) {
             this.stream.security = 'reality';
+            if (this.protocol === Protocols.VLESS) {
+                this.authentication = false;
+            }
         } else {
             this.stream.security = 'none';
         }
@@ -1115,6 +2416,9 @@ class Inbound extends XrayCommonClass {
     }
     get isXHTTP() {
         return this.network === "xhttp";
+    }
+    get isHysteria() {
+        return this.network === "hysteria";
     }
     // VMess & VLess
     get uuid() {
@@ -1166,6 +2470,137 @@ class Inbound extends XrayCommonClass {
         }
     }
 
+    get hysteriaAuth() {
+        switch (this.protocol) {
+            case Protocols.HYSTERIA:
+                return this.settings.clients[0].auth;
+            default:
+                return "";
+        }
+    }
+
+    get hysteriaMasqueradeType() {
+        if (this.stream.hysteria && this.stream.hysteria.masquerade) {
+            return this.stream.hysteria.masquerade.type;
+        }
+        return "";
+    }
+
+    get hysteriaPortHoppingPorts() {
+        if (this.stream.hysteria && this.stream.hysteria.portHopping && this.stream.hysteria.portHopping.enabled) {
+            return this.stream.hysteria.portHopping.ports;
+        }
+        return "";
+    }
+
+    get hysteriaUdpMaskType() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (this.stream.finalmask && this.stream.finalmask.udp.length > 0) {
+            return this.stream.finalmask.udp[0].type;
+        }
+        return "";
+    }
+
+    get finalmaskTcpMaskTypes() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (!this.stream.finalmask || this.stream.finalmask.tcp.length === 0) {
+            return "";
+        }
+        return this.stream.finalmask.tcp
+            .map(mask => mask.type)
+            .filter(type => !ObjectUtil.isEmpty(type))
+            .join(', ');
+    }
+
+    get finalmaskTcpMaskDetails() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (!this.stream.finalmask || this.stream.finalmask.tcp.length === 0) {
+            return "";
+        }
+        return this.stream.finalmask.tcp
+            .map(mask => mask.summary('tcp'))
+            .filter(summary => !ObjectUtil.isEmpty(summary))
+            .join(' | ');
+    }
+
+    get finalmaskUdpMaskTypes() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (!this.stream.finalmask || this.stream.finalmask.udp.length === 0) {
+            return "";
+        }
+        return this.stream.finalmask.udp
+            .map(mask => mask.type)
+            .filter(type => !ObjectUtil.isEmpty(type))
+            .join(', ');
+    }
+
+    get finalmaskUdpMaskDetails() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (!this.stream.finalmask || this.stream.finalmask.udp.length === 0) {
+            return "";
+        }
+        return this.stream.finalmask.udp
+            .map(mask => mask.summary('udp'))
+            .filter(summary => !ObjectUtil.isEmpty(summary))
+            .join(' | ');
+    }
+
+    get finalmaskQuicCongestion() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (this.stream.finalmask && this.stream.finalmask.quicParams) {
+            return this.stream.finalmask.quicParams.congestion;
+        }
+        return "";
+    }
+
+    get finalmaskQuicSummary() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (this.stream.finalmask && this.stream.finalmask.quicParams) {
+            return this.stream.finalmask.quicParams.summary();
+        }
+        return "";
+    }
+
+    get finalmaskUdpHopPorts() {
+        if (!this.stream.finalmaskSwitch) {
+            return "";
+        }
+        if (this.stream.finalmask && this.stream.finalmask.quicParams && this.stream.finalmask.quicParams.udpHop) {
+            return this.stream.finalmask.quicParams.udpHop.ports;
+        }
+        return "";
+    }
+
+    get hysteriaTcpMaskTypes() {
+        return this.finalmaskTcpMaskTypes;
+    }
+
+    get hysteriaUdpMaskTypes() {
+        return this.finalmaskUdpMaskTypes;
+    }
+
+    get hysteriaQuicCongestion() {
+        return this.finalmaskQuicCongestion;
+    }
+
+    get hysteriaUdpHopPorts() {
+        return this.finalmaskUdpHopPorts;
+    }
+
     // Shadowsocks
     get method() {
         switch (this.protocol) {
@@ -1178,7 +2613,7 @@ class Inbound extends XrayCommonClass {
 
     get serverName() {
         if (this.stream.isTls) {
-            return this.stream.tls.server;
+            return this.stream.tls.sni;
         }
         return "";
     }
@@ -1235,6 +2670,7 @@ class Inbound extends XrayCommonClass {
             case Protocols.VLESS:
             case Protocols.TROJAN:
             case Protocols.SHADOWSOCKS:
+            case Protocols.HYSTERIA:
                 break;
             default:
                 return false;
@@ -1247,6 +2683,7 @@ class Inbound extends XrayCommonClass {
             case "grpc":
             case "httpupgrade":
             case "xhttp":
+            case "hysteria":
                 return true;
             default:
                 return false;
@@ -1269,6 +2706,39 @@ class Inbound extends XrayCommonClass {
         //return this.network === "tcp";
     }
 
+    canEnableAuthentication() {
+        return this.protocol === Protocols.VLESS && ['tcp', 'raw'].indexOf(this.network) !== -1;
+    }
+
+    get authentication() {
+        return this.protocol === Protocols.VLESS && !ObjectUtil.isEmpty(this.settings.selectedAuth);
+    }
+
+    set authentication(enabled) {
+        if (this.protocol !== Protocols.VLESS) {
+            return;
+        }
+
+        if (enabled) {
+            if (!this.settings.selectedAuth) {
+                this.settings.selectedAuth = 'X25519, not Post-Quantum';
+            }
+            if (!this.settings.decryption) {
+                this.settings.decryption = 'none';
+            }
+            if (!this.settings.encryption) {
+                this.settings.encryption = 'none';
+            }
+            this.tls = false;
+            this.reality = false;
+            return;
+        }
+
+        this.settings.selectedAuth = undefined;
+        this.settings.decryption = '';
+        this.settings.encryption = '';
+    }
+
     // canSockopt() {
     //     switch (this.protocol) {
     //         case Protocols.VLESS:
@@ -1289,6 +2759,7 @@ class Inbound extends XrayCommonClass {
             case Protocols.VLESS:
             case Protocols.SHADOWSOCKS:
             case Protocols.TROJAN:
+            case Protocols.HYSTERIA:
                 return true;
             default:
                 return false;
@@ -1386,12 +2857,15 @@ class Inbound extends XrayCommonClass {
             mode = xhttp.mode;
         }
 
-        if (this.stream.security === 'tls') {
-            if (!ObjectUtil.isEmpty(this.stream.tls.server)) {
-                address = this.stream.tls.server;
+        if (tls === 'tls') {
+            if (!ObjectUtil.isEmpty(this.stream.tls.sni)) {
+                obj.sni = this.stream.tls.sni;
             }
-            if (!ObjectUtil.isEmpty(this.stream.tls.settings[0]['serverName'])) {
-                sni = this.stream.tls.settings[0]['serverName'];
+            if (!ObjectUtil.isEmpty(this.stream.tls.settings.fingerprint)) {
+                obj.fp = this.stream.tls.settings.fingerprint;
+            }
+            if (this.stream.tls.alpn.length > 0) {
+                obj.alpn = this.stream.tls.alpn.join(',');
             }
         }
         if (address.startsWith('/')) {
@@ -1512,24 +2986,20 @@ class Inbound extends XrayCommonClass {
                 break;
         }
 
-        if (this.tls) {
+        if (security === 'tls') {
             params.set("security", "tls");
-            params.set("fp", this.stream.tls.settings[0]['fingerprint']);
-            params.set("alpn", this.stream.tls.alpn);
-            if (this.stream.tls.settings[0].allowInsecure) {
-                params.set("allowInsecure", "1");
-            }
-            if (!ObjectUtil.isEmpty(this.stream.tls.server)) {
-                address = this.stream.tls.server;
-            }
-            if (this.stream.tls.settings[0]['serverName'] !== '') {
-                params.set("sni", this.stream.tls.settings[0]['serverName']);
-            }
-            if (type === "tcp" && this.settings.vlesses[0].flow.length > 0) {
-                params.set("flow", this.settings.vlesses[0].flow);
-            }
-            if (type === "raw" && this.settings.vlesses[0].flow.length > 0) {
-                params.set("flow", this.settings.vlesses[0].flow);
+            if (this.stream.isTls) {
+                params.set("fp", this.stream.tls.settings.fingerprint);
+                params.set("alpn", this.stream.tls.alpn);
+                if (!ObjectUtil.isEmpty(this.stream.tls.sni)) {
+                    params.set("sni", this.stream.tls.sni);
+                }
+                if (this.stream.tls.settings.echConfigList?.length > 0) {
+                    params.set("ech", this.stream.tls.settings.echConfigList);
+                }
+                if (type == "tcp" && !ObjectUtil.isEmpty(flow)) {
+                    params.set("flow", flow);
+                }
             }
         }
 
@@ -1667,17 +3137,16 @@ class Inbound extends XrayCommonClass {
 
         // TLS
         if (security === 'tls') {
-            params.set('security', 'tls');
+            params.set("security", "tls");
             if (this.stream.isTls) {
-                const tls = this.stream.tls;
-                if (tls.settings?.fingerprint)
-                    params.set('fp', safe(tls.settings.fingerprint));
-                if (tls.alpn)
-                    params.set('alpn', safe(tls.alpn));
-                if (tls.settings?.allowInsecure)
-                    params.set('allowInsecure', '1');
-                if (tls.sni)
-                    params.set('sni', safe(tls.sni));
+                params.set("fp", this.stream.tls.settings.fingerprint);
+                params.set("alpn", this.stream.tls.alpn);
+                if (this.stream.tls.settings.echConfigList?.length > 0) {
+                    params.set("ech", this.stream.tls.settings.echConfigList);
+                }
+                if (!ObjectUtil.isEmpty(this.stream.tls.sni)) {
+                    params.set("sni", this.stream.tls.sni);
+                }
             }
         }
 
@@ -1802,18 +3271,17 @@ class Inbound extends XrayCommonClass {
                 break;
         }
 
-        if (this.tls) {
+        if (security === 'tls') {
             params.set("security", "tls");
-            params.set("fp", this.stream.tls.settings[0]['fingerprint']);
-            params.set("alpn", this.stream.tls.alpn);
-            if (this.stream.tls.settings[0].allowInsecure) {
-                params.set("allowInsecure", "1");
-            }
-            if (!ObjectUtil.isEmpty(this.stream.tls.server)) {
-                address = this.stream.tls.server;
-            }
-            if (this.stream.tls.settings[0]['serverName'] !== '') {
-                params.set("sni", this.stream.tls.settings[0]['serverName']);
+            if (this.stream.isTls) {
+                params.set("fp", this.stream.tls.settings.fingerprint);
+                params.set("alpn", this.stream.tls.alpn);
+                if (this.stream.tls.settings.echConfigList?.length > 0) {
+                    params.set("ech", this.stream.tls.settings.echConfigList);
+                }
+                if (!ObjectUtil.isEmpty(this.stream.tls.sni)) {
+                    params.set("sni", this.stream.tls.sni);
+                }
             }
         }
 
@@ -1904,6 +3372,7 @@ Inbound.Settings = class extends XrayCommonClass {
             case Protocols.DOKODEMO: return new Inbound.DokodemoSettings(protocol);
             case Protocols.SOCKS: return new Inbound.SocksSettings(protocol);
             case Protocols.HTTP: return new Inbound.HttpSettings(protocol);
+            case Protocols.HYSTERIA: return new Inbound.HysteriaSettings(protocol);
             default: return null;
         }
     }
@@ -1917,6 +3386,7 @@ Inbound.Settings = class extends XrayCommonClass {
             case Protocols.DOKODEMO: return Inbound.DokodemoSettings.fromJson(json);
             case Protocols.SOCKS: return Inbound.SocksSettings.fromJson(json);
             case Protocols.HTTP: return Inbound.HttpSettings.fromJson(json);
+            case Protocols.HYSTERIA: return Inbound.HysteriaSettings.fromJson(json);
             default: return null;
         }
     }
@@ -1974,6 +3444,10 @@ Inbound.VmessSettings.Vmess = class extends XrayCommonClass {
         this.id = id;
     }
 
+    refreshId() {
+        this.id = RandomUtil.randomUUID();
+    }
+
     static fromJson(json = {}) {
         return new Inbound.VmessSettings.Vmess(
             json.id,
@@ -2021,19 +3495,17 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
             clients: Inbound.VLESSSettings.toJsonArray(this.vlesses),
         };
 
-        if (this.decryption) {
-            json.decryption = this.decryption;
-        }
-
-        if (this.encryption) {
-            json.encryption = this.encryption;
-        }
-
         if (this.fallbacks && this.fallbacks.length > 0) {
             json.fallbacks = Inbound.VLESSSettings.toJsonArray(this.fallbacks);
         }
         if (this.selectedAuth) {
             json.selectedAuth = this.selectedAuth;
+            if (this.decryption) {
+                json.decryption = this.decryption;
+            }
+            if (this.encryption) {
+                json.encryption = this.encryption;
+            }
         }
 
         return json;
@@ -2046,6 +3518,10 @@ Inbound.VLESSSettings.VLESS = class extends XrayCommonClass {
         super();
         this.id = id;
         this.flow = flow;
+    }
+
+    refreshId() {
+        this.id = RandomUtil.randomUUID();
     }
 
     static fromJson(json = {}) {
@@ -2136,6 +3612,10 @@ Inbound.TrojanSettings.Client = class extends XrayCommonClass {
         //this.flow = flow;
     }
 
+    refreshPassword() {
+        this.password = RandomUtil.randomSeq(10);
+    }
+
     toJson() {
         return {
             password: this.password,
@@ -2201,6 +3681,10 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
         this.method = method;
         this.password = password;
         this.network = network;
+    }
+
+    refreshPassword() {
+        this.password = btoa(RandomUtil.randomSeq(32));
     }
 
     static fromJson(json = {}) {
@@ -2296,6 +3780,10 @@ Inbound.SocksSettings.SocksAccount = class extends XrayCommonClass {
         this.pass = pass;
     }
 
+    refreshPassword() {
+        this.pass = RandomUtil.randomSeq(10);
+    }
+
     static fromJson(json = {}) {
         return new Inbound.SocksSettings.SocksAccount(json.user, json.pass);
     }
@@ -2336,7 +3824,70 @@ Inbound.HttpSettings.HttpAccount = class extends XrayCommonClass {
         this.pass = pass;
     }
 
+    refreshPassword() {
+        this.pass = RandomUtil.randomSeq(10);
+    }
+
     static fromJson(json = {}) {
         return new Inbound.HttpSettings.HttpAccount(json.user, json.pass);
+    }
+};
+
+Inbound.HysteriaSettings = class extends Inbound.Settings {
+    constructor(protocol, version = 2, clients = [new Inbound.HysteriaSettings.Client()]) {
+        super(protocol);
+        this.version = version;
+        this.clients = clients;
+    }
+
+    static fromJson(json = {}) {
+        const clients = Array.isArray(json.clients) && json.clients.length > 0
+            ? json.clients.map(client => Inbound.HysteriaSettings.Client.fromJson(client))
+            : [new Inbound.HysteriaSettings.Client()];
+        return new Inbound.HysteriaSettings(
+            Protocols.HYSTERIA,
+            ObjectUtil.isEmpty(json.version) ? 2 : json.version,
+            clients,
+        );
+    }
+
+    toJson() {
+        return {
+            version: this.version,
+            clients: Inbound.HysteriaSettings.toJsonArray(this.clients),
+        };
+    }
+};
+
+Inbound.HysteriaSettings.Client = class extends XrayCommonClass {
+    constructor(auth = RandomUtil.randomUUID(), level = 0, email = `${RandomUtil.randomLowerAndNum(10)}@xray.com`) {
+        super();
+        this.auth = auth;
+        this.level = level;
+        this.email = email;
+    }
+
+    refreshAuth() {
+        this.auth = RandomUtil.randomUUID();
+    }
+
+    refreshEmail() {
+        this.email = `${RandomUtil.randomLowerAndNum(10)}@xray.com`;
+    }
+
+    toJson() {
+        return {
+            auth: this.auth,
+            level: this.level,
+            email: this.email,
+        };
+    }
+
+    static fromJson(json = {}) {
+        return new Inbound.HysteriaSettings.Client(
+            json.auth,
+            ObjectUtil.isEmpty(json.level) ? 0 : json.level,
+            json.email,
+        );
     }
 };

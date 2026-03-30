@@ -1,0 +1,554 @@
+{{define "form/finalmaskSettings"}}
+<a-form layout="inline">
+    <a-form-item label="FinalMask">
+        <a-switch v-model="inbound.stream.finalmaskSwitch"></a-switch>
+    </a-form-item>
+</a-form>
+<a-form v-if="inbound.stream.finalmaskSwitch" :colon="false" :label-col="{ md: {span:8} }" :wrapper-col="{ md: {span:14} }">
+    <a-divider orientation="left">FinalMask</a-divider>
+    <a-divider orientation="left">quicParams</a-divider>
+    <a-form-item>
+        <span slot="label">
+            congestion
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.quicParams 的独立字段，可选 reno、bbr、brutal、force-brutal
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-select v-model="inbound.stream.finalmask.quicParams.congestion">
+            <a-select-option value="reno">reno</a-select-option>
+            <a-select-option value="bbr">bbr</a-select-option>
+            <a-select-option value="brutal">brutal</a-select-option>
+            <a-select-option value="force-brutal">force-brutal</a-select-option>
+        </a-select>
+    </a-form-item>
+    <a-form-item label="debug">
+        <a-switch v-model="inbound.stream.finalmask.quicParams.debug"></a-switch>
+    </a-form-item>
+    <a-form-item label="brutalUp">
+        <a-input v-model.trim="inbound.stream.finalmask.quicParams.brutalUp"></a-input>
+    </a-form-item>
+    <a-form-item label="brutalDown">
+        <a-input v-model.trim="inbound.stream.finalmask.quicParams.brutalDown"></a-input>
+    </a-form-item>
+    <a-form-item label="udpHop.ports">
+        <a-input v-model.trim="inbound.stream.finalmask.quicParams.udpHop.ports"></a-input>
+    </a-form-item>
+    <a-form-item label="udpHop.interval">
+        <a-input v-model.trim="inbound.stream.finalmask.quicParams.udpHop.interval"></a-input>
+    </a-form-item>
+    <a-form-item label="initStreamReceiveWindow">
+        <a-input-number v-model.number="inbound.stream.finalmask.quicParams.initStreamReceiveWindow" :min="0" style="width: 100%"></a-input-number>
+    </a-form-item>
+    <a-form-item label="maxStreamReceiveWindow">
+        <a-input-number v-model.number="inbound.stream.finalmask.quicParams.maxStreamReceiveWindow" :min="0" style="width: 100%"></a-input-number>
+    </a-form-item>
+    <a-form-item label="initConnectionReceiveWindow">
+        <a-input-number v-model.number="inbound.stream.finalmask.quicParams.initConnectionReceiveWindow" :min="0" style="width: 100%"></a-input-number>
+    </a-form-item>
+    <a-form-item label="maxConnectionReceiveWindow">
+        <a-input-number v-model.number="inbound.stream.finalmask.quicParams.maxConnectionReceiveWindow" :min="0" style="width: 100%"></a-input-number>
+    </a-form-item>
+    <a-form-item label="maxIdleTimeout">
+        <a-input-number v-model.number="inbound.stream.finalmask.quicParams.maxIdleTimeout" :min="0" style="width: 100%"></a-input-number>
+    </a-form-item>
+    <a-form-item label="keepAlivePeriod">
+        <a-input-number v-model.number="inbound.stream.finalmask.quicParams.keepAlivePeriod" :min="0" style="width: 100%"></a-input-number>
+    </a-form-item>
+    <a-form-item label="disablePathMTUDiscovery">
+        <a-switch v-model="inbound.stream.finalmask.quicParams.disablePathMTUDiscovery"></a-switch>
+    </a-form-item>
+    <a-form-item label="maxIncomingStreams">
+        <a-input-number v-model.number="inbound.stream.finalmask.quicParams.maxIncomingStreams" :min="0" style="width: 100%"></a-input-number>
+    </a-form-item>
+
+    <a-divider orientation="left">tcp</a-divider>
+    <a-form-item>
+        <span slot="label">
+            tcp
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.tcp 为独立数组配置，支持 header-custom、fragment、sudoku
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-button size="small" @click="inbound.stream.finalmask.addTcpMask()">
+            +
+        </a-button>
+    </a-form-item>
+    <template v-for="(mask, index) in inbound.stream.finalmask.tcp">
+        <a-input-group :key="'tcp-mask-' + index" compact style="display: flex; margin-bottom: 8px;">
+            <a-select :value="mask.type" style="width: 35%" @change="value => mask.setType(value)">
+                <a-select-option value="">关闭</a-select-option>
+                <a-select-option value="header-custom">header-custom</a-select-option>
+                <a-select-option value="fragment">fragment</a-select-option>
+                <a-select-option value="sudoku">sudoku</a-select-option>
+            </a-select>
+            <a-button v-if="mask.type === 'header-custom'" size="small" style="width: 20%" @click="mask.settings.tcpHeaderCustom.addClientsGroup()">
+                + clients
+            </a-button>
+            <a-button v-else-if="mask.type === 'sudoku'" size="small" style="width: 20%" @click="mask.settings.sudoku.addCustomTable('')">
+                + customTables
+            </a-button>
+            <a-button size="small" style="width: 10%" @click="inbound.stream.finalmask.removeTcpMask(index)">
+                -
+            </a-button>
+        </a-input-group>
+        <template v-if="mask.type === 'header-custom'">
+            <a-divider orientation="left">clients</a-divider>
+            <template v-for="(group, groupIndex) in mask.settings.tcpHeaderCustom.clients">
+                <a-form-item :key="'tcp-clients-group-' + index + '-' + groupIndex" :label="'clients[' + groupIndex + ']'">
+                    <a-space>
+                        <a-button size="small" @click="mask.settings.tcpHeaderCustom.addClient(groupIndex)">
+                            + item
+                        </a-button>
+                        <a-button size="small" @click="mask.settings.tcpHeaderCustom.removeClientsGroup(groupIndex)">
+                            - group
+                        </a-button>
+                    </a-space>
+                </a-form-item>
+                <template v-for="(item, itemIndex) in group">
+                    <a-form-item :key="'tcp-client-item-' + index + '-' + groupIndex + '-' + itemIndex" :label="'clients[' + groupIndex + '][' + itemIndex + ']'">
+                        <a-space>
+                            <a-button size="small" :disabled="item.rand > 0" @click="item.addPacket('')">
+                                + packet
+                            </a-button>
+                            <a-button size="small" @click="mask.settings.tcpHeaderCustom.removeClient(groupIndex, itemIndex)">
+                                - item
+                            </a-button>
+                        </a-space>
+                    </a-form-item>
+                    <a-form-item :label="'clients[' + groupIndex + '][' + itemIndex + '].delay'">
+                        <a-input-number v-model.number="item.delay" :min="0" style="width: 100%"></a-input-number>
+                    </a-form-item>
+                    <a-form-item :label="'clients[' + groupIndex + '][' + itemIndex + '].rand'">
+                        <a-input-number :value="item.rand" :min="0" :disabled="item.packet.length > 0" style="width: 100%" @change="item.setRand"></a-input-number>
+                    </a-form-item>
+                    <a-form-item :label="'clients[' + groupIndex + '][' + itemIndex + '].randRange'">
+                        <a-input v-model.trim="item.randRange"></a-input>
+                    </a-form-item>
+                    <a-form-item :label="'clients[' + groupIndex + '][' + itemIndex + '].type'">
+                        <a-select v-model="item.type">
+                            <a-select-option value="array">array</a-select-option>
+                            <a-select-option value="str">str</a-select-option>
+                            <a-select-option value="hex">hex</a-select-option>
+                            <a-select-option value="base64">base64</a-select-option>
+                        </a-select>
+                    </a-form-item>
+                    <a-form-item :label="'clients[' + groupIndex + '][' + itemIndex + '].packet'">
+                        <span>rand 与 packet 二选一；rand 大于 0 时不可添加 packet，存在 packet 时不可填写 rand</span>
+                    </a-form-item>
+                    <a-input-group v-for="(packet, packetIndex) in item.packet" :key="'tcp-client-packet-' + index + '-' + groupIndex + '-' + itemIndex + '-' + packetIndex" compact style="display: flex; margin-bottom: 8px;">
+                        <a-input style="width: 85%" v-model.trim="item.packet[packetIndex]" :addon-before="'clients[' + groupIndex + '][' + itemIndex + '].packet[' + packetIndex + ']'"></a-input>
+                        <a-button size="small" style="width: 15%" @click="item.removePacket(packetIndex)">
+                            -
+                        </a-button>
+                    </a-input-group>
+                </template>
+            </template>
+
+            <a-divider orientation="left">servers</a-divider>
+            <a-form-item :label="'servers'">
+                <a-button size="small" @click="mask.settings.tcpHeaderCustom.addServersGroup()">
+                    +
+                </a-button>
+            </a-form-item>
+            <template v-for="(group, groupIndex) in mask.settings.tcpHeaderCustom.servers">
+                <a-form-item :key="'tcp-servers-group-' + index + '-' + groupIndex" :label="'servers[' + groupIndex + ']'">
+                    <a-space>
+                        <a-button size="small" @click="mask.settings.tcpHeaderCustom.addServer(groupIndex)">
+                            + item
+                        </a-button>
+                        <a-button size="small" @click="mask.settings.tcpHeaderCustom.removeServersGroup(groupIndex)">
+                            - group
+                        </a-button>
+                    </a-space>
+                </a-form-item>
+                <template v-for="(item, itemIndex) in group">
+                    <a-form-item :key="'tcp-server-item-' + index + '-' + groupIndex + '-' + itemIndex" :label="'servers[' + groupIndex + '][' + itemIndex + ']'">
+                        <a-space>
+                            <a-button size="small" :disabled="item.rand > 0" @click="item.addPacket('')">
+                                + packet
+                            </a-button>
+                            <a-button size="small" @click="mask.settings.tcpHeaderCustom.removeServer(groupIndex, itemIndex)">
+                                - item
+                            </a-button>
+                        </a-space>
+                    </a-form-item>
+                    <a-form-item :label="'servers[' + groupIndex + '][' + itemIndex + '].delay'">
+                        <a-input-number v-model.number="item.delay" :min="0" style="width: 100%"></a-input-number>
+                    </a-form-item>
+                    <a-form-item :label="'servers[' + groupIndex + '][' + itemIndex + '].rand'">
+                        <a-input-number :value="item.rand" :min="0" :disabled="item.packet.length > 0" style="width: 100%" @change="item.setRand"></a-input-number>
+                    </a-form-item>
+                    <a-form-item :label="'servers[' + groupIndex + '][' + itemIndex + '].randRange'">
+                        <a-input v-model.trim="item.randRange"></a-input>
+                    </a-form-item>
+                    <a-form-item :label="'servers[' + groupIndex + '][' + itemIndex + '].type'">
+                        <a-select v-model="item.type">
+                            <a-select-option value="array">array</a-select-option>
+                            <a-select-option value="str">str</a-select-option>
+                            <a-select-option value="hex">hex</a-select-option>
+                            <a-select-option value="base64">base64</a-select-option>
+                        </a-select>
+                    </a-form-item>
+                    <a-form-item :label="'servers[' + groupIndex + '][' + itemIndex + '].packet'">
+                        <span>rand 与 packet 二选一；rand 大于 0 时不可添加 packet，存在 packet 时不可填写 rand</span>
+                    </a-form-item>
+                    <a-input-group v-for="(packet, packetIndex) in item.packet" :key="'tcp-server-packet-' + index + '-' + groupIndex + '-' + itemIndex + '-' + packetIndex" compact style="display: flex; margin-bottom: 8px;">
+                        <a-input style="width: 85%" v-model.trim="item.packet[packetIndex]" :addon-before="'servers[' + groupIndex + '][' + itemIndex + '].packet[' + packetIndex + ']'"></a-input>
+                        <a-button size="small" style="width: 15%" @click="item.removePacket(packetIndex)">
+                            -
+                        </a-button>
+                    </a-input-group>
+                </template>
+            </template>
+
+            <a-divider orientation="left">errors</a-divider>
+            <a-form-item :label="'errors'">
+                <a-button size="small" @click="mask.settings.tcpHeaderCustom.addErrorsGroup()">
+                    +
+                </a-button>
+            </a-form-item>
+            <template v-for="(group, groupIndex) in mask.settings.tcpHeaderCustom.errors">
+                <a-form-item :key="'tcp-errors-group-' + index + '-' + groupIndex" :label="'errors[' + groupIndex + ']'">
+                    <a-space>
+                        <a-button size="small" @click="mask.settings.tcpHeaderCustom.addError(groupIndex)">
+                            + item
+                        </a-button>
+                        <a-button size="small" @click="mask.settings.tcpHeaderCustom.removeErrorsGroup(groupIndex)">
+                            - group
+                        </a-button>
+                    </a-space>
+                </a-form-item>
+                <template v-for="(item, itemIndex) in group">
+                    <a-form-item :key="'tcp-error-item-' + index + '-' + groupIndex + '-' + itemIndex" :label="'errors[' + groupIndex + '][' + itemIndex + ']'">
+                        <a-space>
+                            <a-button size="small" :disabled="item.rand > 0" @click="item.addPacket('')">
+                                + packet
+                            </a-button>
+                            <a-button size="small" @click="mask.settings.tcpHeaderCustom.removeError(groupIndex, itemIndex)">
+                                - item
+                            </a-button>
+                        </a-space>
+                    </a-form-item>
+                    <a-form-item :label="'errors[' + groupIndex + '][' + itemIndex + '].delay'">
+                        <a-input-number v-model.number="item.delay" :min="0" style="width: 100%"></a-input-number>
+                    </a-form-item>
+                    <a-form-item :label="'errors[' + groupIndex + '][' + itemIndex + '].rand'">
+                        <a-input-number :value="item.rand" :min="0" :disabled="item.packet.length > 0" style="width: 100%" @change="item.setRand"></a-input-number>
+                    </a-form-item>
+                    <a-form-item :label="'errors[' + groupIndex + '][' + itemIndex + '].randRange'">
+                        <a-input v-model.trim="item.randRange"></a-input>
+                    </a-form-item>
+                    <a-form-item :label="'errors[' + groupIndex + '][' + itemIndex + '].type'">
+                        <a-select v-model="item.type">
+                            <a-select-option value="array">array</a-select-option>
+                            <a-select-option value="str">str</a-select-option>
+                            <a-select-option value="hex">hex</a-select-option>
+                            <a-select-option value="base64">base64</a-select-option>
+                        </a-select>
+                    </a-form-item>
+                    <a-form-item :label="'errors[' + groupIndex + '][' + itemIndex + '].packet'">
+                        <span>rand 与 packet 二选一；rand 大于 0 时不可添加 packet，存在 packet 时不可填写 rand</span>
+                    </a-form-item>
+                    <a-input-group v-for="(packet, packetIndex) in item.packet" :key="'tcp-error-packet-' + index + '-' + groupIndex + '-' + itemIndex + '-' + packetIndex" compact style="display: flex; margin-bottom: 8px;">
+                        <a-input style="width: 85%" v-model.trim="item.packet[packetIndex]" :addon-before="'errors[' + groupIndex + '][' + itemIndex + '].packet[' + packetIndex + ']'"></a-input>
+                        <a-button size="small" style="width: 15%" @click="item.removePacket(packetIndex)">
+                            -
+                        </a-button>
+                    </a-input-group>
+                </template>
+            </template>
+        </template>
+        <template v-else-if="mask.type === 'fragment'">
+            <a-form-item label="packets">
+                <a-input v-model.trim="mask.settings.fragment.packets"></a-input>
+            </a-form-item>
+            <a-form-item label="length">
+                <a-input v-model.trim="mask.settings.fragment.length"></a-input>
+            </a-form-item>
+            <a-form-item label="delay">
+                <a-input v-model.trim="mask.settings.fragment.delay"></a-input>
+            </a-form-item>
+            <a-form-item label="maxSplit">
+                <a-input v-model.trim="mask.settings.fragment.maxSplit"></a-input>
+            </a-form-item>
+        </template>
+        <template v-else-if="mask.type === 'sudoku'">
+            <a-form-item label="password">
+                <a-input-group compact style="display: flex;">
+                    <a-input v-model.trim="mask.settings.sudoku.password" style="width: 80%"></a-input>
+                    <a-button size="small" style="width: 20%" @click="mask.settings.sudoku.refreshPassword()">
+                        更换
+                    </a-button>
+                </a-input-group>
+            </a-form-item>
+            <a-form-item label="ascii">
+                <a-input v-model.trim="mask.settings.sudoku.ascii"></a-input>
+            </a-form-item>
+            <a-form-item label="customTable">
+                <a-input v-model.trim="mask.settings.sudoku.customTable"></a-input>
+            </a-form-item>
+            <a-form-item label="paddingMin">
+                <a-input-number v-model.number="mask.settings.sudoku.paddingMin" :min="0" style="width: 100%"></a-input-number>
+            </a-form-item>
+            <a-form-item label="paddingMax">
+                <a-input-number v-model.number="mask.settings.sudoku.paddingMax" :min="0" style="width: 100%"></a-input-number>
+            </a-form-item>
+            <a-input-group v-for="(table, tableIndex) in mask.settings.sudoku.customTables" :key="'tcp-sudoku-table-' + index + '-' + tableIndex" compact style="display: flex; margin-bottom: 8px;">
+                <a-input style="width: 85%" v-model.trim="mask.settings.sudoku.customTables[tableIndex]" :addon-before="'customTables[' + tableIndex + ']'"></a-input>
+                <a-button size="small" style="width: 15%" @click="mask.settings.sudoku.removeCustomTable(tableIndex)">
+                    -
+                </a-button>
+            </a-input-group>
+        </template>
+    </template>
+
+    <a-divider orientation="left">udp</a-divider>
+    <a-form-item>
+        <span slot="label">
+            udp
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.udp 为独立数组配置，支持 header-custom、header-dns、header-dtls、header-srtp、header-utp、header-wechat、header-wireguard、mkcp-original、mkcp-aes128gcm、noise、salamander、sudoku、xdns、xicmp
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-button size="small" @click="inbound.stream.finalmask.addUdpMask()">
+            +
+        </a-button>
+    </a-form-item>
+    <template v-for="(mask, index) in inbound.stream.finalmask.udp">
+        <a-input-group :key="'udp-mask-' + index" compact style="display: flex; margin-bottom: 8px;">
+            <a-select :value="mask.type" style="width: 35%" @change="value => mask.setType(value)">
+                <a-select-option value="">关闭</a-select-option>
+                <a-select-option value="header-custom">header-custom</a-select-option>
+                <a-select-option value="header-dns">header-dns</a-select-option>
+                <a-select-option value="header-dtls">header-dtls</a-select-option>
+                <a-select-option value="header-srtp">header-srtp</a-select-option>
+                <a-select-option value="header-utp">header-utp</a-select-option>
+                <a-select-option value="header-wechat">header-wechat</a-select-option>
+                <a-select-option value="header-wireguard">header-wireguard</a-select-option>
+                <a-select-option value="mkcp-original">mkcp-original</a-select-option>
+                <a-select-option value="mkcp-aes128gcm">mkcp-aes128gcm</a-select-option>
+                <a-select-option value="noise">noise</a-select-option>
+                <a-select-option value="salamander">salamander</a-select-option>
+                <a-select-option value="sudoku">sudoku</a-select-option>
+                <a-select-option value="xdns">xdns</a-select-option>
+                <a-select-option value="xicmp">xicmp</a-select-option>
+            </a-select>
+            <a-button v-if="mask.type === 'header-custom'" size="small" style="width: 20%" @click="mask.settings.udpHeaderCustom.addClient()">
+                + client
+            </a-button>
+            <a-button v-else-if="mask.type === 'noise'" size="small" style="width: 20%" @click="mask.settings.noise.addNoise()">
+                + noise
+            </a-button>
+            <a-button v-else-if="mask.type === 'sudoku'" size="small" style="width: 20%" @click="mask.settings.sudoku.addCustomTable('')">
+                + customTables
+            </a-button>
+            <a-button size="small" style="width: 10%" @click="inbound.stream.finalmask.removeUdpMask(index)">
+                -
+            </a-button>
+        </a-input-group>
+        <template v-if="mask.type === 'header-custom'">
+            <a-divider orientation="left">client</a-divider>
+            <template v-for="(item, itemIndex) in mask.settings.udpHeaderCustom.client">
+                <a-form-item :key="'udp-client-item-' + index + '-' + itemIndex" :label="'client[' + itemIndex + ']'">
+                    <a-space>
+                        <a-button size="small" :disabled="item.rand > 0" @click="item.addPacket('')">
+                            + packet
+                        </a-button>
+                        <a-button size="small" @click="mask.settings.udpHeaderCustom.removeClient(itemIndex)">
+                            -
+                        </a-button>
+                    </a-space>
+                </a-form-item>
+                <a-form-item :label="'client[' + itemIndex + '].rand'">
+                    <a-input-number :value="item.rand" :min="0" :disabled="item.packet.length > 0" style="width: 100%" @change="item.setRand"></a-input-number>
+                </a-form-item>
+                <a-form-item :label="'client[' + itemIndex + '].randRange'">
+                    <a-input v-model.trim="item.randRange"></a-input>
+                </a-form-item>
+                <a-form-item :label="'client[' + itemIndex + '].type'">
+                    <a-select v-model="item.type">
+                        <a-select-option value="array">array</a-select-option>
+                        <a-select-option value="str">str</a-select-option>
+                        <a-select-option value="hex">hex</a-select-option>
+                        <a-select-option value="base64">base64</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item :label="'client[' + itemIndex + '].packet'">
+                    <span>rand 与 packet 二选一；rand 大于 0 时不可添加 packet，存在 packet 时不可填写 rand</span>
+                </a-form-item>
+                <a-input-group v-for="(packet, packetIndex) in item.packet" :key="'udp-client-packet-' + index + '-' + itemIndex + '-' + packetIndex" compact style="display: flex; margin-bottom: 8px;">
+                    <a-input style="width: 85%" v-model.trim="item.packet[packetIndex]" :addon-before="'client[' + itemIndex + '].packet[' + packetIndex + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="item.removePacket(packetIndex)">
+                        -
+                    </a-button>
+                </a-input-group>
+            </template>
+
+            <a-divider orientation="left">server</a-divider>
+            <a-form-item :label="'server'">
+                <a-button size="small" @click="mask.settings.udpHeaderCustom.addServer()">
+                    +
+                </a-button>
+            </a-form-item>
+            <template v-for="(item, itemIndex) in mask.settings.udpHeaderCustom.server">
+                <a-form-item :key="'udp-server-item-' + index + '-' + itemIndex" :label="'server[' + itemIndex + ']'">
+                    <a-space>
+                        <a-button size="small" :disabled="item.rand > 0" @click="item.addPacket('')">
+                            + packet
+                        </a-button>
+                        <a-button size="small" @click="mask.settings.udpHeaderCustom.removeServer(itemIndex)">
+                            -
+                        </a-button>
+                    </a-space>
+                </a-form-item>
+                <a-form-item :label="'server[' + itemIndex + '].rand'">
+                    <a-input-number :value="item.rand" :min="0" :disabled="item.packet.length > 0" style="width: 100%" @change="item.setRand"></a-input-number>
+                </a-form-item>
+                <a-form-item :label="'server[' + itemIndex + '].randRange'">
+                    <a-input v-model.trim="item.randRange"></a-input>
+                </a-form-item>
+                <a-form-item :label="'server[' + itemIndex + '].type'">
+                    <a-select v-model="item.type">
+                        <a-select-option value="array">array</a-select-option>
+                        <a-select-option value="str">str</a-select-option>
+                        <a-select-option value="hex">hex</a-select-option>
+                        <a-select-option value="base64">base64</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item :label="'server[' + itemIndex + '].packet'">
+                    <span>rand 与 packet 二选一；rand 大于 0 时不可添加 packet，存在 packet 时不可填写 rand</span>
+                </a-form-item>
+                <a-input-group v-for="(packet, packetIndex) in item.packet" :key="'udp-server-packet-' + index + '-' + itemIndex + '-' + packetIndex" compact style="display: flex; margin-bottom: 8px;">
+                    <a-input style="width: 85%" v-model.trim="item.packet[packetIndex]" :addon-before="'server[' + itemIndex + '].packet[' + packetIndex + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="item.removePacket(packetIndex)">
+                        -
+                    </a-button>
+                </a-input-group>
+            </template>
+        </template>
+        <template v-else-if="mask.type === 'header-dns'">
+            <a-form-item label="domain">
+                <a-input v-model.trim="mask.settings.headerDns.domain"></a-input>
+            </a-form-item>
+        </template>
+        <template v-else-if="mask.type === 'mkcp-aes128gcm'">
+            <a-form-item label="password">
+                <a-input-group compact style="display: flex;">
+                    <a-input v-model.trim="mask.settings.mkcpAes128Gcm.password" style="width: 80%"></a-input>
+                    <a-button size="small" style="width: 20%" @click="mask.settings.mkcpAes128Gcm.refreshPassword()">
+                        更换
+                    </a-button>
+                </a-input-group>
+            </a-form-item>
+        </template>
+        <template v-else-if="mask.type === 'noise'">
+            <a-form-item label="reset">
+                <a-input-number v-model.number="mask.settings.noise.reset" :min="0" style="width: 100%"></a-input-number>
+            </a-form-item>
+            <template v-for="(item, itemIndex) in mask.settings.noise.noise">
+                <a-form-item :key="'udp-noise-item-' + index + '-' + itemIndex" :label="'noise[' + itemIndex + ']'">
+                    <a-space>
+                        <a-button size="small" :disabled="item.rand" @click="item.addPacket('')">
+                            + packet
+                        </a-button>
+                        <a-button size="small" @click="mask.settings.noise.removeNoise(itemIndex)">
+                            -
+                        </a-button>
+                    </a-space>
+                </a-form-item>
+                <a-form-item :label="'noise[' + itemIndex + '].rand'">
+                    <a-input :value="item.rand" :disabled="item.packet.length > 0" @change="event => item.setRand(event.target.value)"></a-input>
+                </a-form-item>
+                <a-form-item :label="'noise[' + itemIndex + '].randRange'">
+                    <a-input v-model.trim="item.randRange"></a-input>
+                </a-form-item>
+                <a-form-item :label="'noise[' + itemIndex + '].type'">
+                    <a-select v-model="item.type">
+                        <a-select-option value="array">array</a-select-option>
+                        <a-select-option value="str">str</a-select-option>
+                        <a-select-option value="hex">hex</a-select-option>
+                        <a-select-option value="base64">base64</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item :label="'noise[' + itemIndex + '].packet'">
+                    <span>rand 与 packet 二选一；填写 rand 后不可添加 packet，存在 packet 时不可填写 rand</span>
+                </a-form-item>
+                <a-form-item :label="'noise[' + itemIndex + '].delay'">
+                    <a-input v-model.trim="item.delay"></a-input>
+                </a-form-item>
+                <a-input-group v-for="(packet, packetIndex) in item.packet" :key="'udp-noise-packet-' + index + '-' + itemIndex + '-' + packetIndex" compact style="display: flex; margin-bottom: 8px;">
+                    <a-input style="width: 85%" v-model.trim="item.packet[packetIndex]" :addon-before="'noise[' + itemIndex + '].packet[' + packetIndex + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="item.removePacket(packetIndex)">
+                        -
+                    </a-button>
+                </a-input-group>
+            </template>
+        </template>
+        <template v-else-if="mask.type === 'salamander'">
+            <a-form-item label="password">
+                <a-input-group compact style="display: flex;">
+                    <a-input v-model.trim="mask.settings.salamander.password" style="width: 80%"></a-input>
+                    <a-button size="small" style="width: 20%" @click="mask.settings.salamander.refreshPassword()">
+                        更换
+                    </a-button>
+                </a-input-group>
+            </a-form-item>
+        </template>
+        <template v-else-if="mask.type === 'sudoku'">
+            <a-form-item label="password">
+                <a-input-group compact style="display: flex;">
+                    <a-input v-model.trim="mask.settings.sudoku.password" style="width: 80%"></a-input>
+                    <a-button size="small" style="width: 20%" @click="mask.settings.sudoku.refreshPassword()">
+                        更换
+                    </a-button>
+                </a-input-group>
+            </a-form-item>
+            <a-form-item label="ascii">
+                <a-input v-model.trim="mask.settings.sudoku.ascii"></a-input>
+            </a-form-item>
+            <a-form-item label="customTable">
+                <a-input v-model.trim="mask.settings.sudoku.customTable"></a-input>
+            </a-form-item>
+            <a-form-item label="paddingMin">
+                <a-input-number v-model.number="mask.settings.sudoku.paddingMin" :min="0" style="width: 100%"></a-input-number>
+            </a-form-item>
+            <a-form-item label="paddingMax">
+                <a-input-number v-model.number="mask.settings.sudoku.paddingMax" :min="0" style="width: 100%"></a-input-number>
+            </a-form-item>
+            <a-input-group v-for="(table, tableIndex) in mask.settings.sudoku.customTables" :key="'udp-sudoku-table-' + index + '-' + tableIndex" compact style="display: flex; margin-bottom: 8px;">
+                <a-input style="width: 85%" v-model.trim="mask.settings.sudoku.customTables[tableIndex]" :addon-before="'customTables[' + tableIndex + ']'"></a-input>
+                <a-button size="small" style="width: 15%" @click="mask.settings.sudoku.removeCustomTable(tableIndex)">
+                    -
+                </a-button>
+            </a-input-group>
+        </template>
+        <template v-else-if="mask.type === 'xdns'">
+            <a-form-item label="domain">
+                <a-input v-model.trim="mask.settings.xdns.domain"></a-input>
+            </a-form-item>
+        </template>
+        <template v-else-if="mask.type === 'xicmp'">
+            <a-form-item label="listenIp">
+                <a-input v-model.trim="mask.settings.xicmp.listenIp"></a-input>
+            </a-form-item>
+            <a-form-item label="id">
+                <a-input-number v-model.number="mask.settings.xicmp.id" :min="0" style="width: 100%"></a-input-number>
+            </a-form-item>
+        </template>
+        <template v-else-if="mask.type === 'header-dtls' || mask.type === 'header-srtp' || mask.type === 'header-utp' || mask.type === 'header-wechat' || mask.type === 'header-wireguard' || mask.type === 'mkcp-original'">
+            <a-form-item :label="mask.type + '.settings'">
+                <span>无额外配置</span>
+            </a-form-item>
+        </template>
+    </template>
+</a-form>
+{{end}}

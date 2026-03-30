@@ -2,7 +2,7 @@
 <!-- select stream network -->
 <a-form layout="inline">
     <a-form-item label="传输">
-        <a-select v-model="inbound.stream.network" @change="streamNetworkChange" style="width: 130px;">
+        <a-select v-model="inbound.stream.network" @change="streamNetworkChange" :disabled="inbound.protocol === Protocols.HYSTERIA" style="width: 130px;">
             <a-select-option value="tcp">tcp</a-select-option>
             <a-select-option value="raw">raw</a-select-option>
             <a-select-option value="kcp">kcp</a-select-option>
@@ -10,6 +10,7 @@
             <a-select-option value="grpc">grpc</a-select-option>
             <a-select-option value="httpupgrade">HTTPUpgrade</a-select-option>
             <a-select-option value="xhttp">xHTTP</a-select-option>
+            <a-select-option value="hysteria">hysteria</a-select-option>
         </a-select>
     </a-form-item>
 </a-form>
@@ -48,6 +49,13 @@
 <template v-if="inbound.stream.network === 'xhttp'">
     {{template "form/streamXHTTP"}}
 </template>
+
+<!-- hysteria -->
+<template v-if="inbound.stream.network === 'hysteria'">
+    {{template "form/streamHysteria"}}
+</template>
+
+{{template "form/finalmaskSettings"}}
 <!-- sockopt -->
 <template>
     {{template "form/streamSOCKOPT"}}

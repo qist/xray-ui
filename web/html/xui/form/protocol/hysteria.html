@@ -1,0 +1,26 @@
+{{define "form/hysteria"}}
+<a-form layout="inline">
+    <a-form-item label="版本">
+        <a-input-number v-model.number="inbound.settings.version" :min="2" :max="2" disabled></a-input-number>
+    </a-form-item>
+    <a-form-item label="认证(auth)">
+        <a-input-group compact style="display: flex; width: 420px;">
+            <a-input v-model.trim="inbound.settings.clients[0].auth" style="width: 75%"></a-input>
+            <a-button size="small" style="width: 25%" @click="inbound.settings.clients[0].refreshAuth()">
+                更换
+            </a-button>
+        </a-input-group>
+    </a-form-item>
+    <a-form-item label="等级">
+        <a-input-number v-model.number="inbound.settings.clients[0].level" :min="0"></a-input-number>
+    </a-form-item>
+    <a-form-item label="邮箱">
+        <a-input-group compact style="display: flex; width: 360px;">
+            <a-input v-model.trim="inbound.settings.clients[0].email" style="width: 75%"></a-input>
+            <a-button size="small" style="width: 25%" @click="inbound.settings.clients[0].refreshEmail()">
+                更换
+            </a-button>
+        </a-input-group>
+    </a-form-item>
+</a-form>
+{{end}}

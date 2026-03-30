@@ -90,7 +90,7 @@
                                 <a-button type="link" @click="showInfo(dbInbound)">查看</a-button>
                             </template>
                             <template slot="stream" slot-scope="text, dbInbound, index">
-                                <template v-if="dbInbound.isVMess || dbInbound.isVLess || dbInbound.isTrojan || dbInbound.isSS">
+                                <template v-if="dbInbound.isVMess || dbInbound.isVLess || dbInbound.isTrojan || dbInbound.isSS || dbInbound.isHysteria">
                                     <a-tag color="green">[[ inbounds[index].stream.network ]]</a-tag>
                                     <a-tag v-if="inbounds[index].stream.isTls" color="blue">tls</a-tag>
                                     <a-tag v-if="inbounds[index].stream.isReaLITy" color="blue">reality</a-tag>

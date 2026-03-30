@@ -467,9 +467,8 @@ func (s *ServerService) UpdateGeoip(version string, restart bool) error {
 	return nil
 }
 
-
 func (s *ServerService) UpdateGeoipip(version string) error {
-	 err := s.updateGeoData(version)
+	err := s.updateGeoData(version)
 	if err != nil {
 		return err
 	}
@@ -678,6 +677,25 @@ func (s *ServerService) GetNewVlessEnc() (any, error) {
 
 	return map[string]any{
 		"auths": auths,
+	}, nil
+}
+
+func (s *ServerService) GetNewEchCert(sni string) (any, error) {
+	cmd := exec.Command(xray.GetBinaryPath(), "tls", "ech", "--serverName", sni)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(out.String(), "\n")
+	if len(lines) < 4 {
+		return nil, common.NewError("invalid ech cert")
+	}
+
+	return map[string]any{
+		"echServerKeys": strings.TrimSpace(lines[3]),
+		"echConfigList": strings.TrimSpace(lines[1]),
 	}, nil
 }
 

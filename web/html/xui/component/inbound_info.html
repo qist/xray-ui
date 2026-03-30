@@ -19,6 +19,21 @@
     <p>grpc serviceName: <a-tag color="green">[[ inbound.serviceName ]]</a-tag></p>
 </template>
 
+<template v-if="inbound.isHysteria">
+    <p>伪装类型: <a-tag :color="inbound.hysteriaMasqueradeType ? 'green' : 'orange'">[[ inbound.hysteriaMasqueradeType ? inbound.hysteriaMasqueradeType : "默认" ]]</a-tag></p>
+    <p>端口跳跃: <a-tag :color="inbound.hysteriaPortHoppingPorts ? 'green' : 'orange'">[[ inbound.hysteriaPortHoppingPorts ? inbound.hysteriaPortHoppingPorts : "关闭" ]]</a-tag></p>
+</template>
+
+<template v-if="inbound.finalmaskTcpMaskTypes || inbound.finalmaskUdpMaskTypes || inbound.finalmaskQuicCongestion || inbound.finalmaskUdpHopPorts">
+    <p>QUIC 拥塞控制: <a-tag :color="inbound.finalmaskQuicCongestion ? 'green' : 'orange'">[[ inbound.finalmaskQuicCongestion ? inbound.finalmaskQuicCongestion : "默认" ]]</a-tag></p>
+    <p>QUIC 摘要: <a-tag :color="inbound.finalmaskQuicSummary ? 'green' : 'orange'">[[ inbound.finalmaskQuicSummary ? inbound.finalmaskQuicSummary : "无" ]]</a-tag></p>
+    <p>TCP Mask: <a-tag :color="inbound.finalmaskTcpMaskTypes ? 'green' : 'orange'">[[ inbound.finalmaskTcpMaskTypes ? inbound.finalmaskTcpMaskTypes : "关闭" ]]</a-tag></p>
+    <p>TCP 详情: <a-tag :color="inbound.finalmaskTcpMaskDetails ? 'green' : 'orange'">[[ inbound.finalmaskTcpMaskDetails ? inbound.finalmaskTcpMaskDetails : "无" ]]</a-tag></p>
+    <p>UDP Mask: <a-tag :color="inbound.finalmaskUdpMaskTypes ? 'green' : 'orange'">[[ inbound.finalmaskUdpMaskTypes ? inbound.finalmaskUdpMaskTypes : "关闭" ]]</a-tag></p>
+    <p>UDP 详情: <a-tag :color="inbound.finalmaskUdpMaskDetails ? 'green' : 'orange'">[[ inbound.finalmaskUdpMaskDetails ? inbound.finalmaskUdpMaskDetails : "无" ]]</a-tag></p>
+    <p>UDP Hop Ports: <a-tag :color="inbound.finalmaskUdpHopPorts ? 'green' : 'orange'">[[ inbound.finalmaskUdpHopPorts ? inbound.finalmaskUdpHopPorts : "无" ]]</a-tag></p>
+</template>
+
 <template v-if="inbound.tls || inbound.reality">
     <p v-if="inbound.tls">tls: <a-tag color="green">开启</a-tag></p>
     <p v-if="inbound.reality">reality: <a-tag color="green">开启</a-tag></p>
@@ -69,7 +84,12 @@
         <p>密码: <a-tag color="green">[[ inbound.password ]]</a-tag></p>
     </template>
 
-    <template v-if="dbInbound.isVMess || dbInbound.isVLess || dbInbound.isTrojan || dbInbound.isSS">
+    <template v-if="dbInbound.isHysteria">
+        <p>认证(auth): <a-tag color="green">[[ inbound.hysteriaAuth ]]</a-tag></p>
+        <p>邮箱: <a-tag :color="inbound.settings.clients[0].email ? 'green' : 'orange'">[[ inbound.settings.clients[0].email ? inbound.settings.clients[0].email : "无" ]]</a-tag></p>
+    </template>
+
+    <template v-if="dbInbound.isVMess || dbInbound.isVLess || dbInbound.isTrojan || dbInbound.isSS || dbInbound.isHysteria">
         {{template "inboundInfoStream"}}
     </template>
 </div>

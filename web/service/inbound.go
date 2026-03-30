@@ -56,6 +56,9 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) error {
 	if exist {
 		return common.NewError("端口已存在:", inbound.Port)
 	}
+	if _, err = getHysteriaPortHoppingInbound(string(inbound.Protocol), inbound.Port, []byte(inbound.StreamSettings)); err != nil {
+		return err
+	}
 	db := database.GetDB()
 	return db.Save(inbound).Error
 }
@@ -68,6 +71,9 @@ func (s *InboundService) AddInbounds(inbounds []*model.Inbound) error {
 		}
 		if exist {
 			return common.NewError("端口已存在:", inbound.Port)
+		}
+		if _, err = getHysteriaPortHoppingInbound(string(inbound.Protocol), inbound.Port, []byte(inbound.StreamSettings)); err != nil {
+			return err
 		}
 	}
 
@@ -121,6 +127,9 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) error {
 	}
 	if exist {
 		return common.NewError("端口已存在:", inbound.Port)
+	}
+	if _, err = getHysteriaPortHoppingInbound(string(inbound.Protocol), inbound.Port, []byte(inbound.StreamSettings)); err != nil {
+		return err
 	}
 
 	oldInbound, err := s.GetInbound(inbound.Id)

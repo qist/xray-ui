@@ -65,7 +65,12 @@
         <a-input v-model.number="inbound.stream.reality.maxTimeDiff"></a-input>
     </a-form-item>
     <a-form-item label="shortIds">
-        <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.shortIds" style="width: 165px"></a-input>
+        <a-space direction="vertical">
+            <a-input type="textarea" :rows="2" v-model="inbound.stream.reality.shortIds" style="width: 165px"></a-input>
+            <a-button size="small" @click="inbound.stream.reality.refreshShortIds()">
+                更换
+            </a-button>
+        </a-space>
     </a-form-item>
 </a-form>
 {{end}}
