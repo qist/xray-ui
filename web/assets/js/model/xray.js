@@ -2332,6 +2332,7 @@ class Inbound extends XrayCommonClass {
         this.stream = streamSettings;
         this.tag = tag;
         this.sniffing = sniffing;
+        this.syncHysteriaAuth();
     }
 
     get protocol() {
@@ -2350,7 +2351,23 @@ class Inbound extends XrayCommonClass {
             this.stream.network = 'hysteria';
             this.reality = false;
             this.tls = true;
+            this.syncHysteriaAuth();
         }
+    }
+
+    syncHysteriaAuth() {
+        if (this.protocol !== Protocols.HYSTERIA || ObjectUtil.isEmpty(this.stream?.hysteria) || ObjectUtil.isEmpty(this.settings?.clients) || this.settings.clients.length === 0) {
+            return;
+        }
+        let auth = this.settings.clients[0].auth;
+        if (ObjectUtil.isEmpty(auth)) {
+            auth = this.stream.hysteria.auth;
+        }
+        if (ObjectUtil.isEmpty(auth)) {
+            auth = RandomUtil.randomUUID();
+        }
+        this.settings.clients[0].auth = auth;
+        this.stream.hysteria.auth = auth;
     }
 
     get tls() {
@@ -2473,10 +2490,28 @@ class Inbound extends XrayCommonClass {
     get hysteriaAuth() {
         switch (this.protocol) {
             case Protocols.HYSTERIA:
+                this.syncHysteriaAuth();
                 return this.settings.clients[0].auth;
             default:
                 return "";
         }
+    }
+
+    set hysteriaAuth(auth) {
+        if (this.protocol !== Protocols.HYSTERIA) {
+            return;
+        }
+        const value = ObjectUtil.isEmpty(auth) ? '' : auth;
+        this.settings.clients[0].auth = value;
+        this.stream.hysteria.auth = value;
+    }
+
+    refreshHysteriaAuth() {
+        if (this.protocol !== Protocols.HYSTERIA) {
+            return;
+        }
+        this.settings.clients[0].refreshAuth();
+        this.stream.hysteria.auth = this.settings.clients[0].auth;
     }
 
     get hysteriaMasqueradeType() {
@@ -3344,6 +3379,7 @@ class Inbound extends XrayCommonClass {
 
     toJson() {
         let streamSettings;
+        this.syncHysteriaAuth();
         if (this.canEnableStream() || this.protocol === Protocols.TROJAN) {
             streamSettings = this.stream.toJson();
         }

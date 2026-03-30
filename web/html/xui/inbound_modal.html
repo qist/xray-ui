@@ -90,6 +90,14 @@
                 this.getNewVlessEnc();
             },
 
+            refreshHysteriaAuth() {
+                if (this.inbound.protocol !== Protocols.HYSTERIA) {
+                    return;
+                }
+                this.inbound.settings.clients[0].refreshAuth();
+                this.inbound.hysteriaAuth = this.inbound.settings.clients[0].auth;
+            },
+
             async getNewX25519Cert() {
                 inModal.loading(true);
                 axios.post('server/xraysecretkey')
