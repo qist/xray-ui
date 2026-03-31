@@ -2742,7 +2742,7 @@ class Inbound extends XrayCommonClass {
     }
 
     canEnableAuthentication() {
-        return this.protocol === Protocols.VLESS && ['tcp', 'raw'].indexOf(this.network) !== -1;
+        return this.protocol === Protocols.VLESS && ['tcp', 'raw', 'xhttp', 'grpc'].indexOf(this.network) !== -1;
     }
 
     get authentication() {
