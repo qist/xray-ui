@@ -509,12 +509,13 @@ class xHTTPStreamSettings extends XrayCommonClass {
         xPaddingBytes = "100-1000",
         scStreamUpServerSecs = "20-80",
         xmux = {
-            maxConnections: '16-32',
-            maxConcurrency: 0,
-            cMaxReuseTimes: '64-128',
+            maxConnections: 0,
+            maxConcurrency: '16-32',
+            cMaxReuseTimes: 0,
             cMaxLifetimeMs: 0,
-            hMaxRequestTimes: '800-900',
-            hKeepAlivePeriod: 45,
+            hMaxRequestTimes: '600-900',
+            hMaxReusableSecs: '1800-3000',
+            hKeepAlivePeriod: 0,
         },
         mode = MODE_OPTION.AUTO,
         noGRPCHeader = false,
@@ -529,9 +530,25 @@ class xHTTPStreamSettings extends XrayCommonClass {
         this.noSSEHeader = noSSEHeader;
         this.xPaddingBytes = RandomUtil.convertXPaddingBytes(xPaddingBytes);
         this.scStreamUpServerSecs = RandomUtil.convertXPaddingBytes(scStreamUpServerSecs);
-        this.xmux = xmux;
+        this.xmux = xHTTPStreamSettings.normalizeXmux(xmux);
         this.mode = mode;
         this.noGRPCHeader = noGRPCHeader;
+    }
+
+    static defaultXmux() {
+        return {
+            maxConnections: 0,
+            maxConcurrency: '16-32',
+            cMaxReuseTimes: 0,
+            cMaxLifetimeMs: 0,
+            hMaxRequestTimes: '600-900',
+            hMaxReusableSecs: '1800-3000',
+            hKeepAlivePeriod: 0,
+        };
+    }
+
+    static normalizeXmux(xmux = {}) {
+        return Object.assign({}, xHTTPStreamSettings.defaultXmux(), xmux || {});
     }
 
     addHeader(name, value) {
@@ -577,6 +594,9 @@ class xHTTPStreamSettings extends XrayCommonClass {
         xmuxData.cMaxReuseTimes = RandomUtil.convertXPaddingBytes(this.xmux.cMaxReuseTimes);
         xmuxData.cMaxLifetimeMs = RandomUtil.convertXPaddingBytes(this.xmux.cMaxLifetimeMs);
         xmuxData.hMaxRequestTimes = RandomUtil.convertXPaddingBytes(this.xmux.hMaxRequestTimes);
+        if (!ObjectUtil.isEmpty(this.xmux.hMaxReusableSecs)) {
+            xmuxData.hMaxReusableSecs = RandomUtil.convertXPaddingBytes(this.xmux.hMaxReusableSecs);
+        }
         xmuxData.hKeepAlivePeriod = RandomUtil.convertXPaddingBytes(this.xmux.hKeepAlivePeriod);
         return {
             path: this.path,

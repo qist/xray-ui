@@ -54,14 +54,16 @@
         <a-input v-model.trim="inbound.stream.xhttp.xPaddingBytes" style="width: 100px"></a-input>
     </a-form-item>
 
+    <a-divider orientation="left">XMUX</a-divider>
+
     <a-form-item v-if="!inbound.stream.xhttp.xmux.maxConcurrency">
         <span slot="label">
             Max Connections
             <a-tooltip>
                 <template slot="title">
-                    maxConnections: 默认值为空 为0(即无限) 要打开的最大连接数，连接达到此值前核心会积极打开连接，对每一条流都新建一个连接，直到达到该值。
+                    maxConnections: 默认值为 0(即无限) 要打开的最大连接数，连接达到此值前核心会积极打开连接，对每一条流都新建一个连接，直到达到该值。
                     然后核心会开始复用已经建立的连接。 与 maxConcurrency 冲突。
-                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法 [删除里面内容可选择maxConcurrency]
+                    面板默认使用 maxConcurrency，如需改用 maxConnections，请先清空 maxConcurrency。
                 </template>
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
@@ -74,9 +76,9 @@
             Max Concurrency
             <a-tooltip>
                 <template slot="title">
-                    maxConcurrency: 默认值为空 为0(即无限) 每个连接中复用的流的最大数量，连接中流的数量达到该值后核心会新建更多连接以容纳更多的流，
+                    maxConcurrency: 面板默认值为 "16-32"。每个连接中复用的流的最大数量，连接中流的数量达到该值后核心会新建更多连接以容纳更多的流，
                     类似于 mux.cool 的 concurrency. 与 maxConnections 冲突。
-                    所有字段类型均为 int/string 均支持固定值 16 或浮动值 "8-32" 的写法 [删除里面内容可选择maxConnections]
+                    所有字段类型均为 int/string，均支持固定值 16 或浮动值 "8-32" 的写法。[删除里面内容可切换到 maxConnections]
                 </template>
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
@@ -98,16 +100,64 @@
         <a-input v-model.trim="inbound.stream.xhttp.scStreamUpServerSecs" style="width: 100px"></a-input>
     </a-form-item>
 
-    <a-form-item label="Max Reuse Times">
+    <a-form-item>
+        <span slot="label">
+            Max Reuse Times
+            <a-tooltip>
+                <template slot="title">
+                    面板默认值为 0，表示由核心按自身策略处理。
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input v-model.trim="inbound.stream.xhttp.xmux.cMaxReuseTimes" style="width: 100px"></a-input>
     </a-form-item>
-    <a-form-item label="Max Lifetime (ms)">
+    <a-form-item>
+        <span slot="label">
+            Max Lifetime (ms)
+            <a-tooltip>
+                <template slot="title">
+                    面板默认值为 0，表示不额外限制连接生命周期。
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input v-model.trim="inbound.stream.xhttp.xmux.cMaxLifetimeMs" style="width: 100px"></a-input>
     </a-form-item>
-    <a-form-item label="Max RequestTimes">
+    <a-form-item>
+        <span slot="label">
+            Max RequestTimes
+            <a-tooltip>
+                <template slot="title">
+                    面板默认值为 "600-900"。
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input v-model.trim="inbound.stream.xhttp.xmux.hMaxRequestTimes" style="width: 100px"></a-input>
     </a-form-item>
-    <a-form-item label="keep-Alive Period">
+    <a-form-item>
+        <span slot="label">
+            Max Reusable Secs
+            <a-tooltip>
+                <template slot="title">
+                    限制 H2/H3 连接可复用的最长秒数，超过后不再复用。面板默认值为 "1800-3000"。
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-input v-model.trim="inbound.stream.xhttp.xmux.hMaxReusableSecs" style="width: 100px"></a-input>
+    </a-form-item>
+    <a-form-item>
+        <span slot="label">
+            keep-Alive Period
+            <a-tooltip>
+                <template slot="title">
+                    面板默认值为 0。
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input-number v-model.number="inbound.stream.xhttp.xmux.hKeepAlivePeriod"></a-input-number>
     </a-form-item>
     <a-form-item label="No gRPC Header">

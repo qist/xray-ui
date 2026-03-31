@@ -4,7 +4,7 @@
         <a-switch v-model="inbound.stream.finalmaskSwitch"></a-switch>
     </a-form-item>
 </a-form>
-<a-form v-if="inbound.stream.finalmaskSwitch" :colon="false" :label-col="{ md: {span:8} }" :wrapper-col="{ md: {span:14} }">
+<a-form v-if="inbound.stream.finalmaskSwitch" :colon="false" :label-col="{ md: {span:10} }" :wrapper-col="{ md: {span:12} }">
     <a-divider orientation="left">FinalMask</a-divider>
     <a-divider orientation="left">quicParams</a-divider>
     <a-form-item>
@@ -39,16 +39,52 @@
     <a-form-item label="udpHop.interval">
         <a-input v-model.trim="inbound.stream.finalmask.quicParams.udpHop.interval"></a-input>
     </a-form-item>
-    <a-form-item label="initStreamReceiveWindow">
+    <a-form-item>
+        <span slot="label">
+            initStreamRecvWindow
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.quicParams.initStreamReceiveWindow
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input-number v-model.number="inbound.stream.finalmask.quicParams.initStreamReceiveWindow" :min="0" style="width: 100%"></a-input-number>
     </a-form-item>
-    <a-form-item label="maxStreamReceiveWindow">
+    <a-form-item>
+        <span slot="label">
+            maxStreamRecvWindow
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.quicParams.maxStreamReceiveWindow
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input-number v-model.number="inbound.stream.finalmask.quicParams.maxStreamReceiveWindow" :min="0" style="width: 100%"></a-input-number>
     </a-form-item>
-    <a-form-item label="initConnectionReceiveWindow">
+    <a-form-item>
+        <span slot="label">
+            initConnRecvWindow
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.quicParams.initConnectionReceiveWindow
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input-number v-model.number="inbound.stream.finalmask.quicParams.initConnectionReceiveWindow" :min="0" style="width: 100%"></a-input-number>
     </a-form-item>
-    <a-form-item label="maxConnectionReceiveWindow">
+    <a-form-item>
+        <span slot="label">
+            maxConnRecvWindow
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.quicParams.maxConnectionReceiveWindow
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-input-number v-model.number="inbound.stream.finalmask.quicParams.maxConnectionReceiveWindow" :min="0" style="width: 100%"></a-input-number>
     </a-form-item>
     <a-form-item label="maxIdleTimeout">
@@ -57,7 +93,16 @@
     <a-form-item label="keepAlivePeriod">
         <a-input-number v-model.number="inbound.stream.finalmask.quicParams.keepAlivePeriod" :min="0" style="width: 100%"></a-input-number>
     </a-form-item>
-    <a-form-item label="disablePathMTUDiscovery">
+    <a-form-item>
+        <span slot="label">
+            disablePathMTU
+            <a-tooltip>
+                <template slot="title">
+                    FinalMask.quicParams.disablePathMTUDiscovery
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
         <a-switch v-model="inbound.stream.finalmask.quicParams.disablePathMTUDiscovery"></a-switch>
     </a-form-item>
     <a-form-item label="maxIncomingStreams">
