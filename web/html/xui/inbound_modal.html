@@ -46,11 +46,11 @@
         VMESS: Protocols.VMESS,
         VLESS: Protocols.VLESS,
         TROJAN: Protocols.TROJAN,
+        HYSTERIA: Protocols.HYSTERIA,
         SHADOWSOCKS: Protocols.SHADOWSOCKS,
         DOKODEMO: Protocols.DOKODEMO,
         SOCKS: Protocols.SOCKS,
         HTTP: Protocols.HTTP,
-        HYSTERIA: Protocols.HYSTERIA,
     };
 
     new Vue({
@@ -88,14 +88,6 @@
                 }
                 this.inbound.authentication = true;
                 this.getNewVlessEnc();
-            },
-
-            refreshHysteriaAuth() {
-                if (this.inbound.protocol !== Protocols.HYSTERIA) {
-                    return;
-                }
-                this.inbound.settings.clients[0].refreshAuth();
-                this.inbound.hysteriaAuth = this.inbound.settings.clients[0].auth;
             },
 
             async getNewX25519Cert() {

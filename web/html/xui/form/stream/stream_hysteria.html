@@ -8,14 +8,14 @@
             Auth
             <a-tooltip>
                 <template slot="title">
-                    需与客户端保持一致
+                    暂时没使用
                 </template>
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
         </span>
         <a-input-group compact style="display: flex; width: 100%;">
-            <a-input v-model.trim="inbound.hysteriaAuth" style="width: 75%"></a-input>
-            <a-button size="small" style="width: 25%" @click="refreshHysteriaAuth">
+            <a-input v-model.trim="inbound.stream.hysteria.auth" style="width: 75%"></a-input>
+            <a-button size="small" style="width: 25%" @click="inbound.stream.hysteria.refreshAuth()">
                 更换
             </a-button>
         </a-input-group>

@@ -2,11 +2,11 @@ const Protocols = {
     VMESS: 'vmess',
     VLESS: 'vless',
     TROJAN: 'trojan',
+    HYSTERIA: 'hysteria',
     SHADOWSOCKS: 'shadowsocks',
     DOKODEMO: 'dokodemo-door',
     SOCKS: 'socks',
     HTTP: 'http',
-    HYSTERIA: 'hysteria',
 };
 
 const VmessMethods = {
@@ -2263,7 +2263,7 @@ class StreamSettings extends XrayCommonClass {
 class Sniffing extends XrayCommonClass {
     constructor(
         enabled = false,
-        destOverride = ['http', 'tls', 'quic', 'fakedns'],
+        destOverride = ['http', 'tls', 'quic'],
         metadataOnly = false,
         domainsExcluded = [],
         routeOnly = false
@@ -2332,7 +2332,6 @@ class Inbound extends XrayCommonClass {
         this.stream = streamSettings;
         this.tag = tag;
         this.sniffing = sniffing;
-        this.syncHysteriaAuth();
     }
 
     get protocol() {
@@ -2351,23 +2350,7 @@ class Inbound extends XrayCommonClass {
             this.stream.network = 'hysteria';
             this.reality = false;
             this.tls = true;
-            this.syncHysteriaAuth();
         }
-    }
-
-    syncHysteriaAuth() {
-        if (this.protocol !== Protocols.HYSTERIA || ObjectUtil.isEmpty(this.stream?.hysteria) || ObjectUtil.isEmpty(this.settings?.clients) || this.settings.clients.length === 0) {
-            return;
-        }
-        let auth = this.settings.clients[0].auth;
-        if (ObjectUtil.isEmpty(auth)) {
-            auth = this.stream.hysteria.auth;
-        }
-        if (ObjectUtil.isEmpty(auth)) {
-            auth = RandomUtil.randomUUID();
-        }
-        this.settings.clients[0].auth = auth;
-        this.stream.hysteria.auth = auth;
     }
 
     get tls() {
@@ -2490,28 +2473,10 @@ class Inbound extends XrayCommonClass {
     get hysteriaAuth() {
         switch (this.protocol) {
             case Protocols.HYSTERIA:
-                this.syncHysteriaAuth();
                 return this.settings.clients[0].auth;
             default:
                 return "";
         }
-    }
-
-    set hysteriaAuth(auth) {
-        if (this.protocol !== Protocols.HYSTERIA) {
-            return;
-        }
-        const value = ObjectUtil.isEmpty(auth) ? '' : auth;
-        this.settings.clients[0].auth = value;
-        this.stream.hysteria.auth = value;
-    }
-
-    refreshHysteriaAuth() {
-        if (this.protocol !== Protocols.HYSTERIA) {
-            return;
-        }
-        this.settings.clients[0].refreshAuth();
-        this.stream.hysteria.auth = this.settings.clients[0].auth;
     }
 
     get hysteriaMasqueradeType() {
@@ -2807,6 +2772,7 @@ class Inbound extends XrayCommonClass {
             case Protocols.VLESS:
             case Protocols.TROJAN:
             case Protocols.SHADOWSOCKS:
+            case Protocols.HYSTERIA:
                 return true;
             default:
                 return false;
@@ -3379,7 +3345,6 @@ class Inbound extends XrayCommonClass {
 
     toJson() {
         let streamSettings;
-        this.syncHysteriaAuth();
         if (this.canEnableStream() || this.protocol === Protocols.TROJAN) {
             streamSettings = this.stream.toJson();
         }
@@ -3406,11 +3371,11 @@ Inbound.Settings = class extends XrayCommonClass {
             case Protocols.VMESS: return new Inbound.VmessSettings(protocol);
             case Protocols.VLESS: return new Inbound.VLESSSettings(protocol);
             case Protocols.TROJAN: return new Inbound.TrojanSettings(protocol);
+            case Protocols.HYSTERIA: return new Inbound.HysteriaSettings(protocol);
             case Protocols.SHADOWSOCKS: return new Inbound.ShadowsocksSettings(protocol);
             case Protocols.DOKODEMO: return new Inbound.DokodemoSettings(protocol);
             case Protocols.SOCKS: return new Inbound.SocksSettings(protocol);
             case Protocols.HTTP: return new Inbound.HttpSettings(protocol);
-            case Protocols.HYSTERIA: return new Inbound.HysteriaSettings(protocol);
             default: return null;
         }
     }
@@ -3420,11 +3385,11 @@ Inbound.Settings = class extends XrayCommonClass {
             case Protocols.VMESS: return Inbound.VmessSettings.fromJson(json);
             case Protocols.VLESS: return Inbound.VLESSSettings.fromJson(json);
             case Protocols.TROJAN: return Inbound.TrojanSettings.fromJson(json);
+            case Protocols.HYSTERIA: return Inbound.HysteriaSettings.fromJson(json);
             case Protocols.SHADOWSOCKS: return Inbound.ShadowsocksSettings.fromJson(json);
             case Protocols.DOKODEMO: return Inbound.DokodemoSettings.fromJson(json);
             case Protocols.SOCKS: return Inbound.SocksSettings.fromJson(json);
             case Protocols.HTTP: return Inbound.HttpSettings.fromJson(json);
-            case Protocols.HYSTERIA: return Inbound.HysteriaSettings.fromJson(json);
             default: return null;
         }
     }

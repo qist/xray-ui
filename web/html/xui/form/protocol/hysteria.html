@@ -5,8 +5,8 @@
     </a-form-item>
     <a-form-item label="认证(auth)">
         <a-input-group compact style="display: flex; width: 420px;">
-            <a-input v-model.trim="inbound.hysteriaAuth" style="width: 75%"></a-input>
-            <a-button size="small" style="width: 25%" @click="refreshHysteriaAuth">
+            <a-input v-model.trim="inbound.settings.clients[0].auth" style="width: 75%"></a-input>
+            <a-button size="small" style="width: 25%" @click="inbound.settings.clients[0].refreshAuth()">
                 更换
             </a-button>
         </a-input-group>
