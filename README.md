@@ -189,7 +189,7 @@ xray-ui  选择10
   <summary>点击查看 docker运行</summary>
 
 ```bash
-# juestnow/xray-ui:latest 最新版本 指定版本号docker pull juestnow/xray-ui:1.8.6
+# juestnow/xray-ui:latest 最新版本 指定版本号docker pull juestnow/xray-ui:latest  docker pull ghcr.io/qist/xray-ui:latest
  docker run -d --net=host -v/etc/xray-ui:/etc/xray-ui  -v/root/cert:/root/cert --restart=unless-stopped --name xray-ui juestnow/xray-ui:latest
 # 查看默认账号密码
 docker exec -ti  启动的容器名 /app/xray-ui setting -show
