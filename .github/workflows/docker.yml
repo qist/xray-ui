@@ -28,24 +28,22 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.DOCKER_HUB_REGISTRY }}/juestnow/xray-ui
-          flavor: latest=true
+          flavor: latest=false
           tags: |
-            type=raw,value=${{ github.ref_name }},enable=${{ startsWith(github.ref, 'refs/tags/') }}
-            type=semver,pattern={{version}}
-            type=semver,pattern=v{{version}}
-            type=raw,value=latest 
+            type=ref,event=tag
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
 
       - name: Docker metadata for GHCR
         id: meta_ghcr
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.GHCR_REGISTRY }}/${{ github.repository_owner }}/xray-ui
-          flavor: latest=true
+          flavor: latest=false
           tags: |
-            type=raw,value=${{ github.ref_name }},enable=${{ startsWith(github.ref, 'refs/tags/') }}
-            type=semver,pattern={{version}}
-            type=semver,pattern=v{{version}}
-            type=raw,value=latest
+            type=ref,event=tag
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
