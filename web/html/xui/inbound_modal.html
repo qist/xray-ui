@@ -40,6 +40,37 @@
         loading(loading) {
             inModal.confirmLoading = loading;
         },
+        // Vision Seed methods - always available regardless of Vue context
+        updateTestseed(index, value) {
+            // Use inModal.inbound explicitly to ensure correct context
+            if (!inModal.inbound || !inModal.inbound.settings) return;
+            // Ensure testseed is initialized
+            if (!inModal.inbound.settings.testseed || !Array.isArray(inModal.inbound.settings.testseed)) {
+                inModal.inbound.settings.testseed = [900, 500, 900, 256];
+            }
+            // Ensure array has enough elements
+            while (inModal.inbound.settings.testseed.length <= index) {
+                inModal.inbound.settings.testseed.push(0);
+            }
+            // Update value
+            inModal.inbound.settings.testseed[index] = value;
+        },
+        setRandomTestseed() {
+            // Use inModal.inbound explicitly to ensure correct context
+            if (!inModal.inbound || !inModal.inbound.settings) return;
+            // Ensure testseed is initialized
+            if (!inModal.inbound.settings.testseed || !Array.isArray(inModal.inbound.settings.testseed) || inModal.inbound.settings.testseed.length < 4) {
+                inModal.inbound.settings.testseed = [900, 500, 900, 256].slice();
+            }
+            // Create new array with random values
+            inModal.inbound.settings.testseed = [Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000)];
+        },
+        resetTestseed() {
+            // Use inModal.inbound explicitly to ensure correct context
+            if (!inModal.inbound || !inModal.inbound.settings) return;
+            // Reset testseed to default values
+            inModal.inbound.settings.testseed = [900, 500, 900, 256].slice();
+        },
     };
 
     const protocols = {
@@ -173,7 +204,29 @@
             //     inModal.inbound.stream.reality.privateKey = msg.obj.key;
             //     inModal.inbound.stream.reality.publicKey = msg.obj.value;
             // }
-        }
+            // Vision Seed methods - must be in Vue methods for proper binding
+            updateTestseed(index, value) {
+                // Ensure testseed is initialized
+                if (!this.inbound.settings.testseed || !Array.isArray(this.inbound.settings.testseed)) {
+                    this.$set(this.inbound.settings, 'testseed', [900, 500, 900, 256]);
+                }
+                // Ensure array has enough elements
+                while (this.inbound.settings.testseed.length <= index) {
+                    this.inbound.settings.testseed.push(0);
+                }
+                // Update value using Vue.set for reactivity
+                this.$set(this.inbound.settings.testseed, index, value);
+            },
+            setRandomTestseed() {
+                // Create new array with random values and use Vue.set for reactivity
+                const newSeed = [Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000), Math.floor(Math.random() * 1000)];
+                this.$set(this.inbound.settings, 'testseed', newSeed);
+            },
+            resetTestseed() {
+                // Reset testseed to default values using Vue.set for reactivity
+                this.$set(this.inbound.settings, 'testseed', [900, 500, 900, 256]);
+            }
+        },
 
     });
 

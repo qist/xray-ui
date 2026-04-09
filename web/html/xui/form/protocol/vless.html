@@ -9,17 +9,14 @@
         </a-input-group>
     </a-form-item>
 
-    <a-form-item v-if="inbound.tls && inbound.isTcp || inbound.tls && inbound.isRaw " label="flow">
-        <a-select v-model="inbound.settings.vlesses[0].flow" style="width: 180px">
-            <a-select-option value="">无</a-select-option>
-            <a-select-option v-for="key in FLOW_VISION" :value="key">[[ key ]]</a-select-option>
-        </a-select>
-    </a-form-item>
-    <a-form-item v-if="inbound.reality" label="flow">
-        <a-select v-model="inbound.settings.vlesses[0].flow" style="width: 150px">
-            <a-select-option value="">无</a-select-option>
-            <a-select-option v-for="key in FLOW_VISION" :value="key">[[ key ]]</a-select-option>
-        </a-select>
+    <a-form-item v-if="inbound.canEnableTlsFlow()" label="flow">
+        <a-space>
+            <a-switch v-model="inbound.tlsFlowEnabled"></a-switch>
+            <a-select v-if="inbound.tlsFlowEnabled" v-model="inbound.settings.vlesses[0].flow" style="width: 180px">
+                <a-select-option value="">无</a-select-option>
+                <a-select-option v-for="key in TLS_FLOW_CONTROL" :value="key">[[ key ]]</a-select-option>
+            </a-select>
+        </a-space>
     </a-form-item>
 </a-form>
 <a-form v-if="inbound.canEnableAuthentication() && inbound.authentication" layout="inline">
@@ -44,8 +41,7 @@
 <a-form layout="inline">
     <a-form-item label="fallbacks">
         <a-row>
-            <a-button type="primary" size="small"
-                      @click="inbound.settings.addFallback()">
+            <a-button type="primary" size="small" @click="inbound.settings.addFallback()">
                 +
             </a-button>
         </a-row>
@@ -57,7 +53,7 @@
     <a-divider>
         fallback[[ index + 1 ]]
         <a-icon type="delete" @click="() => inbound.settings.delFallback(index)"
-                style="color: rgb(255, 77, 79);cursor: pointer;"/>
+            style="color: rgb(255, 77, 79);cursor: pointer;" />
     </a-divider>
     <a-form-item label="name">
         <a-input v-model="fallback.name"></a-input>
@@ -74,6 +70,47 @@
     <a-form-item label="xver">
         <a-input type="number" v-model.number="fallback.xver"></a-input>
     </a-form-item>
-    <a-divider v-if="inbound.settings.fallbacks.length - 1 === index"/>
+    <a-divider v-if="inbound.settings.fallbacks.length - 1 === index" />
+</a-form>
+<a-form v-if="inbound.canEnableVisionSeed()">
+    <a-form :colon="false" :label-col="{ md: {span:8} }" :wrapper-col="{ md: {span:14} }">
+        <a-form-item label="Vision Seed">
+            <a-row :gutter="8">
+                <a-col :span="6">
+                    <a-input-number
+                        :value="(inbound.settings.testseed && inbound.settings.testseed[0] !== undefined) ? inbound.settings.testseed[0] : 900"
+                        @change="(val) => updateTestseed(0, val)" :min="0" :max="9999" :style="{ width: '100%' }"
+                        placeholder="900" addon-before="[0]"></a-input-number>
+                </a-col>
+                <a-col :span="6">
+                    <a-input-number
+                        :value="(inbound.settings.testseed && inbound.settings.testseed[1] !== undefined) ? inbound.settings.testseed[1] : 500"
+                        @change="(val) => updateTestseed(1, val)" :min="0" :max="9999" :style="{ width: '100%' }"
+                        placeholder="500" addon-before="[1]"></a-input-number>
+                </a-col>
+                <a-col :span="6">
+                    <a-input-number
+                        :value="(inbound.settings.testseed && inbound.settings.testseed[2] !== undefined) ? inbound.settings.testseed[2] : 900"
+                        @change="(val) => updateTestseed(2, val)" :min="0" :max="9999" :style="{ width: '100%' }"
+                        placeholder="900" addon-before="[2]"></a-input-number>
+                </a-col>
+                <a-col :span="6">
+                    <a-input-number
+                        :value="(inbound.settings.testseed && inbound.settings.testseed[3] !== undefined) ? inbound.settings.testseed[3] : 256"
+                        @change="(val) => updateTestseed(3, val)" :min="0" :max="9999" :style="{ width: '100%' }"
+                        placeholder="256" addon-before="[3]"></a-input-number>
+                </a-col>
+            </a-row>
+            <a-space :size="8" :style="{ marginTop: '8px' }">
+                <a-button type="primary" @click="setRandomTestseed">
+                    Rand
+                </a-button>
+                <a-button @click="resetTestseed">
+                    Reset
+                </a-button>
+            </a-space>
+        </a-form-item>
+    </a-form>
+    <a-divider :style="{ margin: '5px 0' }"></a-divider>
 </a-form>
 {{end}}

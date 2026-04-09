@@ -43,9 +43,10 @@ const RULE_DOMAIN = {
     SPEEDTEST: 'geosite:speedtest',
 };
 
-const FLOW_VISION = {
-    FLOWVISION: "xtls-rprx-vision",
-}
+const TLS_FLOW_CONTROL = {
+    VISION: "xtls-rprx-vision",
+    VISION_UDP443: "xtls-rprx-vision-udp443",
+};
 
 const TLS_VERSION_OPTION = {
     TLS10: "1.0",
@@ -132,7 +133,7 @@ Object.freeze(VmessMethods);
 Object.freeze(SSMethods);
 Object.freeze(RULE_IP);
 Object.freeze(RULE_DOMAIN);
-Object.freeze(FLOW_VISION);
+Object.freeze(TLS_FLOW_CONTROL);
 Object.freeze(TLS_VERSION_OPTION);
 Object.freeze(TLS_CIPHER_OPTION);
 Object.freeze(ALPN_OPTION);
@@ -2464,6 +2465,27 @@ class Inbound extends XrayCommonClass {
         }
     }
 
+    get tlsFlowEnabled() {
+        if (this.protocol !== Protocols.VLESS) {
+            return false;
+        }
+        const flow = this.settings?.vlesses?.[0]?.flow;
+        return flow === TLS_FLOW_CONTROL.VISION || flow === TLS_FLOW_CONTROL.VISION_UDP443;
+    }
+
+    set tlsFlowEnabled(enabled) {
+        if (this.protocol !== Protocols.VLESS || !Array.isArray(this.settings?.vlesses) || !this.settings.vlesses[0]) {
+            return;
+        }
+        if (enabled) {
+            if (ObjectUtil.isEmpty(this.settings.vlesses[0].flow)) {
+                this.settings.vlesses[0].flow = TLS_FLOW_CONTROL.VISION;
+            }
+            return;
+        }
+        this.settings.vlesses[0].flow = '';
+    }
+
     // Socks & HTTP
     get username() {
         switch (this.protocol) {
@@ -2714,6 +2736,20 @@ class Inbound extends XrayCommonClass {
         return this.canEnableTls();
     }
 
+    canEnableTlsFlow() {
+        if (((this.stream.security === 'tls') || (this.stream.security === 'reality')) && ((this.network === "tcp") || (this.network === "raw"))) {
+            return this.protocol === Protocols.VLESS;
+        }
+        return false;
+    }
+    // Vision seed applies only when vision flow is selected
+    canEnableVisionSeed() {
+        if (!this.canEnableTlsFlow()) return false;
+        const clients = this.settings?.vlesses;
+        if (!Array.isArray(clients)) return false;
+        return clients.some(c => c?.flow === TLS_FLOW_CONTROL.VISION || c?.flow === TLS_FLOW_CONTROL.VISION_UDP443);
+    }
+    
     canEnableReaLITy() {
         switch (this.protocol) {
             case Protocols.VLESS:
@@ -3485,6 +3521,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
         encryption = "none",
         fallbacks = [],
         selectedAuth = undefined,
+         testseed = [900, 500, 900, 256],
     ) {
         super(protocol);
         this.vlesses = vlesses;
@@ -3492,6 +3529,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
         this.encryption = encryption;
         this.fallbacks = fallbacks;
         this.selectedAuth = selectedAuth;
+        this.testseed = testseed;
     }
 
     addFallback() {
@@ -3503,6 +3541,11 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
     }
 
     static fromJson(json = {}) {
+                // Ensure testseed is always initialized as an array
+        let testseed = [900, 500, 900, 256];
+        if (json.testseed && Array.isArray(json.testseed) && json.testseed.length >= 4) {
+            testseed = json.testseed;
+        }
         return new Inbound.VLESSSettings(
             Protocols.VLESS,
             json.clients.map(client => Inbound.VLESSSettings.VLESS.fromJson(client)),
@@ -3510,6 +3553,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
             json.encryption,
             Inbound.VLESSSettings.Fallback.fromJson(json.fallbacks),
             json.selectedAuth,
+             testseed,
         );
     }
 
@@ -3529,6 +3573,12 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
             }
         }
 
+        // Only include testseed if at least one client has a flow set
+        const hasFlow = this.vlesses && this.vlesses.some(vless => vless.flow && vless.flow !== '');
+        if (hasFlow && this.testseed && this.testseed.length >= 4) {
+            json.testseed = this.testseed;
+        }
+        
         return json;
     }
 };
