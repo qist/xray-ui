@@ -12,7 +12,7 @@
             congestion
             <a-tooltip>
                 <template slot="title">
-                    FinalMask.quicParams 的独立字段，可选 reno、bbr、brutal、force-brutal
+                    拥塞控制算法。reno/bbr: 标准算法；brutal: 与对端协商固定速率或降级 BBR；force-brutal: 强制上行使用 brutalUp，无视对端协商。Hysteria 默认 brutal，XHTTP H3 默认 bbr
                 </template>
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
@@ -24,6 +24,22 @@
             <a-select-option value="force-brutal">force-brutal</a-select-option>
         </a-select>
     </a-form-item>
+    <a-form-item v-if="inbound.stream.finalmask.quicParams.congestion === 'bbr'">
+        <span slot="label">
+            bbrProfile
+            <a-tooltip>
+                <template slot="title">
+                    当 congestion 为 bbr 时的 BBR 预设。conservative 稍保守，standard 默认，aggressive 稍激进
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-select v-model="inbound.stream.finalmask.quicParams.bbrProfile">
+            <a-select-option value="conservative">conservative</a-select-option>
+            <a-select-option value="standard">standard</a-select-option>
+            <a-select-option value="aggressive">aggressive</a-select-option>
+        </a-select>
+    </a-form-item>
     <a-form-item label="debug">
         <a-switch v-model="inbound.stream.finalmask.quicParams.debug"></a-switch>
     </a-form-item>
@@ -33,12 +49,44 @@
     <a-form-item label="brutalDown">
         <a-input v-model.trim="inbound.stream.finalmask.quicParams.brutalDown"></a-input>
     </a-form-item>
-    <a-form-item label="udpHop.ports">
-        <a-input v-model.trim="inbound.stream.finalmask.quicParams.udpHop.ports"></a-input>
+    <a-form-item>
+        <span slot="label">
+            udpHop
+            <a-tooltip>
+                <template slot="title">
+                    UDP 端口跳跃。开启后与 Hysteria2 端口跳跃联动（端口同步）
+                </template>
+                <a-icon type="question-circle" theme="filled"></a-icon>
+            </a-tooltip>
+        </span>
+        <a-switch :checked="inbound.stream.finalmask.quicParams.udpHopSwitch"
+                  @change="val => {
+                      inbound.stream.finalmask.quicParams.udpHopSwitch = val;
+                      // 联动 Hysteria2 端口跳跃
+                      if (inbound.stream.hysteria && inbound.stream.hysteria.portHopping) {
+                          if (val) {
+                              inbound.stream.hysteria.portHopping.enabled = true;
+                              inbound.stream.hysteria.portHopping.ports = inbound.stream.finalmask.quicParams.udpHop.ports;
+                          } else {
+                              inbound.stream.hysteria.portHopping.enabled = false;
+                          }
+                      }
+                  }"></a-switch>
     </a-form-item>
-    <a-form-item label="udpHop.interval">
-        <a-input v-model.trim="inbound.stream.finalmask.quicParams.udpHop.interval"></a-input>
-    </a-form-item>
+    <template v-if="inbound.stream.finalmask.quicParams.udpHopSwitch">
+        <a-form-item label="udpHop.ports">
+            <a-input v-model.trim="inbound.stream.finalmask.quicParams.udpHop.ports"
+                     @change="() => {
+                         // 同步到 Hysteria2 端口跳跃
+                         if (inbound.stream.hysteria && inbound.stream.hysteria.portHopping && inbound.stream.hysteria.portHopping.enabled) {
+                             inbound.stream.hysteria.portHopping.ports = inbound.stream.finalmask.quicParams.udpHop.ports;
+                         }
+                     }"></a-input>
+        </a-form-item>
+        <a-form-item label="udpHop.interval">
+            <a-input v-model.trim="inbound.stream.finalmask.quicParams.udpHop.interval"></a-input>
+        </a-form-item>
+    </template>
     <a-form-item>
         <span slot="label">
             initStreamRecvWindow
@@ -318,16 +366,60 @@
                 </template>
             </template>
             <template v-else-if="mask.type === 'fragment'">
-                <a-form-item label="packets">
+                <a-form-item>
+                    <span slot="label">
+                        packets
+                        <a-tooltip>
+                            <template slot="title">
+                                "1-3" = TCP 流切片；"tlshello" = TLS ClientHello 切片
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
                     <a-input v-model.trim="mask.settings.fragment.packets"></a-input>
                 </a-form-item>
-                <a-form-item label="length">
-                    <a-input v-model.trim="mask.settings.fragment.length"></a-input>
+                <a-form-item>
+                    <span slot="label">
+                        lengths
+                        <a-tooltip>
+                            <template slot="title">
+                                分片包长 (byte) 数组，如 ["3-5","6-8","10-20"]。最后一项对后续所有分片生效，除最后一项外可为 0（空转等待下次 delay）
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-button size="small" @click="mask.settings.fragment && mask.settings.fragment.lengths ? mask.settings.fragment.lengths.push('3-5') : ''">+</a-button>
                 </a-form-item>
-                <a-form-item label="delay">
-                    <a-input v-model.trim="mask.settings.fragment.delay"></a-input>
+                <a-input-group v-for="(len, lenIdx) in (mask.settings.fragment && mask.settings.fragment.lengths || [])" :key="'frag-len-' + index + '-' + lenIdx" compact style="display: flex; margin-bottom: 4px;">
+                    <a-input style="width: 85%" v-model.trim="mask.settings.fragment.lengths[lenIdx]" :addon-before="'lengths[' + lenIdx + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="mask.settings.fragment.lengths.splice(lenIdx, 1)">-</a-button>
+                </a-input-group>
+                <a-form-item>
+                    <span slot="label">
+                        delays
+                        <a-tooltip>
+                            <template slot="title">
+                                分片间隔 (ms) 数组，如 ["10-20"]。最后一项对后续所有分片生效。为 0 且 packets=tlshello 时 ClientHello 在一个 TCP 包中发送
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-button size="small" @click="mask.settings.fragment && mask.settings.fragment.delays ? mask.settings.fragment.delays.push('10-20') : ''">+</a-button>
                 </a-form-item>
-                <a-form-item label="maxSplit">
+                <a-input-group v-for="(del, delIdx) in (mask.settings.fragment && mask.settings.fragment.delays || [])" :key="'frag-del-' + index + '-' + delIdx" compact style="display: flex; margin-bottom: 4px;">
+                    <a-input style="width: 85%" v-model.trim="mask.settings.fragment.delays[delIdx]" :addon-before="'delays[' + delIdx + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="mask.settings.fragment.delays.splice(delIdx, 1)">-</a-button>
+                </a-input-group>
+                <a-form-item>
+                    <span slot="label">
+                        maxSplit
+                        <a-tooltip>
+                            <template slot="title">
+                                最大分片次数，Int32Range 如 "3-6"。为 0 表示不限制
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
                     <a-input v-model.trim="mask.settings.fragment.maxSplit"></a-input>
                 </a-form-item>
             </template>
@@ -369,7 +461,7 @@
                 udp
                 <a-tooltip>
                     <template slot="title">
-                        FinalMask.udp 为独立数组配置，支持 header-custom、header-dns、header-dtls、header-srtp、header-utp、header-wechat、header-wireguard、mkcp-original、mkcp-aes128gcm、noise、salamander、sudoku、xdns、xicmp
+                        FinalMask.udp type: header-custom | mkcp-legacy | noise | salamander | sudoku | xdns | xicmp | realm
                     </template>
                     <a-icon type="question-circle" theme="filled"></a-icon>
                 </a-tooltip>
@@ -383,15 +475,9 @@
                 <a-select :value="mask.type" style="width: 35%" @change="value => mask.setType(value)">
                     <a-select-option value="">关闭</a-select-option>
                     <a-select-option value="header-custom">header-custom</a-select-option>
-                    <a-select-option value="header-dns">header-dns</a-select-option>
-                    <a-select-option value="header-dtls">header-dtls</a-select-option>
-                    <a-select-option value="header-srtp">header-srtp</a-select-option>
-                    <a-select-option value="header-utp">header-utp</a-select-option>
-                    <a-select-option value="header-wechat">header-wechat</a-select-option>
-                    <a-select-option value="header-wireguard">header-wireguard</a-select-option>
-                    <a-select-option value="mkcp-original">mkcp-original</a-select-option>
-                    <a-select-option value="mkcp-aes128gcm">mkcp-aes128gcm</a-select-option>
+                    <a-select-option value="mkcp-legacy">mkcp-legacy</a-select-option>
                     <a-select-option value="noise">noise</a-select-option>
+                    <a-select-option value="realm">realm</a-select-option>
                     <a-select-option value="salamander">salamander</a-select-option>
                     <a-select-option value="sudoku">sudoku</a-select-option>
                     <a-select-option value="xdns">xdns</a-select-option>
@@ -405,6 +491,15 @@
                 </a-button>
                 <a-button v-else-if="mask.type === 'sudoku'" size="small" style="width: 20%" @click="mask.settings.sudoku.addCustomTable('')">
                     + customTables
+                </a-button>
+                <a-button v-else-if="mask.type === 'xdns'" size="small" style="width: 20%" @click="mask.settings.xdns.addDomain('')">
+                    + domains
+                </a-button>
+                <a-button v-else-if="mask.type === 'xicmp'" size="small" style="width: 20%" @click="mask.settings.xicmp.addIp('')">
+                    + ips
+                </a-button>
+                <a-button v-else-if="mask.type === 'realm'" size="small" style="width: 20%" @click="mask.settings.realm.addStunServer('')">
+                    + stun
                 </a-button>
                 <a-button size="small" style="width: 10%" @click="inbound.stream.finalmask.removeUdpMask(index)">
                     -
@@ -490,19 +585,55 @@
                     </a-input-group>
                 </template>
             </template>
-            <template v-else-if="mask.type === 'header-dns'">
-                <a-form-item label="domain">
-                    <a-input v-model.trim="mask.settings.headerDns.domain"></a-input>
+            <template v-else-if="mask.type === 'mkcp-legacy'">
+                <a-form-item>
+                    <span slot="label">
+                        header
+                        <a-tooltip>
+                            <template slot="title">
+                                旧 mKCP 包头伪造。为空时 AES-128-GCM 加密（value 为密码）或简单 xor；dns 伪造 DNS 查询；dtls/srtp/utp/wechat/wireguard 伪造对应协议
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-select v-model="mask.settings.mkcpLegacy.header">
+                        <a-select-option value="">空 (AES-128-GCM/XOR)</a-select-option>
+                        <a-select-option value="dns">dns</a-select-option>
+                        <a-select-option value="dtls">dtls</a-select-option>
+                        <a-select-option value="srtp">srtp</a-select-option>
+                        <a-select-option value="utp">utp</a-select-option>
+                        <a-select-option value="wechat">wechat</a-select-option>
+                        <a-select-option value="wireguard">wireguard</a-select-option>
+                    </a-select>
                 </a-form-item>
-            </template>
-            <template v-else-if="mask.type === 'mkcp-aes128gcm'">
-                <a-form-item label="password">
+                <a-form-item v-if="!mask.settings.mkcpLegacy.header">
+                    <span slot="label">
+                        password
+                        <a-tooltip>
+                            <template slot="title">
+                                AES-128-GCM 加密密码。为空则使用默认简单 xor 混淆
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
                     <a-input-group compact style="display: flex;">
-                        <a-input v-model.trim="mask.settings.mkcpAes128Gcm.password" style="width: 80%"></a-input>
-                        <a-button size="small" style="width: 20%" @click="mask.settings.mkcpAes128Gcm.refreshPassword()">
-                            更换
+                        <a-input v-model.trim="mask.settings.mkcpLegacy.value" style="width: 80%"></a-input>
+                        <a-button size="small" style="width: 20%" @click="mask.settings.mkcpLegacy.value = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2,'0')).join('')">
+                            随机
                         </a-button>
                     </a-input-group>
+                </a-form-item>
+                <a-form-item v-else-if="mask.settings.mkcpLegacy.header === 'dns'">
+                    <span slot="label">
+                        domain
+                        <a-tooltip>
+                            <template slot="title">
+                                伪造 DNS 查询的域名，默认 www.baidu.com
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-input v-model.trim="mask.settings.mkcpLegacy.value" placeholder="www.baidu.com"></a-input>
                 </a-form-item>
             </template>
             <template v-else-if="mask.type === 'noise'">
@@ -557,6 +688,18 @@
                         </a-button>
                     </a-input-group>
                 </a-form-item>
+                <a-form-item>
+                    <span slot="label">
+                        packetSize
+                        <a-tooltip>
+                            <template slot="title">
+                                Gecko 混淆。Int32Range，上限 2048。不为空则对 QUIC 长包头分片填充混淆，短包头直接使用 Salamander
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-input v-model.trim="mask.settings.salamander.packetSize" placeholder="e.g. 512-1200"></a-input>
+                </a-form-item>
             </template>
             <template v-else-if="mask.type === 'sudoku'">
                 <a-form-item label="password">
@@ -586,23 +729,119 @@
                     </a-button>
                 </a-input-group>
             </template>
-            <template v-else-if="mask.type === 'xdns'">
-                <a-form-item label="domain">
-                    <a-input v-model.trim="mask.settings.xdns.domain"></a-input>
+            <template v-else-if="mask.type === 'realm'">
+                <a-form-item>
+                    <span slot="label">
+                        URL
+                        <a-tooltip>
+                            <template slot="title">
+                                Format: realm[+http]://token@host[:port]/id
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-input v-model.trim="mask.settings.realm.url" placeholder="realm://token@host:port/id"></a-input>
                 </a-form-item>
+                <a-form-item>
+                    <span slot="label">
+                        STUN Servers
+                        <a-tooltip>
+                            <template slot="title">
+                                多个 STUN 服务器用于 NAT 端口预测，如 stun.nextcloud.com:3478
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-button size="small" @click="mask.settings.realm.addStunServer('')">+</a-button>
+                </a-form-item>
+                <a-input-group v-for="(srv, srvIdx) in mask.settings.realm.stunServers" :key="'realm-stun-' + index + '-' + srvIdx" compact style="display: flex; margin-bottom: 4px;">
+                    <a-input style="width: 85%" v-model.trim="mask.settings.realm.stunServers[srvIdx]" :addon-before="'stunServers[' + srvIdx + ']'" placeholder="host:port"></a-input>
+                    <a-button size="small" style="width: 15%" @click="mask.settings.realm.removeStunServer(srvIdx)">-</a-button>
+                </a-input-group>
+                <a-divider orientation="left" style="margin: 8px 0;">TLS (optional)</a-divider>
+                <a-form-item label="Server Name">
+                    <a-input v-model.trim="mask.settings.realm.tlsConfig.serverName" placeholder="SNI for realm server"></a-input>
+                </a-form-item>
+                <a-form-item label="ALPN">
+                    <a-select v-model="mask.settings.realm.tlsConfig.alpn" mode="multiple" style="width: 100%;">
+                        <a-select-option value="h3">h3</a-select-option>
+                        <a-select-option value="h2">h2</a-select-option>
+                        <a-select-option value="http/1.1">http/1.1</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item label="Fingerprint">
+                    <a-select v-model="mask.settings.realm.tlsConfig.fingerprint" allowClear style="width: 100%;">
+                        <a-select-option value="">auto</a-select-option>
+                        <a-select-option value="chrome">chrome</a-select-option>
+                        <a-select-option value="firefox">firefox</a-select-option>
+                        <a-select-option value="safari">safari</a-select-option>
+                        <a-select-option value="ios">ios</a-select-option>
+                        <a-select-option value="android">android</a-select-option>
+                        <a-select-option value="edge">edge</a-select-option>
+                        <a-select-option value="360">360</a-select-option>
+                        <a-select-option value="qq">qq</a-select-option>
+                        <a-select-option value="random">random</a-select-option>
+                        <a-select-option value="randomized">randomized</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item label="Allow Insecure">
+                    <a-switch v-model="mask.settings.realm.tlsConfig.allowInsecure"></a-switch>
+                </a-form-item>
+            </template>
+            <template v-else-if="mask.type === 'xdns'">
+                <a-form-item>
+                    <span slot="label">
+                        domains
+                        <a-tooltip>
+                            <template slot="title">
+                                Server-side domain list. Supports domain:method (txt, a, aaaa). At least one of domains or resolvers must be filled.
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-button size="small" @click="mask.settings.xdns.addDomain('')">+</a-button>
+                </a-form-item>
+                <a-input-group v-for="(d, dIdx) in mask.settings.xdns.domains" :key="'xdns-domain-' + index + '-' + dIdx" compact style="display: flex; margin-bottom: 4px;">
+                    <a-input style="width: 85%" v-model.trim="mask.settings.xdns.domains[dIdx]" :addon-before="'domains[' + dIdx + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="mask.settings.xdns.removeDomain(dIdx)">-</a-button>
+                </a-input-group>
+                <a-form-item>
+                    <span slot="label">
+                        resolvers
+                        <a-tooltip>
+                            <template slot="title">
+                                Client-side resolvers. Format: domain[:method]+udp://server:port. Default method: txt.
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-button size="small" @click="mask.settings.xdns.addResolver('')">+</a-button>
+                </a-form-item>
+                <a-input-group v-for="(r, rIdx) in mask.settings.xdns.resolvers" :key="'xdns-resolver-' + index + '-' + rIdx" compact style="display: flex; margin-bottom: 4px;">
+                    <a-input style="width: 85%" v-model.trim="mask.settings.xdns.resolvers[rIdx]" :addon-before="'resolvers[' + rIdx + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="mask.settings.xdns.removeResolver(rIdx)">-</a-button>
+                </a-input-group>
             </template>
             <template v-else-if="mask.type === 'xicmp'">
-                <a-form-item label="listenIp">
-                    <a-input v-model.trim="mask.settings.xicmp.listenIp"></a-input>
+                <a-form-item>
+                    <span slot="label">
+                        dgram
+                        <a-tooltip>
+                            <template slot="title">
+                                Lower privilege mode, client-only (Linux, Mac, iOS)
+                            </template>
+                            <a-icon type="question-circle" theme="filled"></a-icon>
+                        </a-tooltip>
+                    </span>
+                    <a-switch v-model="mask.settings.xicmp.dgram"></a-switch>
                 </a-form-item>
-                <a-form-item label="id">
-                    <a-input-number v-model.number="mask.settings.xicmp.id" :min="0" style="width: 100%"></a-input-number>
+                <a-form-item label="ips">
+                    <a-button size="small" @click="mask.settings.xicmp.addIp('')">+</a-button>
                 </a-form-item>
-            </template>
-            <template v-else-if="mask.type === 'header-dtls' || mask.type === 'header-srtp' || mask.type === 'header-utp' || mask.type === 'header-wechat' || mask.type === 'header-wireguard' || mask.type === 'mkcp-original'">
-                <a-form-item :label="mask.type + '.settings'">
-                    <span>无额外配置</span>
-                </a-form-item>
+                <a-input-group v-for="(ip, ipIdx) in mask.settings.xicmp.ips" :key="'xicmp-ip-' + index + '-' + ipIdx" compact style="display: flex; margin-bottom: 4px;">
+                    <a-input style="width: 85%" v-model.trim="mask.settings.xicmp.ips[ipIdx]" :addon-before="'ips[' + ipIdx + ']'"></a-input>
+                    <a-button size="small" style="width: 15%" @click="mask.settings.xicmp.removeIp(ipIdx)">-</a-button>
+                </a-input-group>
             </template>
         </template>
     </template>

@@ -5,7 +5,7 @@
         <a-select v-model="inbound.stream.network" @change="streamNetworkChange" :disabled="inbound.protocol === Protocols.HYSTERIA" style="width: 130px;">
             <a-select-option value="tcp">tcp</a-select-option>
             <a-select-option value="raw">raw</a-select-option>
-            <a-select-option value="kcp">kcp</a-select-option>
+            <a-select-option value="mkcp">mkcp</a-select-option>
             <a-select-option value="ws">ws</a-select-option>
             <a-select-option value="grpc">grpc</a-select-option>
             <a-select-option value="httpupgrade">HTTPUpgrade</a-select-option>
@@ -25,8 +25,8 @@
     {{template "form/streamRaw"}}
 </template>
 
-<!-- kcp -->
-<template v-if="inbound.stream.network === 'kcp'">
+<!-- mkcp -->
+<template v-if="inbound.stream.network === 'mkcp'">
     {{template "form/streamKCP"}}
 </template>
 

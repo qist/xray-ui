@@ -24,7 +24,19 @@
         <a-input-number v-model.number="inbound.stream.hysteria.udpIdleTimeout" :min="1"></a-input-number>
     </a-form-item>
     <a-form-item label="端口跳跃">
-        <a-switch v-model="inbound.stream.hysteria.portHopping.enabled"></a-switch>
+        <a-switch :checked="inbound.stream.hysteria.portHopping.enabled"
+                  @change="val => {
+                      inbound.stream.hysteria.portHopping.enabled = val;
+                      // 联动 finalmask udpHop
+                      if (inbound.stream.finalmask && inbound.stream.finalmask.quicParams) {
+                          if (val) {
+                              inbound.stream.finalmask.quicParams.udpHopSwitch = true;
+                              inbound.stream.finalmask.quicParams.udpHop.ports = inbound.stream.hysteria.portHopping.ports;
+                          } else {
+                              inbound.stream.finalmask.quicParams.udpHopSwitch = false;
+                          }
+                      }
+                  }"></a-switch>
     </a-form-item>
     <a-form-item v-if="inbound.stream.hysteria.portHopping.enabled" label="目标端口">
         <a-input-number v-model.number="inbound.port" :min="1" :max="65535"></a-input-number>
@@ -40,7 +52,13 @@
     <a-form-item v-if="inbound.stream.hysteria.portHopping.enabled && inbound.stream.hysteria.portHopping.mode === 'preset'" label="端口范围">
         <a-select v-model="inbound.stream.hysteria.portHopping.preset"
                   style="width: 220px;"
-                  @change="inbound.stream.hysteria.portHopping.syncPorts()">
+                  @change="() => {
+                      inbound.stream.hysteria.portHopping.syncPorts();
+                      // 同步到 finalmask udpHop
+                      if (inbound.stream.finalmask && inbound.stream.finalmask.quicParams && inbound.stream.finalmask.quicParams.udpHopSwitch) {
+                          inbound.stream.finalmask.quicParams.udpHop.ports = inbound.stream.hysteria.portHopping.ports;
+                      }
+                  }">
             <a-select-option value="10000-20000">10000-20000</a-select-option>
             <a-select-option value="20000-50000">20000-50000</a-select-option>
             <a-select-option value="30000-60000">30000-60000</a-select-option>
@@ -57,7 +75,13 @@
                 <a-icon type="question-circle" theme="filled"></a-icon>
             </a-tooltip>
         </span>
-        <a-input v-model.trim="inbound.stream.hysteria.portHopping.ports" placeholder="20000-50000"></a-input>
+        <a-input v-model.trim="inbound.stream.hysteria.portHopping.ports" placeholder="20000-50000"
+                 @change="() => {
+                     // 同步到 finalmask udpHop
+                     if (inbound.stream.finalmask && inbound.stream.finalmask.quicParams && inbound.stream.finalmask.quicParams.udpHopSwitch) {
+                         inbound.stream.finalmask.quicParams.udpHop.ports = inbound.stream.hysteria.portHopping.ports;
+                     }
+                 }"></a-input>
     </a-form-item>
     <a-form-item>
         <span slot="label">
