@@ -128,6 +128,37 @@ const MODE_OPTION = {
     STREAM_ONE: "stream-one",
 };
 
+const ADDRESS_PORT_STRATEGY = {
+    None: "none",
+    SrvPortOnly: "SrvPortOnly",
+    SrvAddressOnly: "SrvAddressOnly",
+    SrvPortAndAddress: "SrvPortAndAddress",
+    TxtPortOnly: "TxtPortOnly",
+    TxtAddressOnly: "TxtAddressOnly",
+    TxtPortAndAddress: "TxtPortAndAddress",
+};
+
+const CUSTOM_SOCKOPT_SYSTEM = {
+    Linux: "linux",
+    Windows: "windows",
+    Darwin: "darwin",
+    Android: "android",
+};
+
+const CUSTOM_SOCKOPT_NETWORK = {
+    TCP: "tcp",
+    TCP4: "tcp4",
+    TCP6: "tcp6",
+    UDP: "udp",
+    UDP4: "udp4",
+    UDP6: "udp6",
+};
+
+const CUSTOM_SOCKOPT_TYPE = {
+    INT: "int",
+    STR: "str",
+};
+
 Object.freeze(Protocols);
 Object.freeze(VmessMethods);
 Object.freeze(SSMethods);
@@ -142,6 +173,10 @@ Object.freeze(TCP_CONGESTION);
 Object.freeze(DOMAIN_STRATEGY);
 Object.freeze(SNIFFING_OPTION);
 Object.freeze(MODE_OPTION);
+Object.freeze(ADDRESS_PORT_STRATEGY);
+Object.freeze(CUSTOM_SOCKOPT_SYSTEM);
+Object.freeze(CUSTOM_SOCKOPT_NETWORK);
+Object.freeze(CUSTOM_SOCKOPT_TYPE);
 
 class XrayCommonClass {
 
@@ -1825,6 +1860,81 @@ class ReaLITyStreamSettings extends XrayCommonClass {
     }
 }
 
+class HappyEyeballsObject extends XrayCommonClass {
+    constructor(
+        tryDelayMs = 0,
+        prioritizeIPv6 = false,
+        interleave = 1,
+        maxConcurrentTry = 4,
+    ) {
+        super();
+        this.tryDelayMs = tryDelayMs;
+        this.prioritizeIPv6 = prioritizeIPv6;
+        this.interleave = interleave;
+        this.maxConcurrentTry = maxConcurrentTry;
+    }
+
+    static fromJson(json = {}) {
+        if (Object.keys(json).length === 0) return undefined;
+        return new HappyEyeballsObject(
+            json.tryDelayMs,
+            json.prioritizeIPv6,
+            json.interleave,
+            json.maxConcurrentTry,
+        );
+    }
+
+    toJson() {
+        return {
+            tryDelayMs: this.tryDelayMs,
+            prioritizeIPv6: this.prioritizeIPv6,
+            interleave: this.interleave,
+            maxConcurrentTry: this.maxConcurrentTry,
+        };
+    }
+}
+
+class CustomSockoptObject extends XrayCommonClass {
+    constructor(
+        system = "",
+        network = "",
+        type = "",
+        level = "6",
+        opt = "",
+        value = "",
+    ) {
+        super();
+        this.system = system;
+        this.network = network;
+        this.type = type;
+        this.level = level;
+        this.opt = opt;
+        this.value = value;
+    }
+
+    static fromJson(json = {}) {
+        return new CustomSockoptObject(
+            json.system,
+            json.network,
+            json.type,
+            ObjectUtil.isEmpty(json.level) ? "6" : json.level,
+            json.opt,
+            json.value,
+        );
+    }
+
+    toJson() {
+        return {
+            system: this.system,
+            network: this.network,
+            type: this.type,
+            level: this.level,
+            opt: this.opt,
+            value: this.value,
+        };
+    }
+}
+
 class SockoptStreamSettings extends XrayCommonClass {
     constructor(mark = 0,
         tcpMaxSeg = 1440,
@@ -1840,8 +1950,12 @@ class SockoptStreamSettings extends XrayCommonClass {
         _interface = "",
         V6Only = false,
         tcpWindowClamp = 600,
-        TcpMptcp = true,
+        tcpMptcp = false,
         tcpNoDelay = false,
+        addressPortStrategy = ADDRESS_PORT_STRATEGY.None,
+        customSockopt = [],
+        trustedXForwardedFor = [],
+        happyEyeballs = undefined,
     ) {
         super();
         this.mark = mark;
@@ -1858,8 +1972,28 @@ class SockoptStreamSettings extends XrayCommonClass {
         this.interface = _interface instanceof Array ? this.interface : _interface;
         this.V6Only = V6Only;
         this.tcpWindowClamp = tcpWindowClamp;
-        this.TcpMptcp = TcpMptcp;
+        this.tcpMptcp = tcpMptcp;
         this.tcpNoDelay = tcpNoDelay;
+        this.addressPortStrategy = addressPortStrategy;
+        this.customSockopt = customSockopt;
+        this.trustedXForwardedFor = trustedXForwardedFor instanceof Array ? trustedXForwardedFor.join('\n') : trustedXForwardedFor;
+        this.happyEyeballs = happyEyeballs;
+    }
+
+    addCustomSockopt() {
+        this.customSockopt.push(new CustomSockoptObject());
+    }
+
+    removeCustomSockopt(index) {
+        this.customSockopt.splice(index, 1);
+    }
+
+    get happyEyeballsSwitch() {
+        return this.happyEyeballs != undefined;
+    }
+
+    set happyEyeballsSwitch(value) {
+        this.happyEyeballs = value ? new HappyEyeballsObject(250) : undefined;
     }
 
     static fromJson(json = {}) {
@@ -1879,13 +2013,17 @@ class SockoptStreamSettings extends XrayCommonClass {
             json.interface,
             json.V6Only,
             json.tcpWindowClamp,
-            json.TcpMptcp,
+            json.tcpMptcp,
             json.tcpNoDelay,
+            json.addressPortStrategy,
+            ObjectUtil.isEmpty(json.customSockopt) ? [] : json.customSockopt.map(item => CustomSockoptObject.fromJson(item)),
+            json.trustedXForwardedFor,
+            HappyEyeballsObject.fromJson(json.happyEyeballs),
         );
     }
 
     toJson() {
-        return {
+        const json = {
             mark: this.mark,
             tcpMaxSeg: this.tcpMaxSeg,
             tcpFastOpen: this.tcpFastOpen,
@@ -1900,9 +2038,20 @@ class SockoptStreamSettings extends XrayCommonClass {
             interface: this.interface,
             V6Only: this.V6Only,
             tcpWindowClamp: this.tcpWindowClamp,
-            TcpMptcp: this.TcpMptcp,
+            tcpMptcp: this.tcpMptcp,
             tcpNoDelay: this.tcpNoDelay,
+            addressPortStrategy: this.addressPortStrategy,
         };
+        if (this.customSockopt.length > 0) {
+            json.customSockopt = this.customSockopt.map(item => item.toJson());
+        }
+        if (this.trustedXForwardedFor && this.trustedXForwardedFor.trim().length > 0) {
+            json.trustedXForwardedFor = this.trustedXForwardedFor.split('\n').filter(v => v.trim().length > 0);
+        }
+        if (this.happyEyeballs != undefined) {
+            json.happyEyeballs = this.happyEyeballs.toJson();
+        }
+        return json;
     }
 }
 

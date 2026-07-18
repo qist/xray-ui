@@ -28,7 +28,7 @@
                 <a-form-item label="domainStrategy">
                     <a-select v-model="inbound.stream.sockopt.domainStrategy" style="width:200px">
                         <a-select-option v-for="key in DOMAIN_STRATEGY" :value="key">[[ key ]]</a-select-option>
-                        </a-se-chlect>
+                    </a-select>
                 </a-form-item>
                 <a-form-item label="dialerProxy">
                     <a-input v-model.trim="inbound.stream.sockopt.dialerProxy" style="width: 165px"></a-input>
@@ -66,15 +66,87 @@
                     <a-input v-model.number="inbound.stream.sockopt.tcpWindowClamp" style="width: 165px;">
                     </a-input>
                 </a-form-item>
-                <a-form-item label="TcpMptcp">
-                    <a-switch v-model="inbound.stream.sockopt.TcpMptcp">
+                <a-form-item label="tcpMptcp">
+                    <a-switch v-model="inbound.stream.sockopt.tcpMptcp">
                     </a-switch>
                 </a-form-item>
                 <a-form-item label="tcpNoDelay">
                     <a-switch v-model="inbound.stream.sockopt.tcpNoDelay">
                     </a-switch>
                 </a-form-item>
+                <a-form-item label="addressPortStrategy">
+                    <a-select v-model="inbound.stream.sockopt.addressPortStrategy" style="width:200px">
+                        <a-select-option v-for="key in ADDRESS_PORT_STRATEGY" :value="key">[[ key ]]</a-select-option>
+                    </a-select>
+                </a-form-item>
+                <a-form-item label="trustedXForwardedFor">
+                    <a-input type="textarea" :rows="2" v-model="inbound.stream.sockopt.trustedXForwardedFor" style="width: 250px"></a-input>
+                </a-form-item>
 
+                <!-- happyEyeballs -->
+                <a-form-item label="happyEyeballs">
+                    <a-switch v-model="inbound.stream.sockopt.happyEyeballsSwitch"></a-switch>
+                </a-form-item>
+                <template v-if="inbound.stream.sockopt.happyEyeballsSwitch">
+                    <a-form-item label="tryDelayMs">
+                        <a-input v-model.number="inbound.stream.sockopt.happyEyeballs.tryDelayMs" style="width: 165px;">
+                        </a-input>
+                    </a-form-item>
+                    <a-form-item label="prioritizeIPv6">
+                        <a-switch v-model="inbound.stream.sockopt.happyEyeballs.prioritizeIPv6">
+                        </a-switch>
+                    </a-form-item>
+                    <a-form-item label="interleave">
+                        <a-input v-model.number="inbound.stream.sockopt.happyEyeballs.interleave" style="width: 165px;">
+                        </a-input>
+                    </a-form-item>
+                    <a-form-item label="maxConcurrentTry">
+                        <a-input v-model.number="inbound.stream.sockopt.happyEyeballs.maxConcurrentTry" style="width: 165px;">
+                        </a-input>
+                    </a-form-item>
+                </template>
+
+                <!-- customSockopt -->
+                <a-form-item label="customSockopt">
+                    <a-button size="small" @click="inbound.stream.sockopt.addCustomSockopt()">
+                        +
+                    </a-button>
+                </a-form-item>
+                <template v-for="(item, index) in inbound.stream.sockopt.customSockopt">
+                    <a-card :key="'custom-sockopt-' + index" style="margin-bottom: 10px;">
+                        <a-form-item label="system">
+                            <a-select v-model="item.system" style="width: 165px;">
+                                <a-select-option value="">不指定</a-select-option>
+                                <a-select-option v-for="key in CUSTOM_SOCKOPT_SYSTEM" :value="key">[[ key ]]</a-select-option>
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item label="network">
+                            <a-select v-model="item.network" style="width: 165px;">
+                                <a-select-option value="">不指定</a-select-option>
+                                <a-select-option v-for="key in CUSTOM_SOCKOPT_NETWORK" :value="key">[[ key ]]</a-select-option>
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item label="type">
+                            <a-select v-model="item.type" style="width: 165px;">
+                                <a-select-option v-for="key in CUSTOM_SOCKOPT_TYPE" :value="key">[[ key ]]</a-select-option>
+                            </a-select>
+                        </a-form-item>
+                        <a-form-item label="level">
+                            <a-input v-model.trim="item.level" style="width: 165px;"></a-input>
+                        </a-form-item>
+                        <a-form-item label="opt">
+                            <a-input v-model.trim="item.opt" style="width: 165px;"></a-input>
+                        </a-form-item>
+                        <a-form-item label="value">
+                            <a-input v-model.trim="item.value" style="width: 165px;"></a-input>
+                        </a-form-item>
+                        <a-form-item>
+                            <a-button size="small" @click="inbound.stream.sockopt.removeCustomSockopt(index)">
+                                -
+                            </a-button>
+                        </a-form-item>
+                    </a-card>
+                </template>
 
             </a-card>
         </transition>
