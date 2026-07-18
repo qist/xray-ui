@@ -1,24 +1,34 @@
 #!/bin/sh
-case $1 in
+# $1 = TARGETARCH (amd64, arm64, arm, 386, s390x)
+# $2 = TARGETVARIANT (v8, v7, v6, 或空)
+case "$1" in
     amd64)
         ARCH="64"
         FNAME="amd64"
         ;;
-    i386)
+    386)
         ARCH="32"
-        FNAME="i386"
+        FNAME="386"
         ;;
-    armv8 | arm64 | aarch64)
+    arm64)
         ARCH="arm64-v8a"
         FNAME="arm64"
         ;;
-    armv7 | arm | arm32)
-        ARCH="arm32-v7a"
-        FNAME="arm"
-        ;;
-    armv6)
-        ARCH="arm32-v6"
-        FNAME="arm"
+    arm)
+        case "$2" in
+            v6)
+                ARCH="arm32-v6"
+                FNAME="arm"
+                ;;
+            v7)
+                ARCH="arm32-v7a"
+                FNAME="arm"
+                ;;
+            *)
+                ARCH="arm32-v7a"
+                FNAME="arm"
+                ;;
+        esac
         ;;
     *)
         ARCH="64"

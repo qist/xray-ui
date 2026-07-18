@@ -4,6 +4,7 @@
 FROM --platform=$BUILDPLATFORM golang:alpine AS build
 WORKDIR /app
 ARG TARGETARCH
+ARG TARGETVARIANT
 
 RUN apk --no-cache --update add \
   wget \
@@ -16,7 +17,7 @@ ENV CGO_ENABLED=0
 RUN GOOS=linux GOARCH=${TARGETARCH} \
     go build -trimpath -ldflags "-w -s" -o build/xray-ui main.go
 RUN chmod +x  ./DockerInit.sh && \
-     ./DockerInit.sh "$TARGETARCH"
+     ./DockerInit.sh "$TARGETARCH" "$TARGETVARIANT"
 
 # ========================================================
 # Stage: Final Image of xray-ui
