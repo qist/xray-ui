@@ -1,7 +1,7 @@
 # ========================================================
-# Stage: build
+# Stage: build (固定在 amd64 上运行，用 Go 交叉编译目标架构)
 # ========================================================
-FROM golang:alpine AS build
+FROM --platform=$BUILDPLATFORM golang:alpine AS build
 WORKDIR /app
 ARG TARGETARCH
 
@@ -12,14 +12,16 @@ RUN apk --no-cache --update add \
 COPY . .
 COPY .github/docker/files/DockerInit.sh  /app/DockerInit.sh
 ENV CGO_ENABLED=0
-RUN go build -trimpath -ldflags "-w -s" -o build/xray-ui main.go
+# Go 交叉编译：在原生 amd64 上编译出 TARGETARCH 的二进制，无需 QEMU
+RUN GOOS=linux GOARCH=${TARGETARCH} \
+    go build -trimpath -ldflags "-w -s" -o build/xray-ui main.go
 RUN chmod +x  ./DockerInit.sh && \
      ./DockerInit.sh "$TARGETARCH"
 
 # ========================================================
 # Stage: Final Image of xray-ui
 # ========================================================
-FROM alpine
+FROM --platform=$TARGETPLATFORM alpine
 ENV TZ=Asia/Shanghai
 WORKDIR /app
 
