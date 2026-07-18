@@ -286,24 +286,28 @@ bash <(curl -Ls  https://raw.githubusercontent.com/qist/xray-ui/main/install.sh)
 <details>
   <summary>点击查看 编译</summary>
 
+本项目已改为纯 Go 依赖（无 CGO），无需安装 C 编译器，支持直接交叉编译。
+
 ```bash
 git clone https://github.com/qist/xray-ui.git
 
 cd xray-ui
-debian/ubuntu解决方案：sudo apt-get install libc6-dev
-redhat/centos解决方案：yum install glibc-static.x86_64 -y 或者 sudo yum install glibc-static
-CGO_ENABLED=1 go build -o xray-ui/xray-ui  -ldflags '-linkmode "external" -extldflags "-static"' main.go
-# 交叉编译
-在centos7中安装，yum install gcc-aarch64-linux-gnu
-去https://releases.linaro.org/components/toolchain/binaries/ 找 latest-7
-下载 aarch64-linux-gnu/sysroot-glibc-linaro-2.25-2019.02-aarch64-linux-gnu.tar.xz
-自己找个目录, 解压 tar Jxvf sysroot-glibc-linaro-2.25-2019.02-aarch64-linux-gnu.tar.xz
-build时，指定 sysroot 的位置。
 
-用 CGO_ENABLED=1 GOOS=linux GOARCH=arm64 CC="aarch64-linux-gnu-gcc" CGO_CFLAGS="-g -O2 --sysroot=/..../sysroot-glibc-linaro-2.25-2019.02-aarch64-linux-gnu/" CGO_LDFLAGS="-g -O2 --sysroot=/..../sysroot-glibc-linaro-2.25-2019.02-aarch64-linux-gnu/" go build -v -ldflags "-w -s" -o xray-ui/xray-ui main.go 编译成功。
-debian/ubuntu解决方案
-apt install gcc-aarch64-linux-gnu
-CGO_ENABLED=1 GOARCH=arm64 CC="aarch64-linux-gnu-gcc" go build -o xray-ui/xray-ui  -ldflags '-linkmode "external" -extldflags "-static"' main.go 
+# 本机编译
+CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -buildid=' -o xray-ui/xray-ui main.go
+
+# 交叉编译（无需安装交叉编译工具链）
+# ARM64
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-s -w -buildid=' -o xray-ui/xray-ui main.go
+
+# ARMv7
+CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -trimpath -ldflags '-s -w -buildid=' -o xray-ui/xray-ui main.go
+
+# 386
+CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -trimpath -ldflags '-s -w -buildid=' -o xray-ui/xray-ui main.go
+
+# s390x
+CGO_ENABLED=0 GOOS=linux GOARCH=s390x go build -trimpath -ldflags '-s -w -buildid=' -o xray-ui/xray-ui main.go
 ```
 </details>
 

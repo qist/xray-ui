@@ -6,16 +6,13 @@ WORKDIR /app
 ARG TARGETARCH
 
 RUN apk --no-cache --update add \
-  build-base \
-  gcc \
   wget \
   unzip
 
 COPY . .
 COPY .github/docker/files/DockerInit.sh  /app/DockerInit.sh
-ENV CGO_ENABLED=1
-ENV CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
-RUN go build -ldflags "-w -s" -o build/xray-ui main.go
+ENV CGO_ENABLED=0
+RUN go build -trimpath -ldflags "-w -s" -o build/xray-ui main.go
 RUN chmod +x  ./DockerInit.sh && \
      ./DockerInit.sh "$TARGETARCH"
 

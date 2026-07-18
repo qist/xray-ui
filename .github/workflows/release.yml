@@ -28,51 +28,28 @@ jobs:
         with:
           go-version: "stable"
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          if [ "${{ matrix.platform }}" == "arm64" ]; then
-            sudo apt install gcc-aarch64-linux-gnu
-          elif [ "${{ matrix.platform }}" == "armv7" ]; then
-            sudo apt install gcc-arm-linux-gnueabihf
-          elif [ "${{ matrix.platform }}" == "armv6" ]; then
-            sudo apt install gcc-arm-linux-gnueabihf
-          elif [ "${{ matrix.platform }}" == "386" ]; then
-            sudo apt install gcc-i686-linux-gnu
-          elif [ "${{ matrix.platform }}" == "armv5" ]; then
-            sudo apt install gcc-arm-linux-gnueabi
-          elif [ "${{ matrix.platform }}" == "s390x" ]; then
-            sudo apt install gcc-s390x-linux-gnu
-          fi
-
       - name: Build xray-ui
         run: |
-          export CGO_ENABLED=1
+          export CGO_ENABLED=0
           export GOOS=linux
           export GOARCH=${{ matrix.platform }}
           if [ "${{ matrix.platform }}" == "arm64" ]; then
             export GOARCH=arm64
-            export CC=aarch64-linux-gnu-gcc
           elif [ "${{ matrix.platform }}" == "armv7" ]; then
             export GOARCH=arm
             export GOARM=7
-            export CC=arm-linux-gnueabihf-gcc
           elif [ "${{ matrix.platform }}" == "armv6" ]; then
             export GOARCH=arm
             export GOARM=6
-            export CC=arm-linux-gnueabihf-gcc
           elif [ "${{ matrix.platform }}" == "386" ]; then
             export GOARCH=386
-            export CC=i686-linux-gnu-gcc
           elif [ "${{ matrix.platform }}" == "armv5" ]; then
             export GOARCH=arm
             export GOARM=5
-            export CC=arm-linux-gnueabi-gcc
           elif [ "${{ matrix.platform }}" == "s390x" ]; then
             export GOARCH=s390x
-            export CC=s390x-linux-gnu-gcc
           fi
-          go build -o xray-release -trimpath -ldflags '-s -w -buildid= -linkmode "external" -extldflags "-static"' main.go
+          go build -o xray-release -trimpath -ldflags '-s -w -buildid=' main.go
           
           mkdir xray-ui
           cp xray-release xray-ui/xray-release
