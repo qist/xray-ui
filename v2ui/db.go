@@ -1,7 +1,7 @@
 package v2ui
 
 import (
-	"github.com/glebarez/sqlite"
+	"github.com/qist/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
