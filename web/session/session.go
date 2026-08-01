@@ -28,7 +28,10 @@ func GetLoginUser(c *gin.Context) *model.User {
 	if obj == nil {
 		return nil
 	}
-	user := obj.(model.User)
+	user, ok := obj.(model.User)
+	if !ok {
+		return nil
+	}
 	return &user
 }
 
