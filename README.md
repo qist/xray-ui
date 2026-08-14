@@ -554,4 +554,4 @@ Tg机器人ChatId
 
 ### Star
 
-[![Star History Chart](https://api.star-history.com/svg?repos=qist/xray-ui&type=Date)](https://www.star-history.com/#qist/xray-ui&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=qist/xray-ui&type=Date)](https://star-history.dera.page/#qist/xray-ui&Date)
