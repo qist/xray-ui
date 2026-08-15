@@ -291,10 +291,12 @@ func (s *ServerService) UpdateXray(version string) error {
 		return err
 	}
 
-	s.xrayService.StopXray()
+	// xray 未运行时 StopXray 会返回错误，这是正常情况，不应阻断更新流程
+	if err := s.xrayService.StopXray(); err != nil {
+		logger.Debug("stop xray before xray update:", err)
+	}
 	defer func() {
-		err := s.xrayService.RestartXray(true)
-		if err != nil {
+		if err := s.xrayService.RestartXray(true); err != nil {
 			logger.Error("start xray failed:", err)
 		}
 	}()
@@ -454,8 +456,9 @@ func (s *ServerService) UpdateGeoip(version string, restart bool) error {
 		return nil
 	}
 
+	// xray 未运行时 StopXray 会返回错误，这是正常情况，不应阻断安装流程
 	if err := s.xrayService.StopXray(); err != nil {
-		return err
+		logger.Debug("stop xray before geoip restart:", err)
 	}
 
 	defer func() {
