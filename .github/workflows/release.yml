@@ -106,7 +106,8 @@ jobs:
           tag: ${{ github.ref }}
           file: xray-ui-linux-${{ matrix.platform }}.tar.gz
           asset_name: xray-ui-linux-${{ matrix.platform }}.tar.gz
-          prerelease: true
+          prerelease: false
           overwrite: true
+          make_latest: true
       - name: Release Changelog Builder
         uses: mikepenz/release-changelog-builder-action@v6
