@@ -19,7 +19,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.55.0
 	golang.org/x/text v0.41.0
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.1
 	gorm.io/gorm v1.31.2
 )
 
