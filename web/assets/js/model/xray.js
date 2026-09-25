@@ -921,15 +921,15 @@ FinalMaskSettings.Mask.Settings = class extends XrayCommonClass {
         const C = FinalMaskSettings.Mask.Settings;
         switch (type) {
             case 'header-custom': return new C({ tcpHeaderCustom: new HeaderCustom(), udpHeaderCustom: new UdpHeaderCustom() });
-            case 'fragment':      return new C({ fragment: new Fragment() });
-            case 'sudoku':        return new C({ sudoku: new Sudoku() });
-            case 'mkcp-legacy':   return new C({ mkcpLegacy: new MkcpLegacy() });
-            case 'noise':         return new C({ noise: new Noise() });
-            case 'salamander':    return new C({ salamander: new Salamander() });
-            case 'xdns':          return new C({ xdns: new Xdns() });
-            case 'xicmp':         return new C({ xicmp: new Xicmp() });
-            case 'realm':         return new C({ realm: new Realm() });
-            default:              return new C();
+            case 'fragment': return new C({ fragment: new Fragment() });
+            case 'sudoku': return new C({ sudoku: new Sudoku() });
+            case 'mkcp-legacy': return new C({ mkcpLegacy: new MkcpLegacy() });
+            case 'noise': return new C({ noise: new Noise() });
+            case 'salamander': return new C({ salamander: new Salamander() });
+            case 'xdns': return new C({ xdns: new Xdns() });
+            case 'xicmp': return new C({ xicmp: new Xicmp() });
+            case 'realm': return new C({ realm: new Realm() });
+            default: return new C();
         }
     }
 
@@ -941,14 +941,14 @@ FinalMaskSettings.Mask.Settings = class extends XrayCommonClass {
                     tcpHeaderCustom: protocol === 'tcp' ? HeaderCustom.fromJson(json) : new HeaderCustom(),
                     udpHeaderCustom: protocol === 'udp' ? UdpHeaderCustom.fromJson(json) : new UdpHeaderCustom(),
                 });
-            case 'fragment':       return new C({ fragment: Fragment.fromJson(json) });
-            case 'sudoku':         return new C({ sudoku: Sudoku.fromJson(json) });
-            case 'mkcp-legacy':    return new C({ mkcpLegacy: MkcpLegacy.fromJson(json) });
-            case 'noise':          return new C({ noise: Noise.fromJson(json) });
-            case 'salamander':     return new C({ salamander: Salamander.fromJson(json) });
-            case 'xdns':           return new C({ xdns: Xdns.fromJson(json) });
-            case 'xicmp':          return new C({ xicmp: Xicmp.fromJson(json) });
-            case 'realm':          return new C({ realm: Realm.fromJson(json) });
+            case 'fragment': return new C({ fragment: Fragment.fromJson(json) });
+            case 'sudoku': return new C({ sudoku: Sudoku.fromJson(json) });
+            case 'mkcp-legacy': return new C({ mkcpLegacy: MkcpLegacy.fromJson(json) });
+            case 'noise': return new C({ noise: Noise.fromJson(json) });
+            case 'salamander': return new C({ salamander: Salamander.fromJson(json) });
+            case 'xdns': return new C({ xdns: Xdns.fromJson(json) });
+            case 'xicmp': return new C({ xicmp: Xicmp.fromJson(json) });
+            case 'realm': return new C({ realm: Realm.fromJson(json) });
             default: {
                 // 兜底：未知 type 存为 kv 对
                 const entries = [];
@@ -966,14 +966,14 @@ FinalMaskSettings.Mask.Settings = class extends XrayCommonClass {
     toJson(type = '', protocol = '') {
         switch (type) {
             case 'header-custom': return protocol === 'udp' ? this.udpHeaderCustom.toJson() : this.tcpHeaderCustom.toJson();
-            case 'fragment':       return this.fragment.toJson();
-            case 'sudoku':         return this.sudoku.toJson();
-            case 'mkcp-legacy':    return this.mkcpLegacy.toJson();
-            case 'noise':          return this.noise.toJson();
-            case 'salamander':     return this.salamander.toJson();
-            case 'xdns':           return this.xdns.toJson();
-            case 'xicmp':          return this.xicmp.toJson();
-            case 'realm':          return this.realm.toJson();
+            case 'fragment': return this.fragment.toJson();
+            case 'sudoku': return this.sudoku.toJson();
+            case 'mkcp-legacy': return this.mkcpLegacy.toJson();
+            case 'noise': return this.noise.toJson();
+            case 'salamander': return this.salamander.toJson();
+            case 'xdns': return this.xdns.toJson();
+            case 'xicmp': return this.xicmp.toJson();
+            case 'realm': return this.realm.toJson();
             default: {
                 const obj = {};
                 (this._entries || []).forEach(e => {
@@ -997,14 +997,14 @@ FinalMaskSettings.Mask.Settings = class extends XrayCommonClass {
             }
             case 'sudoku': {
                 const su = s.sudoku;
-                return `sudoku(pw:${su.password ? 'yes' : 'no'},table:${su.customTable ? 'yes' : 'no'},tables:${su.customTables.filter(v=>v).length},pad:${su.paddingMin}-${su.paddingMax})`;
+                return `sudoku(pw:${su.password ? 'yes' : 'no'},table:${su.customTable ? 'yes' : 'no'},tables:${su.customTables.filter(v => v).length},pad:${su.paddingMin}-${su.paddingMax})`;
             }
-            case 'mkcp-legacy':    return `mkcp-legacy(hdr:${s.mkcpLegacy.header || 'none'})`;
-            case 'noise':          return `noise(reset:${s.noise.reset},items:${s.noise.noise.length})`;
-            case 'salamander':     return `salamander(pw:${s.salamander.password ? 'yes' : 'no'}${s.salamander.packetSize ? ',gecko:' + s.salamander.packetSize : ''})`;
-            case 'xdns':           return `xdns(domains:${s.xdns.domains.filter(d=>d).length},resolvers:${s.xdns.resolvers.filter(r=>r).length})`;
-            case 'xicmp':          return `xicmp(dgram:${s.xicmp.dgram},ips:${s.xicmp.ips.length})`;
-            case 'realm':          return `realm(${s.realm.url || 'no-url'})`;
+            case 'mkcp-legacy': return `mkcp-legacy(hdr:${s.mkcpLegacy.header || 'none'})`;
+            case 'noise': return `noise(reset:${s.noise.reset},items:${s.noise.noise.length})`;
+            case 'salamander': return `salamander(pw:${s.salamander.password ? 'yes' : 'no'}${s.salamander.packetSize ? ',gecko:' + s.salamander.packetSize : ''})`;
+            case 'xdns': return `xdns(domains:${s.xdns.domains.filter(d => d).length},resolvers:${s.xdns.resolvers.filter(r => r).length})`;
+            case 'xicmp': return `xicmp(dgram:${s.xicmp.dgram},ips:${s.xicmp.ips.length})`;
+            case 'realm': return `realm(${s.realm.url || 'no-url'})`;
             default: return type;
         }
     }
@@ -1015,7 +1015,7 @@ function parseLooseValue(v) {
     const t = String(v).trim();
     if (t === 'true' || t === 'false' || t === 'null' || /^-?\d+(\.\d+)?$/.test(t)
         || (t.startsWith('{') && t.endsWith('}')) || (t.startsWith('[') && t.endsWith(']'))) {
-        try { return JSON.parse(t); } catch {}
+        try { return JSON.parse(t); } catch { }
     }
     return v;
 }
@@ -1040,18 +1040,18 @@ class HeaderCustom extends XrayCommonClass {
     static _addGroup(arr) { arr.push(HeaderCustom._defaultGroup()); }
     static _removeGroup(arr, i) { arr.length <= 1 ? arr.splice(0, 1, HeaderCustom._defaultGroup()) : arr.splice(i, 1); }
 
-    addClientsGroup()    { HeaderCustom._addGroup(this.clients); }
-    removeClientsGroup(i){ HeaderCustom._removeGroup(this.clients, i); }
-    addClient(gi)        { HeaderCustom._add(this.clients, gi); }
-    removeClient(gi, i)  { HeaderCustom._remove(this.clients, gi, i); }
-    addServersGroup()    { HeaderCustom._addGroup(this.servers); }
-    removeServersGroup(i){ HeaderCustom._removeGroup(this.servers, i); }
-    addServer(gi)        { HeaderCustom._add(this.servers, gi); }
-    removeServer(gi, i)  { HeaderCustom._remove(this.servers, gi, i); }
-    addErrorsGroup()     { HeaderCustom._addGroup(this.errors); }
+    addClientsGroup() { HeaderCustom._addGroup(this.clients); }
+    removeClientsGroup(i) { HeaderCustom._removeGroup(this.clients, i); }
+    addClient(gi) { HeaderCustom._add(this.clients, gi); }
+    removeClient(gi, i) { HeaderCustom._remove(this.clients, gi, i); }
+    addServersGroup() { HeaderCustom._addGroup(this.servers); }
+    removeServersGroup(i) { HeaderCustom._removeGroup(this.servers, i); }
+    addServer(gi) { HeaderCustom._add(this.servers, gi); }
+    removeServer(gi, i) { HeaderCustom._remove(this.servers, gi, i); }
+    addErrorsGroup() { HeaderCustom._addGroup(this.errors); }
     removeErrorsGroup(i) { HeaderCustom._removeGroup(this.errors, i); }
-    addError(gi)         { HeaderCustom._add(this.errors, gi); }
-    removeError(gi, i)   { HeaderCustom._remove(this.errors, gi, i); }
+    addError(gi) { HeaderCustom._add(this.errors, gi); }
+    removeError(gi, i) { HeaderCustom._remove(this.errors, gi, i); }
 
     static _fromJsonGroups(groups) {
         if (ObjectUtil.isEmpty(groups) || !groups.length) return [HeaderCustom._defaultGroup()];
@@ -1070,7 +1070,7 @@ class HeaderCustom extends XrayCommonClass {
         return {
             clients: this.clients.map(g => g.map(s => s.toJson())),
             servers: this.servers.map(g => g.map(s => s.toJson())),
-            errors:  this.errors.map(g => g.map(s => s.toJson())),
+            errors: this.errors.map(g => g.map(s => s.toJson())),
         };
     }
 }
@@ -1121,9 +1121,9 @@ class UdpHeaderCustom extends XrayCommonClass {
         this.server = server;
     }
 
-    addClient()    { this.client.push(new UdpPacketSetting()); }
+    addClient() { this.client.push(new UdpPacketSetting()); }
     removeClient(i) { this.client.length <= 1 ? this.client.splice(0, 1, new UdpPacketSetting()) : this.client.splice(i, 1); }
-    addServer()    { this.server.push(new UdpPacketSetting()); }
+    addServer() { this.server.push(new UdpPacketSetting()); }
     removeServer(i) { this.server.length <= 1 ? this.server.splice(0, 1, new UdpPacketSetting()) : this.server.splice(i, 1); }
 
     static _fromJsonArr(arr) {
@@ -1374,10 +1374,10 @@ class Xdns extends XrayCommonClass {
         this.resolvers = resolvers;
     }
 
-    addDomain(v = '')    { this.domains.push(v); }
-    removeDomain(i)      { this.domains.length <= 1 ? this.domains.splice(0, 1, '') : this.domains.splice(i, 1); }
-    addResolver(v = '')  { this.resolvers.push(v); }
-    removeResolver(i)    { this.resolvers.length <= 1 ? this.resolvers.splice(0, 1, '') : this.resolvers.splice(i, 1); }
+    addDomain(v = '') { this.domains.push(v); }
+    removeDomain(i) { this.domains.length <= 1 ? this.domains.splice(0, 1, '') : this.domains.splice(i, 1); }
+    addResolver(v = '') { this.resolvers.push(v); }
+    removeResolver(i) { this.resolvers.length <= 1 ? this.resolvers.splice(0, 1, '') : this.resolvers.splice(i, 1); }
 
     static fromJson(json = {}) {
         return new Xdns(
@@ -1401,7 +1401,7 @@ class Xicmp extends XrayCommonClass {
     }
 
     addIp(v = '') { this.ips.push(v); }
-    removeIp(i)   { this.ips.splice(i, 1); }
+    removeIp(i) { this.ips.splice(i, 1); }
 
     static fromJson(json = {}) { return new Xicmp(json.dgram || false, ObjectUtil.isEmpty(json.ips) ? [] : json.ips); }
     toJson() { return { dgram: this.dgram, ips: this.ips }; }
@@ -1419,8 +1419,8 @@ class Realm extends XrayCommonClass {
         this.tlsConfig = tlsConfig || new Realm.TlsConfig();
     }
 
-    addStunServer(v = '')  { this.stunServers.push(v); }
-    removeStunServer(i)    { this.stunServers.length <= 1 ? this.stunServers.splice(0, 1, '') : this.stunServers.splice(i, 1); }
+    addStunServer(v = '') { this.stunServers.push(v); }
+    removeStunServer(i) { this.stunServers.length <= 1 ? this.stunServers.splice(0, 1, '') : this.stunServers.splice(i, 1); }
 
     static fromJson(json = {}) {
         return new Realm(
@@ -2286,9 +2286,6 @@ class Inbound extends XrayCommonClass {
     set tls(isTls) {
         if (isTls) {
             this.stream.security = 'tls';
-            if (this.protocol === Protocols.VLESS) {
-                this.authentication = false;
-            }
             // 根据协议设置 TLS 默认值
             if (this.protocol === Protocols.HYSTERIA) {
                 this.stream.tls.alpn = ['h3'];
@@ -2312,9 +2309,6 @@ class Inbound extends XrayCommonClass {
     set reality(isReaLITy) {
         if (isReaLITy) {
             this.stream.security = 'reality';
-            if (this.protocol === Protocols.VLESS) {
-                this.authentication = false;
-            }
         } else {
             this.stream.security = 'none';
         }
@@ -2680,7 +2674,7 @@ class Inbound extends XrayCommonClass {
         if (!Array.isArray(clients)) return false;
         return clients.some(c => c?.flow === TLS_FLOW_CONTROL.VISION || c?.flow === TLS_FLOW_CONTROL.VISION_UDP443);
     }
-    
+
     canEnableReaLITy() {
         switch (this.protocol) {
             case Protocols.VLESS:
@@ -2716,8 +2710,6 @@ class Inbound extends XrayCommonClass {
             if (!this.settings.encryption) {
                 this.settings.encryption = 'none';
             }
-            this.tls = false;
-            this.reality = false;
             return;
         }
 
@@ -3566,7 +3558,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
         encryption = "none",
         fallbacks = [],
         selectedAuth = undefined,
-         testseed = [900, 500, 900, 256],
+        testseed = [900, 500, 900, 256],
     ) {
         super(protocol);
         this.vlesses = vlesses;
@@ -3586,7 +3578,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
     }
 
     static fromJson(json = {}) {
-                // Ensure testseed is always initialized as an array
+        // Ensure testseed is always initialized as an array
         let testseed = [900, 500, 900, 256];
         if (json.testseed && Array.isArray(json.testseed) && json.testseed.length >= 4) {
             testseed = json.testseed;
@@ -3598,7 +3590,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
             json.encryption,
             Inbound.VLESSSettings.Fallback.fromJson(json.fallbacks),
             json.selectedAuth,
-             testseed,
+            testseed,
         );
     }
 
@@ -3623,7 +3615,7 @@ Inbound.VLESSSettings = class extends Inbound.Settings {
         if (hasFlow && this.testseed && this.testseed.length >= 4) {
             json.testseed = this.testseed;
         }
-        
+
         return json;
     }
 };
