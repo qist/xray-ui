@@ -1,7 +1,7 @@
 {{define "form/shadowsocks"}}
 <a-form layout="inline">
     <a-form-item label="加密">
-        <a-select v-model="inbound.settings.method" style="width: 265px;">
+        <a-select v-model="inbound.settings.method" style="width: 265px;" @change="inbound.settings.onMethodChange()">
             <a-select-option v-for="method in SSMethods" :value="method">[[ method ]]</a-select-option>
         </a-select>
     </a-form-item>

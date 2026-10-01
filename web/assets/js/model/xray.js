@@ -3791,8 +3791,50 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
         this.network = network;
     }
 
+    static isBlake3(method) {
+        return method === SSMethods.BLAKE3_AES_128_GCM ||
+            method === SSMethods.BLAKE3_AES_256_GCM ||
+            method === SSMethods.BLAKE3_CHACHA20_POLY1305;
+    }
+
+    // SS2022 要求密钥长度：aes-128-gcm 为 16 字节，aes-256-gcm / chacha20-poly1305 为 32 字节
+    static getKeySize(method) {
+        return method === SSMethods.BLAKE3_AES_128_GCM ? 16 : 32;
+    }
+
+    static genPassword(method) {
+        if (!Inbound.ShadowsocksSettings.isBlake3(method)) {
+            return btoa(RandomUtil.randomSeq(32));
+        }
+        const bytes = new Uint8Array(Inbound.ShadowsocksSettings.getKeySize(method));
+        crypto.getRandomValues(bytes);
+        let str = '';
+        for (const b of bytes) {
+            str += String.fromCharCode(b);
+        }
+        return btoa(str);
+    }
+
+    static isValidPassword(password, method) {
+        if (!Inbound.ShadowsocksSettings.isBlake3(method)) {
+            return !ObjectUtil.isEmpty(password);
+        }
+        try {
+            return atob(password).length === Inbound.ShadowsocksSettings.getKeySize(method);
+        } catch (e) {
+            return false;
+        }
+    }
+
     refreshPassword() {
-        this.password = btoa(RandomUtil.randomSeq(32));
+        this.password = Inbound.ShadowsocksSettings.genPassword(this.method);
+    }
+
+    // 切换加密方法后，若当前密码不满足新方法的密钥长度，自动重新生成
+    onMethodChange() {
+        if (!Inbound.ShadowsocksSettings.isValidPassword(this.password, this.method)) {
+            this.refreshPassword();
+        }
     }
 
     static fromJson(json = {}) {
