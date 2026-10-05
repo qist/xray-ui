@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0
-	github.com/Workiva/go-datastructures v1.1.7
+	github.com/Workiva/go-datastructures v1.1.8
 	github.com/cloudflare/circl v1.6.5
 	github.com/gin-contrib/sessions v1.1.2
 	github.com/gin-gonic/gin v1.12.0
