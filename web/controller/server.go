@@ -38,7 +38,6 @@ type ServerController struct {
 
 	lastGeositeVersions        []string
 	lastGeositeGetVersionsTime time.Time
-	xraysecretkey        map[string]string
 	mldsa65secretkey  map[string]string
 	version string
 }
@@ -177,10 +176,7 @@ func (a *ServerController) installGeoip(c *gin.Context) {
 
 func (a *ServerController) XraySecretKey(c *gin.Context) {
 	key := SecretKey()
-	a.xraysecretkey = key
-	jsonObj(c, a.xraysecretkey, nil)
-	//fmt.Println("Private key:", privateKeyBase64)
-	//fmt.Println("Public key:", publicKeyBase64)
+	jsonObj(c, key, nil)
 }
 
 
