@@ -18,7 +18,7 @@ require (
 	github.com/xtls/xray-core v1.260327.1-0.20260710210335-64fada32b5b9
 	go.uber.org/atomic v1.12.0
 	golang.org/x/crypto v0.57.0
-	golang.org/x/text v0.42.0
+	golang.org/x/text v0.43.0
 	google.golang.org/grpc v1.84.0
 	gorm.io/gorm v1.31.2
 )
@@ -66,7 +66,7 @@ require (
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/arch v0.29.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
