@@ -405,7 +405,10 @@ func (s *Server) Start() (err error) {
 	}
 	
 	listenAddr := net.JoinHostPort(listen, strconv.Itoa(port))
-	listener, err := net.Listen("tcp", listenAddr)
+	// CVE-2026-98432: Go 1.24+ 默认在内核支持时启用 MPTCP，面板自身监听显式禁用
+	listenConfig := net.ListenConfig{}
+	listenConfig.SetMultipathTCP(false)
+	listener, err := listenConfig.Listen(context.Background(), "tcp", listenAddr)
 	if err != nil {
 		return err
 	}
