@@ -1,12 +1,12 @@
 module xray-ui
 
-go 1.26.0
+go 1.26.10
 
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/Workiva/go-datastructures v1.1.8
 	github.com/cloudflare/circl v1.6.5
-	github.com/gin-contrib/sessions v1.1.2
+	github.com/gin-contrib/sessions v1.1.3
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.6.0
