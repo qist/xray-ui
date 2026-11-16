@@ -6,6 +6,14 @@
 >
 > 迁移说明、试用步骤、反馈方式与已知限制：[CoreFusion 试用与建议](CoreFusion试用与建议.md)（[English](CoreFusion-Trial.en.md) · [Русский](CoreFusion-Trial.ru.md) · [فارسی](CoreFusion-Trial.fa.md)）
 
+> **Project status: no longer maintained; will become a read-only repository.**
+>
+> No new features, compatibility fixes or security updates will be provided. Existing deployments keep working. Issues will be closed once the repository is archived.
+>
+> The main project going forward is **[CoreFusion](https://github.com/qist/corefusion)** (Panel + Agent multi-node panel; UI and docs available in 16 languages). It is in public beta: you are welcome to try it in a test environment and report problems, and to write tutorials or record videos. **During testing we accept issues only, not pull requests.**
+>
+> Migration notes, trial steps, feedback and known limitations: [CoreFusion Trial Guide](CoreFusion-Trial.en.md)
+
 本项目基于上游 X-UI 项目进行功能改动。在此感谢 [vaxilu](https://github.com/vaxilu/x-ui) 及各位为此项目做出贡献的开发者
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
