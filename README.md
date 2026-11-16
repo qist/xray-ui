@@ -4,7 +4,7 @@
 >
 > 后续主力项目是 **[CoreFusion](https://github.com/qist/corefusion)**（Panel + Agent 多节点面板，界面与文档均提供 16 种语言）。目前处于公开测试阶段：欢迎在测试环境试用并反馈问题，也欢迎写教程、录视频；**测试期间只接收 issue，不接收 PR**。
 >
-> 迁移说明、试用步骤、反馈方式与已知限制：[CoreFusion 试用与建议](CoreFusion试用与建议.md)
+> 迁移说明、试用步骤、反馈方式与已知限制：[CoreFusion 试用与建议](CoreFusion试用与建议.md)（[English](CoreFusion-Trial.en.md) · [Русский](CoreFusion-Trial.ru.md) · [فارسی](CoreFusion-Trial.fa.md)）
 
 本项目基于上游 X-UI 项目进行功能改动。在此感谢 [vaxilu](https://github.com/vaxilu/x-ui) 及各位为此项目做出贡献的开发者
 

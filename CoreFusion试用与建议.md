@@ -2,6 +2,8 @@
 
 > xray-ui 不再维护，并会改为只读仓库。后续主力项目是 CoreFusion，欢迎在测试环境试用、反馈问题，也欢迎写教程、录视频。
 
+其他语言：[English](CoreFusion-Trial.en.md) · [Русский](CoreFusion-Trial.ru.md) · [فارسی](CoreFusion-Trial.fa.md)
+
 ## 1. xray-ui 的后续安排
 
 - 本项目（xray-ui）**停止维护**，并将在近期改为**只读仓库**。
